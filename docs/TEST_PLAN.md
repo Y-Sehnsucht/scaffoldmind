@@ -1,0 +1,112 @@
+# ScaffoldMind 明序 Test Plan
+
+This is the initial MVP test plan based on `docs/PRD.md`.
+
+## 1. Documentation And Scope Checks
+
+- Confirm `docs/PRD.md` remains unchanged unless explicitly requested.
+- Confirm all five learning modes are documented and preserved.
+- Confirm the right-side question history sidebar is documented and preserved.
+- Confirm MVP exclusions are visible: no login, no teacher dashboard, no OCR pipeline, no vector database, no cloud sync.
+- Confirm `.env.example` contains placeholders only.
+- Confirm `.gitignore` includes `.env`.
+- Confirm no real API key appears in repository files.
+
+## 2. Frontend Manual Tests
+
+Run after the React app exists.
+
+- App loads without crashing.
+- Single-page three-column layout is visible.
+- Subject selector switches between CSAPP and Data Structures.
+- All five learning modes can be selected:
+  - Context Stacking
+  - After-class deep review
+  - Examiner perspective
+  - Feynman explanation
+  - Multi-source collision
+- Each mode shows the correct input fields.
+- Learning preference chips toggle on and off.
+- Empty required input shows a helpful prompt.
+- Failed generation does not erase user input.
+- Structured analysis appears in the center area.
+- At least three guided questions appear after analysis.
+- Selecting a guided question adds it to the right-side question history.
+- Clicking a question history item navigates to or highlights the matching answer.
+- Page-number link opens the PPT original page side drawer.
+- Closing the side drawer does not lose the current learning content.
+- User attempt submission shows a diagnosis area.
+- Obsidian Markdown can be copied.
+- Learning record can be saved, reviewed, and deleted.
+- Refreshing the page preserves localStorage-backed question history and learning records.
+
+## 3. Backend Manual Tests
+
+Run after the Express backend exists.
+
+- Server starts with `PORT` from local `.env`.
+- Server fails gracefully or reports configuration clearly when required environment variables are missing.
+- `POST /api/analyze` accepts JSON and returns structured analysis.
+- `POST /api/deep-dive` accepts a selected guided question and returns an answer plus history item.
+- `POST /api/diagnose` quotes the user's answer and returns an error type.
+- `POST /api/obsidian` returns Markdown with callouts, wikilinks, and page source.
+- `POST /api/collision` compares three text sources.
+- API errors return JSON with `ok: false`.
+- AI malformed responses produce recoverable fallback errors.
+- API keys never appear in response bodies or browser-visible code.
+
+## 4. Key Path Acceptance Test
+
+The final PRD demo path must pass:
+
+1. Open ScaffoldMind 明序.
+2. Select CSAPP.
+3. Select after-class deep review.
+4. Enter PPT page 12 content.
+5. Generate structured analysis.
+6. View core concepts, essence explanation, context relation, exam focus, pitfalls, guided questions, and user task.
+7. Click "查看第 12 页原始内容".
+8. Confirm the side drawer opens with image placeholder or uploaded image and extracted text.
+9. Select one guided question.
+10. Confirm the question appears in the right-side history.
+11. Submit an answer to the user attempt question.
+12. Confirm the diagnosis includes error type, quote from user answer, suggestion, and reinforcement task.
+13. Copy Obsidian Markdown.
+14. Save the learning record.
+15. Refresh the page and confirm saved records and question history remain.
+
+## 5. Suggested Automated Tests
+
+Unit tests:
+
+- `promptBuilder` builds different prompts for all five modes.
+- `promptBuilder` includes subject and learning preferences.
+- localStorage helpers save, load, and delete records safely.
+- Obsidian export includes callouts, wikilinks, and source page.
+
+Integration tests:
+
+- `POST /api/analyze` validates required fields.
+- `POST /api/diagnose` validates `userAttempt`.
+- API routes return structured errors.
+
+E2E tests:
+
+- Complete mock learning loop without a real AI provider.
+- Question history persists after refresh.
+- Side drawer opens and closes.
+- API failure shows error state and keeps user input.
+
+## 6. Build And Security Checks
+
+Before delivery:
+
+- Run frontend build when configured.
+- Run backend tests when configured.
+- Search repository for accidental API key patterns.
+- Confirm `.env` is not tracked by Git.
+- Confirm `node_modules`, `dist`, `coverage`, and logs are not committed.
+
+## 7. Current Status
+
+Only documentation exists at this stage. Code-level tests will become executable after the frontend and backend skeletons are initialized.

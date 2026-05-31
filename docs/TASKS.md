@@ -1,0 +1,83 @@
+# ScaffoldMind 明序 Tasks
+
+## Current Phase
+
+Engineering context setup.
+
+Status: in progress for documentation, not yet started for business code.
+
+## Day 1: Project Initialization And Context
+
+- [x] Prepare `docs/PRD.md` as the source of truth.
+- [x] Create `docs/ARCHITECTURE.md` initial architecture.
+- [x] Create `docs/TASKS.md` task plan.
+- [x] Create `.ai/AGENTS.md` AI collaboration rules.
+- [x] Create `docs/API.md` initial API draft.
+- [x] Create `docs/TEST_PLAN.md` initial test plan.
+- [x] Create `README.md` initial project guide.
+- [x] Create `CHANGELOG.md` initial changelog.
+- [x] Initialize `memory/MEMORY.md`.
+- [x] Fill `.env.example` with empty placeholders.
+- [ ] Initialize React + Vite + Tailwind frontend.
+- [ ] Initialize Node.js Express backend.
+- [ ] Add `.gitignore` entries required by the PRD.
+- [ ] Build single-page three-column UI skeleton.
+- [ ] Add PPT original page side drawer skeleton.
+
+## Day 2: Mock Learning Loop
+
+- [ ] Implement subject selection for CSAPP and Data Structures.
+- [ ] Implement all five learning mode selectors.
+- [ ] Implement learning preference chips.
+- [ ] Implement mode-specific material input forms.
+- [ ] Implement mock structured AI analysis.
+- [ ] Implement guided questions.
+- [ ] Implement right-side question history sidebar.
+- [ ] Implement user attempt input.
+- [ ] Implement mock error diagnosis.
+- [ ] Persist question history to localStorage.
+
+## Day 3: Real Text Generation API
+
+- [ ] Configure Express to read local `.env`.
+- [ ] Implement `POST /api/analyze`.
+- [ ] Implement `POST /api/deep-dive`.
+- [ ] Implement `POST /api/diagnose`.
+- [ ] Implement `POST /api/obsidian`.
+- [ ] Implement frontend API client under `client/src/shared/api`.
+- [ ] Add loading, error, and fallback states.
+- [ ] Verify the frontend does not expose API keys.
+
+## Day 4: Complete Five Learning Modes
+
+- [ ] Add Context Stacking prompt.
+- [ ] Add after-class deep review prompt.
+- [ ] Add examiner perspective prompt.
+- [ ] Add Feynman explanation prompt.
+- [ ] Add multi-source collision prompt.
+- [ ] Verify each mode has distinct inputs and output structure.
+- [ ] Add at least one manual test input per mode.
+
+## Day 5: Acceptance, Export, And Delivery
+
+- [ ] Implement Obsidian Markdown copy.
+- [ ] Implement learning record save/delete/review through localStorage.
+- [ ] Run the final demo path from the PRD.
+- [ ] Capture screenshots for delivery.
+- [ ] Update README with actual run commands.
+- [ ] Update CHANGELOG and `memory/MEMORY.md`.
+- [ ] Confirm `.env` is not tracked.
+
+## Next Development Task
+
+Initialize React + Vite + Tailwind frontend and Node.js Express backend skeleton, while keeping mock learning-loop extension points ready.
+
+## Scope Guardrails
+
+- Do not implement login or registration.
+- Do not add a teacher dashboard.
+- Do not remove any of the five learning modes.
+- Do not remove the question history sidebar.
+- Do not expose or commit API keys.
+- Do not replace localStorage with a database for MVP.
+- Do not implement full PPT parsing, OCR, vector search, or cloud sync in MVP.
