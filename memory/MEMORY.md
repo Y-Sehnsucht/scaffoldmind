@@ -6,7 +6,7 @@ V0.1 MVP
 
 ## 当前状态
 
-项目处于工程上下文搭建阶段。`docs/PRD.md` 已作为唯一产品事实来源，当前完成的是文档和协作规则初始化，尚未开始业务代码开发。
+项目已完成工程上下文搭建，并初始化 React + Vite + Tailwind 前端骨架与 Node.js Express 后端骨架。`docs/PRD.md` 仍是唯一产品事实来源。
 
 ## 已完成功能
 
@@ -18,11 +18,14 @@ V0.1 MVP
 - 创建 `README.md` 初稿。
 - 创建 `CHANGELOG.md` 初稿。
 - 补充 `.env.example` 空占位。
+- 初始化 `client/` 前端骨架。
+- 初始化 `server/` 后端骨架。
+- 添加前端共享 API helper、localStorage helper、学科和五种学习模式常量。
+- 添加 Express 健康检查、五个 API 路由占位、环境配置、promptBuilder 和 aiService 占位。
 
 ## 正在进行
 
-- 项目初始化与工程上下文搭建。
-- 下一步进入 React + Vite + Tailwind 前端骨架和 Node.js Express 后端骨架初始化。
+- 下一步进入单页面三栏 UI 骨架和 PPT 原页侧拉面板骨架。
 
 ## 已知问题与取舍
 
@@ -36,18 +39,19 @@ V0.1 MVP
 
 ## 下一步计划
 
-1. 初始化 React + Vite + Tailwind 前端。
-2. 初始化 Node.js Express 后端。
-3. 建立前端目录：`core`、`features`、`shared/api`、`shared/storage`。
-4. 建立后端目录：`routes`、`services`、`config`。
-5. 实现单页面三栏 UI 骨架。
-6. 实现 mock 学习闭环入口。
+1. 实现单页面三栏 UI 骨架。
+2. 实现 PPT 原页侧拉面板骨架。
+3. 实现学科选择和五种学习模式选择。
+4. 实现学习便签和模式化输入区域。
+5. 实现 mock 学习闭环入口。
+6. 将提问记录保存到 localStorage。
 
 ## 最近 3 次重要变更
 
 - 2026-05-31：补充 PRD，并以 PRD 为依据生成工程上下文文档。
 - 2026-05-31：初始化 `.ai/AGENTS.md`，明确 Codex 协作规则和禁止事项。
 - 2026-05-31：初始化 API、测试计划、任务清单、README 和 CHANGELOG。
+- 2026-06-01：初始化 React + Vite + Tailwind 前端骨架和 Node.js Express 后端骨架。
 
 ## 快速参考
 

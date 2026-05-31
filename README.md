@@ -48,9 +48,9 @@ The MVP must include:
 
 ## Project Status
 
-Current stage: engineering context setup.
+Current stage: frontend and backend skeletons initialized.
 
-Business code has not been initialized yet. The next development task is to initialize the React + Vite + Tailwind frontend and Node.js Express backend skeleton.
+The next development task is to build the single-page three-column UI skeleton and PPT original page side drawer skeleton.
 
 ## Repository Structure
 
@@ -74,7 +74,15 @@ scaffoldmind/
   memory/
     MEMORY.md
   client/
+    package.json
+    index.html
+    src/
   server/
+    package.json
+    index.js
+    routes/
+    services/
+    config/
   tests/
   scripts/
   screenshots/
@@ -95,9 +103,7 @@ The frontend must never read or contain the text generation API key.
 
 ## Running Locally
 
-Run commands will be added after the frontend and backend projects are initialized.
-
-Expected future workflow:
+Install dependencies separately for the frontend and backend:
 
 ```bash
 # frontend
@@ -110,6 +116,11 @@ cd server
 npm install
 npm run dev
 ```
+
+Default local URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend health check: `http://localhost:3001/api/health`
 
 ## Documentation
 
@@ -130,4 +141,4 @@ npm run dev
 
 ## Next Task
 
-Initialize React + Vite + Tailwind frontend and Node.js Express backend skeleton, then build the single-page three-column UI skeleton with mock learning-loop extension points.
+Build the single-page three-column UI skeleton and PPT original page side drawer skeleton, then add mock learning-loop extension points.

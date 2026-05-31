@@ -2,6 +2,26 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.1.1] - 2026-06-01
+
+### Added
+
+- Initialized React + Vite + Tailwind frontend skeleton under `client/`.
+- Added frontend entry files, Tailwind/PostCSS/Vite config, shared API helper, localStorage helper, and PRD constants for subjects and five learning modes.
+- Initialized Node.js Express backend skeleton under `server/`.
+- Added backend health route, API route placeholders, environment config, prompt builder placeholder, and AI service placeholder.
+
+### Changed
+
+- Updated README run instructions for separate frontend and backend projects.
+- Updated task list and project memory to reflect completed skeleton initialization.
+
+### Not Implemented
+
+- No real AI provider call was added.
+- API route placeholders return `501` until feature implementation.
+- No login, registration, teacher dashboard, OCR, vector database, or cloud sync was added.
+
 ## [0.1.0] - 2026-05-31
 
 ### Added

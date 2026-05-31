@@ -4,7 +4,7 @@
 
 Engineering context setup.
 
-Status: in progress for documentation, not yet started for business code.
+Status: frontend and backend skeletons initialized; UI skeleton and mock learning loop are next.
 
 ## Day 1: Project Initialization And Context
 
@@ -18,9 +18,9 @@ Status: in progress for documentation, not yet started for business code.
 - [x] Create `CHANGELOG.md` initial changelog.
 - [x] Initialize `memory/MEMORY.md`.
 - [x] Fill `.env.example` with empty placeholders.
-- [ ] Initialize React + Vite + Tailwind frontend.
-- [ ] Initialize Node.js Express backend.
-- [ ] Add `.gitignore` entries required by the PRD.
+- [x] Initialize React + Vite + Tailwind frontend.
+- [x] Initialize Node.js Express backend.
+- [x] Add `.gitignore` entries required by the PRD.
 - [ ] Build single-page three-column UI skeleton.
 - [ ] Add PPT original page side drawer skeleton.
 
@@ -70,7 +70,7 @@ Status: in progress for documentation, not yet started for business code.
 
 ## Next Development Task
 
-Initialize React + Vite + Tailwind frontend and Node.js Express backend skeleton, while keeping mock learning-loop extension points ready.
+Build the single-page three-column UI skeleton and PPT original page side drawer skeleton.
 
 ## Scope Guardrails
 
