@@ -48,9 +48,9 @@ The MVP must include:
 
 ## Project Status
 
-Current stage: mock MVP learning loop implemented.
+Current stage: mock MVP learning loop implemented with a controlled local/backend mock switch.
 
-The app currently runs a local mock learning loop without calling a real AI provider. The next development task is to polish mode-specific mock outputs and add focused tests for storage and Obsidian export.
+The app defaults to a local mock learning loop without calling a real AI provider. The top bar can manually switch to the Express backend mock routes for API-boundary testing. The next development task is to manually verify the full backend mock browser path and add stricter schema checks before any real API integration.
 
 ## Repository Structure
 
@@ -135,6 +135,8 @@ The frontend can run without the backend for the mock learning loop:
 7. Submit a user attempt to show mock diagnosis and reinforcement.
 8. Save the learning record to localStorage.
 9. Copy or manually copy the Obsidian Markdown mock output.
+
+To test the backend mock path, start the backend with `cd server && npm run dev`, then switch the top-bar mock source from `本地 Mock` to `后端 Mock`.
 
 ## Documentation
 

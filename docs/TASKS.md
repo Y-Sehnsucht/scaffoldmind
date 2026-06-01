@@ -4,7 +4,7 @@
 
 Engineering context setup.
 
-Status: frontend mock MVP and backend mock API boundaries are implemented; real text generation API is not connected.
+Status: frontend mock MVP, backend mock API boundaries, and a controlled frontend local/backend mock switch are implemented; real text generation API is not connected.
 
 ## Day 1: Project Initialization And Context
 
@@ -48,6 +48,12 @@ Status: frontend mock MVP and backend mock API boundaries are implemented; real 
 - [x] Add frontend API helper functions with `USE_BACKEND_MOCK = false`.
 - [x] Add unified `ok/data` success responses and `VALIDATION_ERROR` failures.
 - [x] Verify the frontend does not expose API keys.
+- [x] Add top-bar switch between `本地 Mock` and `后端 Mock`.
+- [x] Keep local mock as the default source.
+- [x] Add frontend response parser for `{ ok, data, error }` envelopes.
+- [x] Route backend mock analysis, deep dive, diagnosis, Obsidian, and collision calls through `client/src/shared/api`.
+- [x] Add loading and recoverable error states for backend mock requests.
+- [x] Add lightweight API client verification script.
 
 ## Day 4: Complete Five Learning Modes
 
@@ -71,7 +77,7 @@ Status: frontend mock MVP and backend mock API boundaries are implemented; real 
 
 ## Next Development Task
 
-Add optional UI path for `USE_BACKEND_MOCK = true`, or add request/response schema checks before real API integration.
+Manually test the full backend mock path in the browser with both dev servers running, then add stricter request/response schema checks before real API integration.
 
 ## Scope Guardrails
 

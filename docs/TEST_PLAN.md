@@ -17,6 +17,8 @@ This is the initial MVP test plan based on `docs/PRD.md`.
 Run after the React app exists.
 
 - App loads without crashing.
+- Top-bar mock source defaults to `本地 Mock`.
+- Switching to `后端 Mock` is visible and reversible.
 - Single-page three-column layout is visible.
 - Subject selector switches between CSAPP and Data Structures.
 - All five learning modes can be selected:
@@ -29,6 +31,12 @@ Run after the React app exists.
 - Learning preference chips toggle on and off.
 - Empty required input shows a helpful prompt.
 - Failed generation does not erase user input.
+- With `后端 Mock` selected and the backend stopped, requests show a friendly error and the page does not crash.
+- With `后端 Mock` selected and the backend running, generate analysis calls `/api/analyze`.
+- With `后端 Mock` selected, selecting a guided question calls `/api/deep-dive`.
+- With `后端 Mock` selected, submitting a user attempt calls `/api/diagnose`.
+- With `后端 Mock` selected, Obsidian output is produced through `/api/obsidian`.
+- With multi-source collision selected under `后端 Mock`, the app can call `/api/collision`.
 - Structured analysis appears in the center area.
 - At least three guided questions appear after analysis.
 - Selecting a guided question adds it to the right-side question history.
@@ -85,6 +93,9 @@ Unit tests:
 - localStorage helpers save, load, and delete records safely. Covered by `cd client && npm run test:mock`.
 - Obsidian export includes callouts, wikilinks, and source page. Covered by `cd client && npm run test:mock`.
 - mock learning output is non-empty and exposes mode-specific fields for all five learning modes. Covered by `cd client && npm run test:mock`.
+- frontend API response parser accepts `{ ok: true, data }`. Covered by `cd client && npm run test:mock`.
+- frontend API response parser rejects `{ ok: false, error }` with a typed recoverable error. Covered by `cd client && npm run test:mock`.
+- frontend backend mock helper constructs the expected `POST /api/analyze` request. Covered by `cd client && npm run test:mock`.
 
 Integration tests:
 
@@ -124,4 +135,5 @@ The mock verification covers:
 - learning records localStorage round trip and clear
 - Obsidian Markdown callouts, wikilinks, and PPT page source
 - all five learning modes exposing distinct mode-specific mock fields
+- frontend backend mock response parser and request construction
 - backend health check, validation failure, analyze mock response, and diagnose mock response

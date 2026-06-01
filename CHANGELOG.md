@@ -2,6 +2,28 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.2.3] - 2026-06-01
+
+### Added
+
+- Added a top-bar mock source switch with `本地 Mock` and `后端 Mock`.
+- Kept local mock as the default source for stable demos.
+- Added frontend backend mock flow for analysis, deep dive, diagnosis, Obsidian output, and multi-source collision.
+- Added frontend API response parser for `{ ok: true, data }` and `{ ok: false, error }`.
+- Added recoverable loading and error states for backend mock requests.
+- Added `client/scripts/verifyApiClient.mjs` for response parsing and backend mock request construction checks.
+
+### Changed
+
+- Updated `client npm run test:mock` to cover local mock MVP checks and frontend API client checks.
+- Updated API docs, test plan, task list, and project memory for the controlled backend mock UI path.
+
+### Not Implemented
+
+- No real text generation API was connected.
+- No `.env` file was created.
+- No login, registration, teacher dashboard, OCR, vector database, cloud sync, or complete PPT parsing was added.
+
 ## [0.2.2] - 2026-06-01
 
 ### Added

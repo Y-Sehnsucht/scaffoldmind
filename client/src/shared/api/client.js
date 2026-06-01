@@ -1,6 +1,44 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001';
 
 export const USE_BACKEND_MOCK = false;
+
+export class ApiResponseError extends Error {
+  constructor(message, code = 'REQUEST_ERROR', response = null) {
+    super(message);
+    this.name = 'ApiResponseError';
+    this.code = code;
+    this.response = response;
+  }
+}
+
+export function parseApiResponse(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw new ApiResponseError('Invalid API response shape', 'INVALID_RESPONSE', payload);
+  }
+
+  if (payload.ok === true && Object.prototype.hasOwnProperty.call(payload, 'data')) {
+    return payload.data;
+  }
+
+  if (payload.ok === false && payload.error) {
+    throw new ApiResponseError(payload.error.message || 'Request failed', payload.error.code || 'REQUEST_ERROR', payload);
+  }
+
+  throw new ApiResponseError('Invalid API response envelope', 'INVALID_RESPONSE', payload);
+}
+
+export function createJsonRequest(path, body) {
+  return {
+    url: `${API_BASE_URL}${path}`,
+    options: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    },
+  };
+}
 
 export async function requestJson(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -13,18 +51,20 @@ export async function requestJson(path, options = {}) {
 
   const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data?.error?.message || 'Request failed');
-  }
+  try {
+    return parseApiResponse(data);
+  } catch (error) {
+    if (error instanceof ApiResponseError) {
+      throw error;
+    }
 
-  return data;
+    throw new ApiResponseError(data?.error?.message || 'Request failed', data?.error?.code || 'REQUEST_ERROR', data);
+  }
 }
 
 export function postJson(path, body) {
-  return requestJson(path, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
+  const request = createJsonRequest(path, body);
+  return requestJson(path, request.options);
 }
 
 export const mockBackendApi = {

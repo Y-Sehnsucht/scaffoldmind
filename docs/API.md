@@ -8,6 +8,26 @@ This document is an initial API draft based on `docs/PRD.md`. The API is impleme
 - `.env` must not be committed.
 - `.env.example` contains empty placeholders only.
 - Frontend code, README, docs, tests, and screenshots must not include real API keys.
+- The current implementation supports local mock and backend mock only. It does not call a real text generation API.
+
+## Frontend Mock Source Switch
+
+The React app defaults to local mock data for stable demos. A top-bar switch can manually select:
+
+- `本地 Mock`: run the full learning loop inside the frontend using local mock builders.
+- `后端 Mock`: call the Express mock routes while preserving the same UI, question history, PPT side drawer, localStorage records, and Obsidian output.
+
+The default remains local mock. The frontend helper also exports `USE_BACKEND_MOCK = false` as the stable default configuration flag.
+
+## Frontend Response Validation
+
+The frontend validates backend envelopes before using data:
+
+- `{ "ok": true, "data": ... }` returns `data`.
+- `{ "ok": false, "error": { "code": "...", "message": "..." } }` throws a recoverable API error.
+- Unknown response shapes throw `INVALID_RESPONSE`.
+
+When a backend mock request fails, the page shows a friendly error message and keeps the user's current input.
 
 ## Common Types
 

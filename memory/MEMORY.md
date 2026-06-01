@@ -1,92 +1,109 @@
 # ScaffoldMind 明序 Project Memory
 
-## 当前版本
+## Current Version
 
-V0.1 MVP
+V0.1 MVP, implementation checkpoint `0.2.3`.
 
-## 当前状态
+## Current Status
 
-项目已完成工程上下文搭建、React + Vite + Tailwind 前端骨架、Node.js Express 后端骨架、前端 mock MVP 学习闭环、五种学习模式的差异化 mock 输出，以及真实 API 接入前的后端 mock API 边界。`docs/PRD.md` 仍是唯一产品事实来源，本轮未接入真实文本生成 API。
+ScaffoldMind 明序 has the engineering context, React + Vite + Tailwind frontend skeleton, Node.js Express backend skeleton, frontend mock MVP learning loop, mode-specific mock output for all five learning modes, backend mock API boundaries, and a controlled frontend mock source switch.
 
-## 已完成功能
+The app still does not call a real text generation API. `docs/PRD.md` remains the product source of truth and was not modified for this checkpoint.
 
-- 创建 `docs/ARCHITECTURE.md` 初稿。
-- 创建 `docs/TASKS.md` 初稿。
-- 创建 `.ai/AGENTS.md` 初稿。
-- 创建 `docs/API.md` 初稿。
-- 创建 `docs/TEST_PLAN.md` 初稿。
-- 创建 `README.md` 初稿。
-- 创建 `CHANGELOG.md` 初稿。
-- 补充 `.env.example` 空占位。
-- 初始化 `client/` 前端骨架。
-- 初始化 `server/` 后端骨架。
-- 添加前端共享 API helper、localStorage helper、学科和五种学习模式常量。
-- 添加 Express 健康检查、五个 API 路由占位、环境配置、promptBuilder 和 aiService 占位。
-- 完成单页面三栏 UI 骨架增强。
-- 完成顶部栏学科选择、五种学习模式选择和当前状态展示。
-- 完成学习方法便签、模式化输入、页码输入、图片上传占位。
-- 完成 mock 结构化解析、主动追问、mock 深入回答、用户尝试、mock 错误诊断和强化题。
-- 完成 PPT 原页侧拉面板骨架。
-- 完成右侧提问记录 localStorage 保存。
-- 完成学习记录 localStorage 保存与清空。
-- 完成 Obsidian Markdown mock 输出、复制和 fallback 文本框。
-- 完成五种学习模式的差异化 mock 输出结构。
-- 完成模式化 mock 输出 UI 渲染。
-- 新增 `npm run test:mock`，覆盖 localStorage、Obsidian Markdown 和五种模式输出字段。
-- 完成 Express 五个 mock API 路由：`/api/analyze`、`/api/deep-dive`、`/api/diagnose`、`/api/obsidian`、`/api/collision`。
-- 完成统一成功响应 `{ ok: true, data }` 和统一校验错误 `{ ok: false, error }`。
-- 完成 `server/scripts/verifyMockApi.mjs`，覆盖 health、analyze 成功/失败、diagnose 成功。
-- 前端 API helper 新增 `USE_BACKEND_MOCK = false` 和五个 mock 后端调用函数。
+## Completed Features
 
-## 正在进行
+- Created and maintained engineering context docs: `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/API.md`, `docs/TEST_PLAN.md`, `.ai/AGENTS.md`, `README.md`, `CHANGELOG.md`.
+- Initialized `client/` with React + Vite + Tailwind.
+- Initialized `server/` with Node.js Express.
+- Built the single-page three-column learning workspace.
+- Preserved the five required learning modes:
+  - Context Stacking
+  - after-class deep review
+  - examiner perspective
+  - Feynman explanation
+  - multi-source collision
+- Built learning preference chips, mode-specific inputs, page number input, image upload placeholder, and generate/save controls.
+- Built structured local mock analysis, guided questions, deep-dive answers, user attempt diagnosis, reinforcement task, and Obsidian Markdown output.
+- Built the right-side question history sidebar.
+- Built the PPT original page side drawer.
+- Saved question history and learning records through localStorage.
+- Added distinct mode-specific local mock output structures for all five learning modes.
+- Added Express mock endpoints:
+  - `POST /api/analyze`
+  - `POST /api/deep-dive`
+  - `POST /api/diagnose`
+  - `POST /api/obsidian`
+  - `POST /api/collision`
+- Added unified backend responses:
+  - success: `{ ok: true, data }`
+  - validation failure: `{ ok: false, error: { code: "VALIDATION_ERROR", message } }`
+- Added frontend backend mock helper methods under `client/src/shared/api`.
+- Added a top-bar mock source switch:
+  - `本地 Mock`
+  - `后端 Mock`
+- Kept `本地 Mock` as the default.
+- Added frontend API response parser and recoverable API error handling.
+- Added loading and error states for backend mock requests without clearing user input.
+- Added lightweight verification scripts:
+  - `cd server && npm run test:mock`
+  - `cd client && npm run test:mock`
 
-- 下一步可以为 `USE_BACKEND_MOCK = true` 增加可选 UI 调用路径，或补充请求/响应 schema 检查；仍暂不连接真实文本生成 API。
+## In Progress
 
-## 已知问题与取舍
+- Backend mock path is now available from the UI, but the full browser walkthrough with both dev servers should be manually tested next.
+- Real text generation API integration remains intentionally blocked until schema checks and manual mock acceptance are complete.
 
-- PPT 自动解析暂不实现，MVP 只做页码、文字输入、图片上传文件名占位、侧拉面板查看。
-- API Key 必须放在后端本地 `.env` 中，不得写入前端、README、docs、测试或截图。
-- MVP 使用 localStorage，不使用 SQLite、PostgreSQL、向量数据库或云同步。
-- 不实现登录注册。
-- 不添加教师后台。
-- 必须保留五种学习模式。
-- 必须保留右侧提问记录侧边栏。
-- 当前 AI 结果全部来自前端 mock 数据，不调用真实 AI API。
-- 当前轻量测试为 Node 脚本，不引入额外测试框架。
-- 后端 mock API 不读取真实 API Key，不调用任何文本生成服务。
+## Known Constraints And Tradeoffs
 
-## 下一步计划
+- No `.env` is created by Codex. Only `.env.example` should be committed.
+- API keys must live only in a local backend `.env` when real integration starts.
+- Frontend must never expose text generation API keys.
+- MVP storage remains browser localStorage only.
+- No login or registration.
+- No teacher dashboard.
+- No OCR pipeline.
+- No complete PPT automatic parsing.
+- No vector database.
+- No cloud sync.
+- Current tests are lightweight Node scripts, not a full test framework.
 
-1. 为 `USE_BACKEND_MOCK = true` 增加可选 UI 调用路径。
-2. 补充请求/响应 schema 检查，但暂不接真实 API。
-3. 增加空输入、复制失败、清空记录等手动测试记录。
-4. 后续再实现 Express mock/真实接口切换策略。
-5. 继续确认 `.env` 不被创建或提交。
+## Next Plan
 
-## 最近 3 次重要变更
+1. Run the full backend mock browser path with both dev servers:
+   - generate analysis
+   - click guided question
+   - submit diagnosis
+   - copy Obsidian output
+   - try multi-source collision
+2. Add stricter request/response schema checks before any real API connection.
+3. Add manual test notes for backend-down error behavior.
+4. Continue confirming `.env` is absent and `docs/PRD.md` is unchanged.
 
-- 2026-05-31：补充 PRD，并以 PRD 为依据生成工程上下文文档。
-- 2026-05-31：初始化 `.ai/AGENTS.md`，明确 Codex 协作规则和禁止事项。
-- 2026-05-31：初始化 API、测试计划、任务清单、README 和 CHANGELOG。
-- 2026-06-01：初始化 React + Vite + Tailwind 前端骨架和 Node.js Express 后端骨架。
-- 2026-06-01：完成前端 mock MVP 学习闭环、localStorage 保存和 Obsidian Markdown mock 输出。
-- 2026-06-01：完成五种学习模式差异化 mock 输出，并新增 `npm run test:mock` 轻量验证。
-- 2026-06-01：完成后端 mock API 边界、统一响应格式、基础校验和 `server npm run test:mock`。
+## Recent Important Changes
 
-## 快速参考
+- 2026-05-31: Added PRD-based engineering context docs.
+- 2026-06-01: Initialized React + Vite + Tailwind frontend and Node.js Express backend.
+- 2026-06-01: Completed frontend local mock MVP learning loop, localStorage, and Obsidian output.
+- 2026-06-01: Added distinct mock output structures for all five learning modes.
+- 2026-06-01: Added backend mock API boundaries with unified response formats.
+- 2026-06-01: Added controlled frontend mock source switch and frontend API response parser.
 
-- 产品事实来源：`docs/PRD.md`
-- 架构文档：`docs/ARCHITECTURE.md`
-- API 初稿：`docs/API.md`
-- 测试计划：`docs/TEST_PLAN.md`
-- 任务清单：`docs/TASKS.md`
-- AI 协作规则：`.ai/AGENTS.md`
-- 前端入口规划：`client/src/App.jsx`
-- 后端入口规划：`server/index.js`
-- Prompt 构造规划：`server/services/promptBuilder.js`
-- AI 调用规划：`server/services/aiService.js`
+## Quick References
 
-## 完成任务后必须更新
+- Product source of truth: `docs/PRD.md`
+- Architecture: `docs/ARCHITECTURE.md`
+- API: `docs/API.md`
+- Test plan: `docs/TEST_PLAN.md`
+- Tasks: `docs/TASKS.md`
+- AI rules: `.ai/AGENTS.md`
+- Frontend entry: `client/src/App.jsx`
+- Study workspace: `client/src/features/study-session/StudyWorkspace.jsx`
+- Frontend API helper: `client/src/shared/api/client.js`
+- Backend app: `server/app.js`
+- Backend entry: `server/index.js`
+- Backend mock service: `server/services/mockLearningService.js`
+
+## Must Update After Each Milestone
 
 - `memory/MEMORY.md`
 - `CHANGELOG.md`

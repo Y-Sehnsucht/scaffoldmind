@@ -1,4 +1,14 @@
-export function AnalysisPanel({ analysis, deepDive, diagnosis, userAnswer, onUserAnswerChange, onOpenPage, onDeepDive, onDiagnose }) {
+export function AnalysisPanel({
+  analysis,
+  deepDive,
+  diagnosis,
+  userAnswer,
+  onUserAnswerChange,
+  onOpenPage,
+  onDeepDive,
+  onDiagnose,
+  loadingAction = '',
+}) {
   if (!analysis) {
     return (
       <section className="rounded-md border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
@@ -58,12 +68,16 @@ export function AnalysisPanel({ analysis, deepDive, diagnosis, userAnswer, onUse
               key={question.id}
               className="rounded-md border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-teal-300 hover:bg-teal-50"
               type="button"
+              disabled={Boolean(loadingAction)}
               onClick={() => onDeepDive(question)}
             >
               <span className="rounded bg-teal-100 px-2 py-1 text-xs font-medium text-teal-800">
                 {question.typeLabel}
               </span>
               <p className="mt-3 text-sm font-semibold leading-6 text-slate-950">{question.question}</p>
+              {loadingAction === `deep-dive:${question.id}` ? (
+                <p className="mt-2 text-xs font-semibold text-teal-700">Loading backend mock...</p>
+              ) : null}
               <p className="mt-2 text-xs leading-5 text-slate-500">{question.reason}</p>
             </button>
           ))}
