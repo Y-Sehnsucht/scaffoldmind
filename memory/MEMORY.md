@@ -2,7 +2,7 @@
 
 ## Current Version
 
-V0.1 MVP, implementation checkpoint `0.2.3`.
+V0.1 MVP, implementation checkpoint `0.2.4`.
 
 ## Current Status
 
@@ -47,6 +47,9 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - Added lightweight verification scripts:
   - `cd server && npm run test:mock`
   - `cd client && npm run test:mock`
+- Hardened backend environment loading so `server/config/env.js` explicitly reads `server/.env`.
+- Added `env.hasTextGenerationApiKey` without exposing or printing the actual key.
+- Added `server/scripts/verifyEnv.mjs` for env loader verification.
 
 ## In Progress
 
@@ -66,6 +69,7 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - No vector database.
 - No cloud sync.
 - Current tests are lightweight Node scripts, not a full test framework.
+- `server/.env` is local-only and ignored by Git; Codex must not print or commit its contents.
 
 ## Next Plan
 
@@ -87,6 +91,7 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - 2026-06-01: Added distinct mock output structures for all five learning modes.
 - 2026-06-01: Added backend mock API boundaries with unified response formats.
 - 2026-06-01: Added controlled frontend mock source switch and frontend API response parser.
+- 2026-06-01: Hardened backend env loading to explicitly target `server/.env`.
 
 ## Quick References
 

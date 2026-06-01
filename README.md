@@ -90,7 +90,9 @@ scaffoldmind/
 
 ## Environment Variables
 
-Create a local `.env` file for backend development only. Do not commit it.
+Create a local `server/.env` file for backend development only. Do not commit it.
+
+The backend explicitly reads `server/.env`, so it works whether you start the server from the repository root or from the `server/` directory.
 
 `.env.example` contains the required variable names with empty values:
 

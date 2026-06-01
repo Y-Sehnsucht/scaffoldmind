@@ -2,6 +2,24 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.2.4] - 2026-06-01
+
+### Added
+
+- Added explicit backend environment loading from `server/.env`.
+- Added `hasTextGenerationApiKey` to the backend env object without printing or exposing the key.
+- Added `server/scripts/verifyEnv.mjs` to verify env loading and missing-file tolerance.
+
+### Changed
+
+- Updated README to clarify that real API keys belong in local `server/.env`.
+
+### Not Implemented
+
+- No real text generation API was connected.
+- No `.env` file was created.
+- No frontend UI changes were made.
+
 ## [0.2.3] - 2026-06-01
 
 ### Added
