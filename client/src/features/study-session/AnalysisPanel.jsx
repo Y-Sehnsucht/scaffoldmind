@@ -11,26 +11,31 @@ export function AnalysisPanel({
 }) {
   if (!analysis) {
     return (
-      <section className="rounded-md border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-950">等待生成学习闭环</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600">
-          在左侧输入材料并点击生成后，这里会展示结构化解析、主动追问、用户尝试、错误诊断、强化题和 Obsidian 输出。
-        </p>
+      <section className="grid min-h-[520px] place-items-center rounded-[22px] border border-white/10 bg-[#20262e] p-8 text-center">
+        <div className="max-w-xl">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-teal-300/15 text-lg font-semibold text-teal-200">
+            明序
+          </div>
+          <h2 className="mt-6 text-3xl font-semibold text-white">让我们开始制作学习笔记...</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-400">
+            在左侧输入材料并点击生成后，这里会展示结构化解析、主动追问、用户尝试、错误诊断、强化题和 Obsidian 输出。
+          </p>
+        </div>
       </section>
     );
   }
 
   return (
     <section className="space-y-4">
-      <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold text-teal-700">PPT 第 {analysis.pageNumber} 页</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-950">{analysis.topic}</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{analysis.summary}</p>
+      <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold text-teal-300">PPT 第 {analysis.pageNumber} 页</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">{analysis.topic}</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-400">{analysis.summary}</p>
           </div>
           <button
-            className="rounded-md border border-teal-200 px-3 py-2 text-sm font-medium text-teal-800 transition hover:bg-teal-50"
+            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-teal-300/50 hover:bg-teal-300/10"
             type="button"
             onClick={onOpenPage}
           >
@@ -38,15 +43,15 @@ export function AnalysisPanel({
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
           {(analysis.coreConcepts || []).map((concept) => (
-            <div key={concept.name} className="rounded-md border border-slate-200 bg-slate-50 p-4">
-              <h3 className="font-semibold text-slate-950">{concept.name}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{concept.simpleExplanation}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-800">本质：{concept.essence}</p>
+            <div key={concept.name} className="rounded-2xl border border-white/10 bg-[#171b21] p-4">
+              <h3 className="font-semibold text-white">{concept.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">{concept.simpleExplanation}</p>
+              <p className="mt-3 rounded-xl bg-white/5 px-3 py-2 text-sm leading-6 text-slate-200">本质：{concept.essence}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {(concept.relatedConcepts || []).map((item) => (
-                  <span key={item} className="rounded-full bg-white px-2 py-1 text-xs text-slate-600">
+                  <span key={item} className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-slate-300">
                     {item}
                   </span>
                 ))}
@@ -57,26 +62,25 @@ export function AnalysisPanel({
       </article>
 
       <ModeSpecificSection section={analysis.modeSpecific} />
-
       <InfoGrid analysis={analysis} />
 
-      <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="text-base font-semibold text-slate-950">主动追问</h3>
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
+        <h3 className="text-base font-semibold text-white">主动追问</h3>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
           {(analysis.guidedQuestions || []).map((question) => (
             <button
               key={question.id}
-              className="rounded-md border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-teal-300 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-2xl border border-white/10 bg-[#171b21] p-4 text-left transition hover:border-teal-300/50 hover:bg-teal-300/10 disabled:cursor-not-allowed disabled:opacity-70"
               type="button"
               disabled={Boolean(loadingAction)}
               onClick={() => onDeepDive(question)}
             >
-              <span className="rounded bg-teal-100 px-2 py-1 text-xs font-medium text-teal-800">
+              <span className="rounded-full bg-teal-300/15 px-2.5 py-1 text-xs font-medium text-teal-200">
                 {question.typeLabel}
               </span>
-              <p className="mt-3 text-sm font-semibold leading-6 text-slate-950">{question.question}</p>
+              <p className="mt-3 text-sm font-semibold leading-6 text-white">{question.question}</p>
               {loadingAction === `deep-dive:${question.id}` ? (
-                <p className="mt-2 text-xs font-semibold text-teal-700">正在请求...</p>
+                <p className="mt-2 text-xs font-semibold text-teal-300">正在请求...</p>
               ) : null}
               <p className="mt-2 text-xs leading-5 text-slate-500">{question.reason}</p>
             </button>
@@ -85,12 +89,12 @@ export function AnalysisPanel({
       </article>
 
       {deepDive ? (
-        <article className="rounded-md border border-teal-200 bg-teal-50 p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-teal-950">深入回答</h3>
-          <p className="mt-2 text-sm leading-6 text-teal-950">{deepDive.answer}</p>
+        <article className="rounded-[22px] border border-teal-300/20 bg-teal-300/10 p-5">
+          <h3 className="text-base font-semibold text-teal-50">深入回答</h3>
+          <p className="mt-2 text-sm leading-7 text-teal-50/90">{deepDive.answer}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {(deepDive.keyPoints || []).map((point) => (
-              <span key={point} className="rounded-full bg-white px-2 py-1 text-xs text-teal-800">
+              <span key={point} className="rounded-full bg-white/10 px-2.5 py-1 text-xs text-teal-50">
                 {point}
               </span>
             ))}
@@ -98,17 +102,17 @@ export function AnalysisPanel({
         </article>
       ) : null}
 
-      <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="text-base font-semibold text-slate-950">用户尝试</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-700">{analysis.userTask?.question}</p>
+      <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
+        <h3 className="text-base font-semibold text-white">用户尝试</h3>
+        <p className="mt-2 text-sm leading-7 text-slate-300">{analysis.userTask?.question}</p>
         <textarea
-          className="mt-3 min-h-24 w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm leading-6 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          className="mt-4 min-h-28 w-full resize-y rounded-2xl border border-white/10 bg-[#14181e] px-4 py-3 text-sm leading-6 text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-teal-300 focus:ring-2 focus:ring-teal-300/20"
           value={userAnswer}
           onChange={(event) => onUserAnswerChange(event.target.value)}
           placeholder="写下你的解释，再让 Mock 诊断指出偏差"
         />
         <button
-          className="mt-3 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+          className="mt-3 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-[#111418] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
           type="button"
           disabled={loadingAction === 'diagnose'}
           onClick={onDiagnose}
@@ -118,17 +122,17 @@ export function AnalysisPanel({
       </article>
 
       {diagnosis ? (
-        <article className="rounded-md border border-amber-200 bg-amber-50 p-5 shadow-sm">
+        <article className="rounded-[22px] border border-amber-300/20 bg-amber-300/10 p-5">
           <div className="flex flex-wrap gap-2">
-            <span className="rounded bg-amber-200 px-2 py-1 text-xs font-semibold text-amber-950">
+            <span className="rounded-full bg-amber-200/20 px-2.5 py-1 text-xs font-semibold text-amber-100">
               错误类型：{diagnosis.errorType}
             </span>
-            <span className="rounded bg-white px-2 py-1 text-xs text-amber-900">诊断结果</span>
+            <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs text-amber-100">诊断结果</span>
           </div>
-          <p className="mt-3 text-sm leading-6 text-amber-950">引用回答："{diagnosis.quotedIssue}"</p>
-          <p className="mt-2 text-sm leading-6 text-amber-950">{diagnosis.mainProblem}</p>
-          <p className="mt-2 text-sm leading-6 text-amber-950">修改建议：{diagnosis.suggestion}</p>
-          <div className="mt-3 rounded-md bg-white p-3 text-sm leading-6 text-slate-800">
+          <p className="mt-3 text-sm leading-7 text-amber-50">引用回答："{diagnosis.quotedIssue}"</p>
+          <p className="mt-2 text-sm leading-7 text-amber-50/90">{diagnosis.mainProblem}</p>
+          <p className="mt-2 text-sm leading-7 text-amber-50/90">修改建议：{diagnosis.suggestion}</p>
+          <div className="mt-4 rounded-2xl bg-[#171b21] p-4 text-sm leading-7 text-slate-100">
             强化题：{diagnosis.reinforcementTask}
           </div>
         </article>
@@ -151,8 +155,8 @@ function ModeSpecificSection({ section }) {
   };
 
   return (
-    <article className="rounded-md border border-teal-200 bg-white p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-slate-950">{section.title}</h3>
+    <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
+      <h3 className="text-base font-semibold text-white">{section.title}</h3>
       <div className="mt-4">{renderers[section.type]}</div>
     </article>
   );
@@ -219,11 +223,14 @@ function CollisionSection({ section }) {
 
 function ListBlock({ title, items = [], className = '' }) {
   return (
-    <section className={`rounded-md border border-slate-200 bg-slate-50 p-4 ${className}`}>
-      <h4 className="text-sm font-semibold text-slate-950">{title}</h4>
-      <ul className="mt-2 space-y-2 text-sm leading-6 text-slate-600">
+    <section className={`rounded-2xl border border-white/10 bg-[#171b21] p-4 ${className}`}>
+      <h4 className="text-sm font-semibold text-slate-100">{title}</h4>
+      <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-400">
         {items.map((item) => (
-          <li key={item}>- {item}</li>
+          <li key={item} className="flex gap-2">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-teal-300/70" />
+            <span>{item}</span>
+          </li>
         ))}
       </ul>
     </section>
@@ -232,9 +239,9 @@ function ListBlock({ title, items = [], className = '' }) {
 
 function TextBlock({ title, text, className = '' }) {
   return (
-    <section className={`rounded-md border border-slate-200 bg-slate-50 p-4 ${className}`}>
-      <h4 className="text-sm font-semibold text-slate-950">{title}</h4>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
+    <section className={`rounded-2xl border border-white/10 bg-[#171b21] p-4 ${className}`}>
+      <h4 className="text-sm font-semibold text-slate-100">{title}</h4>
+      <p className="mt-3 text-sm leading-6 text-slate-400">{text}</p>
     </section>
   );
 }
@@ -252,9 +259,9 @@ function InfoGrid({ analysis }) {
   return (
     <article className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => (
-        <div key={item.title} className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-950">{item.title}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{item.content}</p>
+        <div key={item.title} className="rounded-2xl border border-white/10 bg-[#20262e] p-4">
+          <h3 className="text-sm font-semibold text-white">{item.title}</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-400">{item.content}</p>
         </div>
       ))}
     </article>

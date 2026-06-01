@@ -2,7 +2,7 @@
 
 ## Current Version
 
-V0.1 MVP, implementation checkpoint `0.3.2`.
+V0.1 MVP, implementation checkpoint `0.3.6`.
 
 ## Current Status
 
@@ -10,7 +10,7 @@ ScaffoldMind 明序 now has the engineering context, React + Vite + Tailwind fro
 
 The default source remains `本地 Mock`. `后端 Mock` and `真实 API` remain available. Real API calls happen only when the user explicitly selects `真实 API`. `docs/PRD.md` remains the product source of truth and must not be edited during implementation checkpoints.
 
-The latest checkpoint cleaned the frontend UI copy so the study workspace, source switch, five learning modes, PPT drawer, Obsidian export, and question history sidebar display readable Chinese text.
+The latest checkpoint upgraded PPTX parsing UX: after parsing, the left source panel lists all detected slides with text/image counts and previews. Clicking a slide fills that page's extracted text and structure into the center composer. OCR, slide rendering, PDF parsing, old `.ppt` parsing, and image-structure recognition remain future dedicated parsing-service work.
 
 ## Completed Features
 
@@ -25,6 +25,17 @@ The latest checkpoint cleaned the frontend UI copy so the study workspace, sourc
   - 费曼反讲
   - 多维信息对撞
 - Built learning preference chips, mode-specific inputs, page number input, image upload placeholder, generate/save controls, and readable Chinese UI labels.
+- Redesigned the frontend visual system as a modern dark three-panel workspace while preserving all existing MVP functions.
+- Moved the material/question input area into the center conversation panel.
+- Added source file selection for PPT/PPTX, PDF, and images.
+- Added a PPT parsing entry that fills editable parsed placeholder text into the center composer.
+- Added `POST /api/parse-ppt` for lightweight `.pptx` parsing.
+- Added backend XML text extraction and image placeholder detection for PPTX slides without adding dependencies.
+- Connected frontend `.pptx` parsing to the backend parser.
+- Added parsed slide navigation in the left source panel.
+- Added one-click fill from any parsed slide into the center composer.
+- Automatically saves generated guided questions into the right question history sidebar.
+- Automatically updates the active learning record when analysis, deep dive, user answer, diagnosis, or Obsidian output changes.
 - Built structured local mock analysis, guided questions, deep-dive answers, user attempt diagnosis, reinforcement task, and Obsidian Markdown output.
 - Built the right-side question history sidebar.
 - Built the PPT original page side drawer.
@@ -86,8 +97,10 @@ The latest checkpoint cleaned the frontend UI copy so the study workspace, sourc
    - `后端 Mock`
    - `真实 API`
 2. Add a small browser-level smoke test for the main learning loop if the project adopts a UI test runner.
-3. Add stricter request/response schema checks around real provider output.
-4. Continue confirming `server/.env` is ignored and `docs/PRD.md` is unchanged.
+3. Do a manual visual pass in the browser across the empty state, generated state, and file-added state.
+4. If the product scope changes beyond MVP, design a dedicated parsing service for PDF parsing, legacy `.ppt`, slide rendering, OCR, and visual structure recognition.
+5. Add stricter request/response schema checks around real provider output.
+6. Continue confirming `server/.env` is ignored and `docs/PRD.md` is unchanged.
 
 ## Recent Important Changes
 
@@ -101,6 +114,10 @@ The latest checkpoint cleaned the frontend UI copy so the study workspace, sourc
 - 2026-06-01: Added opt-in real text generation API path with structured fallback and a three-source frontend selector.
 - 2026-06-01: Standardized README and AI outputs to Chinese-first language rules.
 - 2026-06-01: Cleaned frontend UI copy and removed mojibake from the main workspace components.
+- 2026-06-01: Redesigned the frontend into a cleaner modern dark three-panel workspace.
+- 2026-06-01: Widened the workspace, moved input into the center panel, added source file entry, and enabled automatic record/question saving.
+- 2026-06-01: Added lightweight PPTX text and image-placeholder parsing through `POST /api/parse-ppt`.
+- 2026-06-01: Added parsed PPTX slide navigation and one-click slide-to-composer filling.
 
 ## Quick References
 

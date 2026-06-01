@@ -2,6 +2,99 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.3.6] - 2026-06-01
+
+### Added
+
+- Added PPTX parse result navigation in the left source panel.
+- After parsing a PPTX, all detected slides now appear with text/image counts and a short text preview.
+- Clicking a parsed slide fills that slide's text and page structure into the center composer.
+
+### Changed
+
+- Cleaned the source panel and workspace state text back to readable Chinese.
+- Cleaned backend PPTX parser warnings and image placeholder descriptions.
+
+### Verified
+
+- `cd server && npm run test:mock`
+- `cd client && npm run test:mock`
+- `cd client && npm run build`
+
+### Not Implemented
+
+- No OCR engine, PDF parser, legacy `.ppt` parser, or visual diagram understanding was added.
+- No new dependency was added.
+- No `docs/PRD.md` changes.
+- No `.env` or `server/.env` changes.
+
+## [0.3.5] - 2026-06-01
+
+### Added
+
+- Added `POST /api/parse-ppt` for lightweight `.pptx` parsing without new dependencies.
+- Added a backend PPTX parser that reads slide XML text and image relationship placeholders from Office Open XML packages.
+- Connected the frontend file parser action to the backend parser for `.pptx` files.
+- Added fallback copy for PDF, image, and legacy `.ppt` files explaining that OCR and full image-structure recognition need a later dedicated parsing service.
+- Added mock API tests for PPTX text extraction and image placeholder detection.
+
+### Verified
+
+- `cd server && npm run test:mock`
+- `cd client && npm run test:mock`
+- `cd client && npm run build`
+
+### Not Implemented
+
+- No OCR engine, slide rendering pipeline, vector database, or large parsing dependency was added.
+- No `docs/PRD.md` changes.
+- No `.env` or `server/.env` changes.
+
+## [0.3.4] - 2026-06-01
+
+### Changed
+
+- Widened the three-panel workspace to use the full viewport with minimal side whitespace and proportions closer to the referenced notebook/studio layout.
+- Moved the material/question input composer into the center conversation panel.
+- Refocused the left panel on source files, file adding, PPT page number, and learning preferences.
+- Added a PPT/PDF/image file source entry with a PPT parsing action that fills editable parsed placeholder text into the center composer.
+- Added automatic learning-record saving for each generated analysis, deep-dive answer, user answer update, diagnosis, and Obsidian state.
+- Added automatic question saving: generated guided questions enter the right sidebar immediately as `待追问`, then update after deep dive.
+
+### Verified
+
+- `cd client && npm run test:mock`
+- `cd client && npm run build`
+- `cd server && npm run test:mock`
+
+### Not Implemented
+
+- No full PPT automatic parsing, OCR pipeline, or image-structure recognition engine was added because the current PRD keeps this outside the MVP scope.
+- No new dependency was added.
+- No `docs/PRD.md` changes.
+- No `.env` or `server/.env` changes.
+
+## [0.3.3] - 2026-06-01
+
+### Changed
+
+- Redesigned the frontend workspace toward a cleaner modern dark three-panel layout inspired by notebook/studio tools.
+- Updated the top bar, source input panel, central learning flow, question history sidebar, Obsidian export, and PPT page drawer visual styling.
+- Reduced visual noise by using consistent dark surfaces, softer borders, rounded controls, clearer sticky panel headers, and more restrained accent colors.
+- Preserved all required product functions: five learning modes, local/backend/real API source switch, question history sidebar, PPT drawer, localStorage records, and Obsidian export.
+
+### Verified
+
+- `cd client && npm run test:mock`
+- `cd client && npm run build`
+- `cd server && npm run test:mock`
+
+### Not Implemented
+
+- No `docs/PRD.md` changes.
+- No `.env` or `server/.env` changes.
+- No new dependency was added.
+
 ## [0.3.2] - 2026-06-01
 
 ### Changed

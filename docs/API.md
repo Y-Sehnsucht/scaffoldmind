@@ -359,6 +359,76 @@ Compare three user-provided text sources for the multi-source collision mode.
 
 ## Real API Fallback Notes
 
+## POST /api/parse-ppt
+
+Lightweight PPTX parsing endpoint for the source-file panel. This route does not call the AI provider and does not read API keys.
+
+Current support:
+
+- `.pptx` only.
+- Extracts text stored directly in slide XML.
+- Detects image placeholders through slide relationships.
+- Returns all parsed slides so the frontend can switch pages without uploading again.
+- Does not perform OCR.
+- Does not render slides to images.
+- Does not support legacy `.ppt`, PDF parsing, or image-structure recognition yet.
+
+### Request
+
+```json
+{
+  "fileName": "cache-memory.pptx",
+  "fileBase64": "base64-encoded-pptx-content",
+  "pageNumber": 12
+}
+```
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "fileName": "cache-memory.pptx",
+    "pageNumber": 12,
+    "slideCount": 24,
+    "extractedText": "Cache memory uses locality.",
+    "slides": [],
+    "images": [
+      {
+        "id": "rId2",
+        "order": 1,
+        "target": "../media/image1.png"
+      }
+    ],
+    "structure": [
+      {
+        "type": "text",
+        "order": 1,
+        "text": "Cache memory uses locality."
+      }
+    ],
+    "warnings": [
+      "当前解析直接读取 PPTX XML 文本和图片占位关系，不执行 OCR。"
+    ]
+  },
+  "error": null
+}
+```
+
+Unsupported file types return:
+
+```json
+{
+  "ok": false,
+  "data": null,
+  "error": {
+    "code": "UNSUPPORTED_FILE_TYPE",
+    "message": "当前轻量解析器只支持 .pptx。PDF、图片 OCR 和旧版 .ppt 需要后续专门解析服务。"
+  }
+}
+```
+
 When `aiSource` is `real_api`:
 
 - If `TEXT_GENERATION_API_KEY` is missing, the backend returns structured mock fallback data.

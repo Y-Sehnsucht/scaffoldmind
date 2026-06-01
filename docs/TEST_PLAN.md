@@ -59,6 +59,9 @@ Run after the Express backend exists.
 - `POST /api/diagnose` quotes the user's answer and returns `{ "ok": true, "data": ... }`.
 - `POST /api/obsidian` returns Markdown with callouts, wikilinks, and page source under `data.obsidianMarkdown`.
 - `POST /api/collision` compares three text sources under `data`.
+- `POST /api/parse-ppt` accepts a base64 `.pptx`, extracts slide XML text, and detects image placeholders.
+- `POST /api/parse-ppt` returns all parsed slides so the frontend can switch pages after one upload.
+- `POST /api/parse-ppt` rejects unsupported file types with `UNSUPPORTED_FILE_TYPE`.
 - Missing required fields return HTTP `400` with `error.code = "VALIDATION_ERROR"`.
 - API errors return JSON with `ok: false`.
 - AI malformed responses produce recoverable fallback errors after real API integration.
@@ -103,6 +106,8 @@ Integration tests:
 - `POST /api/diagnose` validates `userAttempt`.
 - API routes return structured errors.
 - `GET /api/health`, valid `/api/analyze`, invalid `/api/analyze`, and valid `/api/diagnose` are covered by `cd server && npm run test:mock`.
+- Lightweight `.pptx` text extraction and image placeholder detection are covered by `cd server && npm run test:mock`.
+- Multi-slide `.pptx` response coverage is included in `cd server && npm run test:mock`.
 
 E2E tests:
 

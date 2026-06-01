@@ -83,4 +83,7 @@ export const mockBackendApi = {
   collision(payload) {
     return postJson('/api/collision', payload);
   },
+  parsePpt(payload) {
+    return postJson('/api/parse-ppt', payload);
+  },
 };

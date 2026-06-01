@@ -38,4 +38,13 @@ assert.equal(calls[0].url, 'http://localhost:3001/api/analyze', 'mock backend he
 assert.equal(calls[0].options.method, 'POST', 'mock backend helper should construct POST request');
 assert.equal(JSON.parse(calls[0].options.body).mode, 'after_class_review', 'mock backend helper should send payload');
 
+await mockBackendApi.parsePpt({
+  fileName: 'demo.pptx',
+  fileBase64: 'UEsDBAo=',
+  pageNumber: 1,
+});
+
+assert.equal(calls[1].url, 'http://localhost:3001/api/parse-ppt', 'parsePpt helper should call parse-ppt endpoint');
+assert.equal(JSON.parse(calls[1].options.body).fileName, 'demo.pptx', 'parsePpt helper should send fileName');
+
 console.log('API client verification passed.');

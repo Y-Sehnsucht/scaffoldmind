@@ -73,6 +73,14 @@ export async function requestBackendObsidian(analysis, mockSource = MOCK_SOURCES
   return data.obsidianMarkdown || '';
 }
 
+export async function requestPptParsing({ fileName, fileBase64, pageNumber }) {
+  return mockBackendApi.parsePpt({
+    fileName,
+    fileBase64,
+    pageNumber,
+  });
+}
+
 function buildCollisionPayload(commonPayload, materialFields) {
   const values = Object.values(materialFields).filter(Boolean);
 
