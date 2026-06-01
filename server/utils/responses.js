@@ -2,12 +2,14 @@ export function ok(data) {
   return {
     ok: true,
     data,
+    error: null,
   };
 }
 
 export function validationError(message) {
   return {
     ok: false,
+    data: null,
     error: {
       code: 'VALIDATION_ERROR',
       message,

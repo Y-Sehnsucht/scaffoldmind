@@ -4,7 +4,7 @@
 
 Engineering context setup.
 
-Status: frontend mock MVP, backend mock API boundaries, and a controlled frontend local/backend mock switch are implemented; real text generation API is not connected.
+Status: frontend mock MVP, backend mock API boundaries, controlled local/backend/real API source switching, and opt-in real text generation API fallback are implemented.
 
 ## Day 1: Project Initialization And Context
 
@@ -54,6 +54,10 @@ Status: frontend mock MVP, backend mock API boundaries, and a controlled fronten
 - [x] Route backend mock analysis, deep dive, diagnosis, Obsidian, and collision calls through `client/src/shared/api`.
 - [x] Add loading and recoverable error states for backend mock requests.
 - [x] Add lightweight API client verification script.
+- [x] Add opt-in `真实 API` frontend source.
+- [x] Add mode-specific prompt builders for all five learning modes.
+- [x] Add real API service path with structured fallback when key is missing or provider calls fail.
+- [x] Keep `本地 Mock` as the default and preserve `后端 Mock`.
 
 ## Day 4: Complete Five Learning Modes
 
@@ -77,7 +81,7 @@ Status: frontend mock MVP, backend mock API boundaries, and a controlled fronten
 
 ## Next Development Task
 
-Manually test the full backend mock path in the browser with both dev servers running, then add stricter request/response schema checks before real API integration.
+Manually test the full `真实 API` browser path with both dev servers running, then add stricter request/response schema checks around provider output.
 
 ## Scope Guardrails
 

@@ -3,6 +3,7 @@ import { mockBackendApi } from '../../shared/api/client.js';
 export const MOCK_SOURCES = {
   local: 'local',
   backend: 'backend',
+  realApi: 'real_api',
 };
 
 export function combineMaterialText(materialText, materialFields) {
@@ -11,7 +12,7 @@ export function combineMaterialText(materialText, materialFields) {
     .join('\n\n');
 }
 
-export async function requestBackendAnalysis({ subject, mode, preferences, pageNumber, materialText, materialFields }) {
+export async function requestBackendAnalysis({ subject, mode, preferences, pageNumber, materialText, materialFields, mockSource }) {
   const combinedMaterial = combineMaterialText(materialText, materialFields);
   const commonPayload = {
     subject,
@@ -19,6 +20,7 @@ export async function requestBackendAnalysis({ subject, mode, preferences, pageN
     preferences,
     pageNumber,
     materialText: combinedMaterial,
+    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
   };
 
   const [analysisData, collisionData] = await Promise.all([
@@ -40,29 +42,34 @@ export async function requestBackendAnalysis({ subject, mode, preferences, pageN
   };
 }
 
-export async function requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question }) {
+export async function requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question, mockSource }) {
   const data = await mockBackendApi.deepDive({
     subject,
     mode,
     pageNumber,
     materialText: combineMaterialText(materialText, materialFields),
     question,
+    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
   });
 
   return normalizeDeepDive(data, question, pageNumber);
 }
 
-export async function requestBackendDiagnosis({ subject, mode, question, userAttempt }) {
+export async function requestBackendDiagnosis({ subject, mode, question, userAttempt, mockSource }) {
   return mockBackendApi.diagnose({
     subject,
     mode,
     question: question?.question || question || 'Current user task',
     userAttempt,
+    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
   });
 }
 
-export async function requestBackendObsidian(analysis) {
-  const data = await mockBackendApi.obsidian({ analysis });
+export async function requestBackendObsidian(analysis, mockSource = MOCK_SOURCES.backend) {
+  const data = await mockBackendApi.obsidian({
+    analysis,
+    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
+  });
   return data.obsidianMarkdown || '';
 }
 

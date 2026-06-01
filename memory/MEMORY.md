@@ -2,13 +2,13 @@
 
 ## Current Version
 
-V0.1 MVP, implementation checkpoint `0.2.4`.
+V0.1 MVP, implementation checkpoint `0.3.0`.
 
 ## Current Status
 
-ScaffoldMind 明序 has the engineering context, React + Vite + Tailwind frontend skeleton, Node.js Express backend skeleton, frontend mock MVP learning loop, mode-specific mock output for all five learning modes, backend mock API boundaries, and a controlled frontend mock source switch.
+ScaffoldMind 明序 has the engineering context, React + Vite + Tailwind frontend skeleton, Node.js Express backend skeleton, frontend mock MVP learning loop, mode-specific mock output for all five learning modes, backend mock API boundaries, a controlled frontend source switch, and an opt-in real text generation API path.
 
-The app still does not call a real text generation API. `docs/PRD.md` remains the product source of truth and was not modified for this checkpoint.
+The app calls a real text generation provider only when the user selects `真实 API`. `本地 Mock` remains the default. `后端 Mock` remains available. `docs/PRD.md` remains the product source of truth and was not modified for this checkpoint.
 
 ## Completed Features
 
@@ -28,38 +28,41 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - Built the PPT original page side drawer.
 - Saved question history and learning records through localStorage.
 - Added distinct mode-specific local mock output structures for all five learning modes.
-- Added Express mock endpoints:
+- Added Express endpoints:
   - `POST /api/analyze`
   - `POST /api/deep-dive`
   - `POST /api/diagnose`
   - `POST /api/obsidian`
   - `POST /api/collision`
 - Added unified backend responses:
-  - success: `{ ok: true, data }`
-  - validation failure: `{ ok: false, error: { code: "VALIDATION_ERROR", message } }`
-- Added frontend backend mock helper methods under `client/src/shared/api`.
-- Added a top-bar mock source switch:
+  - success: `{ ok: true, data, error: null }`
+  - failure: `{ ok: false, data: null, error }`
+- Added frontend backend helper methods under `client/src/shared/api`.
+- Added a top-bar source switch:
   - `本地 Mock`
   - `后端 Mock`
+  - `真实 API`
 - Kept `本地 Mock` as the default.
 - Added frontend API response parser and recoverable API error handling.
-- Added loading and error states for backend mock requests without clearing user input.
-- Added lightweight verification scripts:
-  - `cd server && npm run test:mock`
-  - `cd client && npm run test:mock`
+- Added loading and error states for backend/real API requests without clearing user input.
 - Hardened backend environment loading so `server/config/env.js` explicitly reads `server/.env`.
 - Added `env.hasTextGenerationApiKey` without exposing or printing the actual key.
 - Added `server/scripts/verifyEnv.mjs` for env loader verification.
+- Added prompt builders for all five learning modes.
+- Added `aiService` real API path with structured fallback for missing key, provider failure, empty response, or plain-text response.
+- Added lightweight verification scripts:
+  - `cd server && npm run test:mock`
+  - `cd client && npm run test:mock`
 
 ## In Progress
 
-- Backend mock path is now available from the UI, but the full browser walkthrough with both dev servers should be manually tested next.
-- Real text generation API integration remains intentionally blocked until schema checks and manual mock acceptance are complete.
+- Real API mode is implemented but should be manually verified in the browser with both dev servers running.
+- Automated tests avoid printing or exposing the API key and do not require a provider response.
 
 ## Known Constraints And Tradeoffs
 
-- No `.env` is created by Codex. Only `.env.example` should be committed.
-- API keys must live only in a local backend `.env` when real integration starts.
+- Codex must not create, edit, print, or commit `server/.env`.
+- API keys must live only in local backend `server/.env`.
 - Frontend must never expose text generation API keys.
 - MVP storage remains browser localStorage only.
 - No login or registration.
@@ -69,19 +72,16 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - No vector database.
 - No cloud sync.
 - Current tests are lightweight Node scripts, not a full test framework.
-- `server/.env` is local-only and ignored by Git; Codex must not print or commit its contents.
 
 ## Next Plan
 
-1. Run the full backend mock browser path with both dev servers:
-   - generate analysis
-   - click guided question
-   - submit diagnosis
-   - copy Obsidian output
-   - try multi-source collision
-2. Add stricter request/response schema checks before any real API connection.
-3. Add manual test notes for backend-down error behavior.
-4. Continue confirming `.env` is absent and `docs/PRD.md` is unchanged.
+1. Manually test all three source modes in the browser:
+   - `本地 Mock`
+   - `后端 Mock`
+   - `真实 API`
+2. Add stricter request/response schema checks around real provider output.
+3. Add provider configuration docs without including any real key.
+4. Continue confirming `server/.env` is ignored and `docs/PRD.md` is unchanged.
 
 ## Recent Important Changes
 
@@ -92,6 +92,7 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - 2026-06-01: Added backend mock API boundaries with unified response formats.
 - 2026-06-01: Added controlled frontend mock source switch and frontend API response parser.
 - 2026-06-01: Hardened backend env loading to explicitly target `server/.env`.
+- 2026-06-01: Added opt-in real text generation API path with structured fallback and a three-source frontend selector.
 
 ## Quick References
 
@@ -106,6 +107,9 @@ The app still does not call a real text generation API. `docs/PRD.md` remains th
 - Frontend API helper: `client/src/shared/api/client.js`
 - Backend app: `server/app.js`
 - Backend entry: `server/index.js`
+- Backend env loader: `server/config/env.js`
+- Backend prompt builder: `server/services/promptBuilder.js`
+- Backend AI service: `server/services/aiService.js`
 - Backend mock service: `server/services/mockLearningService.js`
 
 ## Must Update After Each Milestone

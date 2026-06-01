@@ -121,6 +121,16 @@ Before delivery:
 - Confirm `.env` is not tracked by Git.
 - Confirm `node_modules`, `dist`, `coverage`, and logs are not committed.
 
+## 6.1 Real API Mode Checks
+
+- The top-bar source selector includes `本地 Mock`, `后端 Mock`, and `真实 API`.
+- `本地 Mock` remains the default source.
+- `真实 API` sends `aiSource: "real_api"` to Express routes and never calls a provider directly from the frontend.
+- Without `TEXT_GENERATION_API_KEY`, `真实 API` mode returns structured fallback data and does not crash.
+- With a valid local backend key, `真实 API` mode can generate structured analysis through Express.
+- Provider failure returns structured fallback data or a structured error, while preserving user input and existing results.
+- API keys never appear in response bodies, browser-visible code, docs, tests, or logs.
+
 ## 7. Current Status
 
 The frontend mock MVP is implemented. Current executable checks:

@@ -48,9 +48,9 @@ The MVP must include:
 
 ## Project Status
 
-Current stage: mock MVP learning loop implemented with a controlled local/backend mock switch.
+Current stage: mock MVP learning loop implemented with a controlled local/backend/real API source switch.
 
-The app defaults to a local mock learning loop without calling a real AI provider. The top bar can manually switch to the Express backend mock routes for API-boundary testing. The next development task is to manually verify the full backend mock browser path and add stricter schema checks before any real API integration.
+The app defaults to a local mock learning loop. The top bar can manually switch to the Express backend mock routes or the opt-in real API path. The real API path calls the provider only through the Express backend and falls back to structured mock data when the key is missing or the provider call fails.
 
 ## Repository Structure
 
@@ -103,6 +103,13 @@ PORT=3001
 
 The frontend must never read or contain the text generation API key.
 
+Optional real API mode:
+
+- Put the real key only in local `server/.env`.
+- Do not commit or print `server/.env`.
+- Select `真实 API` in the top bar to use the real provider path.
+- Missing or failing provider calls return structured fallback data.
+
 ## Running Locally
 
 Install dependencies separately for the frontend and backend:
@@ -139,6 +146,8 @@ The frontend can run without the backend for the mock learning loop:
 9. Copy or manually copy the Obsidian Markdown mock output.
 
 To test the backend mock path, start the backend with `cd server && npm run dev`, then switch the top-bar mock source from `本地 Mock` to `后端 Mock`.
+
+To test the real API path, start the backend with `cd server && npm run dev`, then switch the top-bar source to `真实 API`.
 
 ## Documentation
 

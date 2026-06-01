@@ -8,7 +8,8 @@ This document is an initial API draft based on `docs/PRD.md`. The API is impleme
 - `.env` must not be committed.
 - `.env.example` contains empty placeholders only.
 - Frontend code, README, docs, tests, and screenshots must not include real API keys.
-- The current implementation supports local mock and backend mock only. It does not call a real text generation API.
+- The current implementation supports local mock, backend mock, and an opt-in real API path.
+- The real API path reads the key only from backend `server/.env` through `server/config/env.js`.
 
 ## Frontend Mock Source Switch
 
@@ -16,6 +17,8 @@ The React app defaults to local mock data for stable demos. A top-bar switch can
 
 - `本地 Mock`: run the full learning loop inside the frontend using local mock builders.
 - `后端 Mock`: call the Express mock routes while preserving the same UI, question history, PPT side drawer, localStorage records, and Obsidian output.
+
+The third source option is `真实 API`. It calls the same Express routes with `aiSource: "real_api"`, and the backend calls the text generation provider only in this mode.
 
 The default remains local mock. The frontend helper also exports `USE_BACKEND_MOCK = false` as the stable default configuration flag.
 
@@ -85,7 +88,8 @@ All successful API responses use:
 ```json
 {
   "ok": true,
-  "data": {}
+  "data": {},
+  "error": null
 }
 ```
 
@@ -94,6 +98,7 @@ All successful API responses use:
 ```json
 {
   "ok": false,
+  "data": null,
   "error": {
     "code": "AI_RESPONSE_INVALID",
     "message": "The AI response could not be parsed into the expected structure."
@@ -344,9 +349,19 @@ Compare three user-provided text sources for the multi-source collision mode.
 }
 ```
 
-## Current Mock Backend Notes
+## Real API Fallback Notes
 
-The backend currently returns deterministic mock JSON only. It does not call a real text generation provider. Required-field validation is active for:
+When `aiSource` is `real_api`:
+
+- If `TEXT_GENERATION_API_KEY` is missing, the backend returns structured mock fallback data.
+- If the provider call fails, the backend returns structured mock fallback data.
+- Fallback responses include `providerStatus: "fallback"` and `fallbackReason`.
+- Successful real provider responses include `providerStatus: "real_api"`.
+- If the provider returns plain text, the backend converts it into the existing frontend-displayable structure.
+
+## Current Backend Notes
+
+The backend returns deterministic mock JSON unless the frontend explicitly sends `aiSource: "real_api"`. Required-field validation is active for:
 
 - `subject` and `mode` on learning endpoints
 - `materialText` on `/api/analyze`

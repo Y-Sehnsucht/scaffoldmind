@@ -2,6 +2,28 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.3.0] - 2026-06-01
+
+### Added
+
+- Added opt-in real text generation API mode through the existing Express routes.
+- Added `真实 API` to the frontend source selector while keeping `本地 Mock` as the default and preserving `后端 Mock`.
+- Added mode-specific prompt builders for all five learning modes.
+- Added real API fallback handling for missing API key, provider failure, empty response, and plain-text provider output.
+- Added unified success/failure response envelopes with `data` and `error` fields.
+
+### Changed
+
+- Routes now call real API service only when `aiSource` is `real_api`; otherwise they continue returning backend mock data.
+- Frontend loading/error copy now applies to backend and real API paths.
+- Updated API docs, test plan, and project memory for real API mode.
+
+### Not Implemented
+
+- No API key was written to code, docs, README, or frontend files.
+- No `server/.env` file was created or modified.
+- No login, registration, teacher dashboard, OCR, vector database, cloud sync, or complete PPT parsing was added.
+
 ## [0.2.4] - 2026-06-01
 
 ### Added

@@ -1,16 +1,22 @@
 import { Router } from 'express';
+import { generateCollision } from '../services/aiService.js';
 import { buildMockCollision } from '../services/mockLearningService.js';
 import { ok, sendValidationError } from '../utils/responses.js';
 import { requireCommonLearningFields, requireFields } from '../utils/validation.js';
 
 export const collisionRouter = Router();
 
-collisionRouter.post('/', (req, res) => {
+collisionRouter.post('/', async (req, res, next) => {
   const missing = [...requireCommonLearningFields(req.body), ...requireFields(req.body, ['sourceA', 'sourceB', 'sourceC'])];
 
   if (missing.length > 0) {
     return sendValidationError(res, `Missing required field(s): ${missing.join(', ')}`);
   }
 
-  return res.json(ok(buildMockCollision(req.body)));
+  try {
+    const data = req.body.aiSource === 'real_api' ? await generateCollision(req.body) : buildMockCollision(req.body);
+    return res.json(ok(data));
+  } catch (error) {
+    return next(error);
+  }
 });

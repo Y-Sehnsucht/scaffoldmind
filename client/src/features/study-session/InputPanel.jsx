@@ -99,7 +99,13 @@ export function InputPanel({
           disabled={isLoading}
           onClick={onGenerate}
         >
-          {isLoading ? 'Mock 生成中...' : mockSource === 'backend' ? '生成后端 Mock 解析' : '生成本地 Mock 解析'}
+          {isLoading
+            ? '生成中...'
+            : mockSource === 'real_api'
+              ? '生成真实 API 解析'
+              : mockSource === 'backend'
+                ? '生成后端 Mock 解析'
+                : '生成本地 Mock 解析'}
         </button>
         <button
           className="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-300 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"

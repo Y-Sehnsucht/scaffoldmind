@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "node index.js",
-    "test:mock": "node scripts/verifyMockApi.mjs"
+    "test:mock": "node scripts/verifyMockApi.mjs",
+    "test:real": "node scripts/verifyRealProvider.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -25,6 +25,7 @@ export function createApp() {
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({
       ok: false,
+      data: null,
       error: {
         code: err.code || 'SERVER_ERROR',
         message: err.message || 'Unexpected server error',

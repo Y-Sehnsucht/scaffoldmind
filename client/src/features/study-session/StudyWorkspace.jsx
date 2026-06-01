@@ -51,7 +51,8 @@ export function StudyWorkspace() {
 
   const currentMode = useMemo(() => LEARNING_MODES.find((item) => item.id === mode) || LEARNING_MODES[0], [mode]);
   const localObsidianMarkdown = useMemo(() => buildObsidianMarkdown(analysis, diagnosis), [analysis, diagnosis]);
-  const obsidianMarkdown = mockSource === MOCK_SOURCES.backend ? backendObsidianMarkdown : localObsidianMarkdown;
+  const usesBackendPath = mockSource !== MOCK_SOURCES.local;
+  const obsidianMarkdown = usesBackendPath ? backendObsidianMarkdown : localObsidianMarkdown;
 
   useEffect(() => {
     saveQuestionHistory(questionHistory);
@@ -77,18 +78,18 @@ export function StudyWorkspace() {
   function handleMockSourceChange(nextSource) {
     setMockSource(nextSource);
     setErrorMessage('');
-    setStatus(nextSource === MOCK_SOURCES.backend ? 'Backend mock selected' : 'Local mock selected');
+    setStatus(getSourceStatus(nextSource));
   }
 
   async function handleGenerate() {
     setLoadingAction('generate');
     setErrorMessage('');
-    setStatus(mockSource === MOCK_SOURCES.backend ? 'Calling backend mock...' : 'Generating local mock...');
+    setStatus(usesBackendPath ? `Calling ${getSourceLabel(mockSource)}...` : 'Generating local mock...');
 
     try {
       const combinedMaterial = combineMaterialText(materialText, materialFields);
       const result =
-        mockSource === MOCK_SOURCES.backend
+        usesBackendPath
           ? await requestBackendAnalysis({
               subject,
               mode,
@@ -96,6 +97,7 @@ export function StudyWorkspace() {
               pageNumber,
               materialText,
               materialFields,
+              mockSource,
             })
           : {
               analysis: buildMockAnalysis({
@@ -115,7 +117,7 @@ export function StudyWorkspace() {
       setUserAnswer('');
       setCopied(false);
       setCopyFallbackVisible(false);
-      setStatus(mockSource === MOCK_SOURCES.backend ? 'Backend mock analysis ready' : 'Local mock analysis ready');
+      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)} analysis ready` : 'Local mock analysis ready');
     } catch (error) {
       setErrorMessage(formatError(error));
       setStatus('Mock request failed');
@@ -127,19 +129,19 @@ export function StudyWorkspace() {
   async function handleDeepDive(question) {
     setLoadingAction(`deep-dive:${question.id}`);
     setErrorMessage('');
-    setStatus(mockSource === MOCK_SOURCES.backend ? 'Calling backend mock deep-dive...' : 'Generating local deep-dive...');
+    setStatus(usesBackendPath ? `Calling ${getSourceLabel(mockSource)} deep-dive...` : 'Generating local deep-dive...');
 
     try {
       const nextDeepDive =
-        mockSource === MOCK_SOURCES.backend
-          ? await requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question })
+        usesBackendPath
+          ? await requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question, mockSource })
           : buildMockDeepDive(question);
       const historyItem = {
         id: `history_${Date.now()}`,
         question: question.question,
         pageNumber: question.pageNumber,
         concept: question.concept,
-        status: mockSource === MOCK_SOURCES.backend ? 'Backend mock answered' : 'Local mock answered',
+        status: usesBackendPath ? `${getSourceLabel(mockSource)} answered` : 'Local mock answered',
         createdAt: new Date().toISOString(),
       };
 
@@ -157,16 +159,16 @@ export function StudyWorkspace() {
   async function handleDiagnose() {
     setLoadingAction('diagnose');
     setErrorMessage('');
-    setStatus(mockSource === MOCK_SOURCES.backend ? 'Calling backend mock diagnosis...' : 'Generating local diagnosis...');
+    setStatus(usesBackendPath ? `Calling ${getSourceLabel(mockSource)} diagnosis...` : 'Generating local diagnosis...');
 
     try {
       const nextDiagnosis =
-        mockSource === MOCK_SOURCES.backend
-          ? await requestBackendDiagnosis({ subject, mode, question: analysis?.userTask, userAttempt: userAnswer })
+        usesBackendPath
+          ? await requestBackendDiagnosis({ subject, mode, question: analysis?.userTask, userAttempt: userAnswer, mockSource })
           : buildMockDiagnosis(userAnswer);
 
       setDiagnosis(nextDiagnosis);
-      setStatus(mockSource === MOCK_SOURCES.backend ? 'Backend mock diagnosis ready' : 'Local mock diagnosis ready');
+      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)} diagnosis ready` : 'Local mock diagnosis ready');
     } catch (error) {
       setErrorMessage(formatError(error));
       setStatus('Diagnosis request failed');
@@ -225,8 +227,8 @@ export function StudyWorkspace() {
     let markdownToCopy = obsidianMarkdown;
 
     try {
-      if (mockSource === MOCK_SOURCES.backend && analysis && !markdownToCopy) {
-        markdownToCopy = await requestBackendObsidian(analysis);
+      if (usesBackendPath && analysis && !markdownToCopy) {
+        markdownToCopy = await requestBackendObsidian(analysis, mockSource);
         setBackendObsidianMarkdown(markdownToCopy);
       }
 
@@ -325,8 +327,28 @@ export function StudyWorkspace() {
 
 function formatError(error) {
   if (error?.code) {
-    return `Mock API error (${error.code}): ${error.message}`;
+    return `API error (${error.code}): ${error.message}`;
   }
 
-  return error?.message || 'Mock request failed. Check whether the backend dev server is running.';
+  return error?.message || 'Request failed. Check whether the backend dev server is running.';
+}
+
+function getSourceLabel(source) {
+  const labels = {
+    [MOCK_SOURCES.local]: 'Local mock',
+    [MOCK_SOURCES.backend]: 'Backend mock',
+    [MOCK_SOURCES.realApi]: 'Real API',
+  };
+
+  return labels[source] || 'Local mock';
+}
+
+function getSourceStatus(source) {
+  const statuses = {
+    [MOCK_SOURCES.local]: 'Local mock selected',
+    [MOCK_SOURCES.backend]: 'Backend mock selected',
+    [MOCK_SOURCES.realApi]: 'Real API selected',
+  };
+
+  return statuses[source] || 'Local mock selected';
 }

@@ -22,7 +22,7 @@ export function TopBar({
           </p>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[150px_minmax(240px,420px)_220px_160px] md:items-end">
+        <div className="grid gap-3 md:grid-cols-[150px_minmax(240px,420px)_270px_160px] md:items-end">
           <label className="text-xs font-medium text-slate-600">
             学科
             <select
@@ -55,7 +55,7 @@ export function TopBar({
 
           <div className="text-xs font-medium text-slate-600">
             Mock source
-            <div className="mt-1 grid grid-cols-2 rounded-md border border-slate-300 bg-slate-100 p-1">
+            <div className="mt-1 grid grid-cols-3 rounded-md border border-slate-300 bg-slate-100 p-1">
               <button
                 className={sourceButtonClass(mockSource === MOCK_SOURCES.local)}
                 type="button"
@@ -69,6 +69,13 @@ export function TopBar({
                 onClick={() => onMockSourceChange(MOCK_SOURCES.backend)}
               >
                 后端 Mock
+              </button>
+              <button
+                className={sourceButtonClass(mockSource === MOCK_SOURCES.realApi)}
+                type="button"
+                onClick={() => onMockSourceChange(MOCK_SOURCES.realApi)}
+              >
+                真实 API
               </button>
             </div>
           </div>

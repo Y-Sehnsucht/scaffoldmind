@@ -16,6 +16,8 @@ export function buildEnv(source = process.env) {
     port: Number.isFinite(port) && port > 0 ? port : 3001,
     textGenerationApiKey,
     hasTextGenerationApiKey: Boolean(textGenerationApiKey),
+    textGenerationApiUrl: source.TEXT_GENERATION_API_URL || 'https://api.openai.com/v1/chat/completions',
+    textGenerationModel: source.TEXT_GENERATION_MODEL || 'gpt-4o-mini',
   };
 }
 
