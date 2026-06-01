@@ -81,8 +81,9 @@ Unit tests:
 
 - `promptBuilder` builds different prompts for all five modes.
 - `promptBuilder` includes subject and learning preferences.
-- localStorage helpers save, load, and delete records safely.
-- Obsidian export includes callouts, wikilinks, and source page.
+- localStorage helpers save, load, and delete records safely. Covered by `cd client && npm run test:mock`.
+- Obsidian export includes callouts, wikilinks, and source page. Covered by `cd client && npm run test:mock`.
+- mock learning output is non-empty and exposes mode-specific fields for all five learning modes. Covered by `cd client && npm run test:mock`.
 
 Integration tests:
 
@@ -109,4 +110,14 @@ Before delivery:
 
 ## 7. Current Status
 
-Only documentation exists at this stage. Code-level tests will become executable after the frontend and backend skeletons are initialized.
+The frontend mock MVP is implemented. Current executable checks:
+
+- `cd client && npm run test:mock`
+- `cd client && npm run build`
+
+The mock verification covers:
+
+- question history localStorage round trip and clear
+- learning records localStorage round trip and clear
+- Obsidian Markdown callouts, wikilinks, and PPT page source
+- all five learning modes exposing distinct mode-specific mock fields

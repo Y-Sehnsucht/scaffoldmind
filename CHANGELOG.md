@@ -2,6 +2,31 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.2.1] - 2026-06-01
+
+### Added
+
+- Added distinct mode-specific mock output structures for all five learning modes:
+  - Context Stacking
+  - after-class deep review
+  - examiner perspective
+  - Feynman explanation
+  - multi-source collision
+- Added UI rendering for each mode-specific mock structure.
+- Added `client/scripts/verifyMockMvp.mjs` lightweight verification script.
+- Added `npm run test:mock` for localStorage, Obsidian Markdown, and mock learning output checks.
+
+### Changed
+
+- Updated test plan with executable mock verification commands.
+- Updated task status for mode-specific mock output completion.
+
+### Not Implemented
+
+- No real text generation API was connected.
+- No `.env` file was created.
+- No login, registration, teacher dashboard, OCR, vector database, cloud sync, or complete PPT parsing was added.
+
 ## [0.2.0] - 2026-06-01
 
 ### Added

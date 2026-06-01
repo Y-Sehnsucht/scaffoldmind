@@ -20,8 +20,9 @@ export function buildMockAnalysis({ subject, mode, preferences, pageNumber, mate
       ? '从抽象结构、操作代价和题型迁移角度理解。'
       : '从机器级访问、存储层级和性能影响角度理解。';
 
-  return {
+  const analysis = {
     id: `analysis_${Date.now()}`,
+    mode,
     pageNumber,
     topic,
     summary: materialText
@@ -66,6 +67,11 @@ export function buildMockAnalysis({ subject, mode, preferences, pageNumber, mate
       expectedKeyPoints: ['数据不在缓存', '需要访问更慢层级', '访问模式会影响命中率'],
     },
     pageText: materialText || '这里展示用户输入或 AI 提取出的 PPT 第 X 页文字占位。',
+  };
+
+  return {
+    ...analysis,
+    modeSpecific: buildModeSpecificSection(mode, analysis),
   };
 }
 
@@ -149,4 +155,88 @@ function buildQuestionReason(type) {
   };
 
   return reasons[type];
+}
+
+function buildModeSpecificSection(mode, analysis) {
+  const sections = {
+    context_stacking: {
+      type: 'context_stacking',
+      title: 'Context Stacking 超前学习输出',
+      weeklyCoreConcepts: ['Memory Hierarchy', 'Locality', 'Cache Line', 'Cache Miss', 'Cache Blocking'],
+      connectionToLastWeek: [
+        '从上周的程序执行模型连接到本周的存储层级。',
+        '把“指令会访问内存”推进到“访问模式会影响性能”。',
+      ],
+      classroomValidationChecklist: [
+        '课堂上确认老师是否强调时间局部性和空间局部性的区别。',
+        '记录 cache line、block size、cache size 是否被放在同一张图里比较。',
+        '观察例题是否要求手算命中率或 miss 类型。',
+      ],
+      gapChecklist: [
+        '补齐 set associative 的映射规则。',
+        '复查二维数组按行/按列访问的缓存差异。',
+        '用一句话区分 cache line 和 cache size。',
+      ],
+      examinerDistinction: [
+        '只背定义的人会说“没命中缓存”。',
+        '真正理解的人会解释访问序列、映射规则和慢速层级代价。',
+      ],
+    },
+    after_class_review: {
+      type: 'after_class_review',
+      title: '课后深度复习输出',
+      pageNumber: analysis.pageNumber,
+      coreConcepts: analysis.coreConcepts,
+      essenceExplanation: analysis.coreConcepts.map((concept) => `${concept.name}: ${concept.essence}`),
+      contextRelation: analysis.contextRelation,
+      examFocus: analysis.examFocus,
+      pitfalls: analysis.pitfalls,
+      guidedQuestions: analysis.guidedQuestions,
+    },
+    examiner_perspective: {
+      type: 'examiner_perspective',
+      title: '出题人视角输出',
+      testedPoints: ['是否能从访问序列推导 cache miss', '是否能区分概念定义和性能原因', '是否能迁移到代码访问模式'],
+      examinerIntent: '用一道看似计算题的问题，区分学生是背了 cache miss 定义，还是能解释存储层级和局部性。',
+      surfaceTraps: [
+        '看到 cache 就只背“容量越大越好”。',
+        '把 cache line、block size、cache size 混成一个概念。',
+        '忽略访问顺序导致的命中率差异。',
+      ],
+      underlyingLogic: '出题人想考的是“访问模式 -> 缓存命中率 -> 性能”的因果链，而不是术语复述。',
+      transferQuestions: [
+        '给出二维数组按列访问的代码，判断为什么比按行访问慢。',
+        '改变 block size 后，分析顺序访问和随机访问的收益差异。',
+      ],
+    },
+    feynman: {
+      type: 'feynman',
+      title: '费曼反讲输出',
+      accurateParts: ['你能意识到 cache miss 和“数据不在缓存中”有关。', '你已经把它和性能问题建立了初步连接。'],
+      biggestDeviation: '解释容易停在定义层，没有讲清楚为什么会慢、慢在哪里、访问模式如何改变结果。',
+      whyDeviationMatters: '如果缺少因果链，换成访问序列题或代码优化题时就无法迁移。',
+      twelveYearOldExplanation:
+        '把缓存想成桌面，主存想成书架。你要的纸不在桌面上，就得起身去书架找，所以慢；如果你总是按顺序拿附近的纸，桌面就更可能提前放好你需要的东西。',
+      checkingQuestion: '如果连续读数组通常更快，你能用 cache line 和局部性解释原因吗？',
+    },
+    multi_source_collision: {
+      type: 'multi_source_collision',
+      title: '多维信息对撞输出',
+      sourceViews: [
+        { source: '资料 A', view: '课程材料强调 cache miss 的定义、页码和考试计算。' },
+        { source: '资料 B', view: '工程文章强调访问模式、数据布局和性能优化。' },
+        { source: '资料 C', view: '反面解释提醒：缓存并不总是越大越好，还要看映射和局部性。' },
+      ],
+      conflicts: ['课程材料偏概念边界，工程材料偏优化策略。', '“增大缓存”与“优化访问模式”不是同一层面的解决方案。'],
+      evidenceStrength: [
+        '课程材料对考试范围最强。',
+        '工程文章对真实性能直觉最强。',
+        '反面观点适合暴露简单结论的边界。',
+      ],
+      adoptableConclusions: ['先按课程定义建立概念边界。', '再用工程例子理解为什么访问模式重要。'],
+      doubtsToKeep: ['没有具体硬件参数时，不要绝对判断某个缓存配置一定更优。'],
+    },
+  };
+
+  return sections[mode] || sections.after_class_review;
 }

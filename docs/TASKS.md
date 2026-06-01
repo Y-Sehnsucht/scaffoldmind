@@ -50,13 +50,13 @@ Status: mock learning loop, localStorage persistence, Obsidian mock output, and 
 
 ## Day 4: Complete Five Learning Modes
 
-- [ ] Add Context Stacking prompt.
-- [ ] Add after-class deep review prompt.
-- [ ] Add examiner perspective prompt.
-- [ ] Add Feynman explanation prompt.
-- [ ] Add multi-source collision prompt.
-- [ ] Verify each mode has distinct inputs and output structure.
-- [ ] Add at least one manual test input per mode.
+- [x] Add Context Stacking mock output structure.
+- [x] Add after-class deep review mock output structure.
+- [x] Add examiner perspective mock output structure.
+- [x] Add Feynman explanation mock output structure.
+- [x] Add multi-source collision mock output structure.
+- [x] Verify each mode has distinct inputs and output structure.
+- [x] Add lightweight automated verification for all modes.
 
 ## Day 5: Acceptance, Export, And Delivery
 
@@ -70,7 +70,7 @@ Status: mock learning loop, localStorage persistence, Obsidian mock output, and 
 
 ## Next Development Task
 
-Polish mock mode-specific outputs and add focused tests for storage and Obsidian export.
+Prepare real API integration boundaries without connecting a real text generation API.
 
 ## Scope Guardrails
 
