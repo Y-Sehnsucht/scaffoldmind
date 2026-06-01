@@ -4,7 +4,7 @@
 
 Engineering context setup.
 
-Status: frontend and backend skeletons initialized; UI skeleton and mock learning loop are next.
+Status: mock learning loop, localStorage persistence, Obsidian mock output, and enhanced UI skeleton are implemented.
 
 ## Day 1: Project Initialization And Context
 
@@ -21,21 +21,21 @@ Status: frontend and backend skeletons initialized; UI skeleton and mock learnin
 - [x] Initialize React + Vite + Tailwind frontend.
 - [x] Initialize Node.js Express backend.
 - [x] Add `.gitignore` entries required by the PRD.
-- [ ] Build single-page three-column UI skeleton.
-- [ ] Add PPT original page side drawer skeleton.
+- [x] Build single-page three-column UI skeleton.
+- [x] Add PPT original page side drawer skeleton.
 
 ## Day 2: Mock Learning Loop
 
-- [ ] Implement subject selection for CSAPP and Data Structures.
-- [ ] Implement all five learning mode selectors.
-- [ ] Implement learning preference chips.
-- [ ] Implement mode-specific material input forms.
-- [ ] Implement mock structured AI analysis.
-- [ ] Implement guided questions.
-- [ ] Implement right-side question history sidebar.
-- [ ] Implement user attempt input.
-- [ ] Implement mock error diagnosis.
-- [ ] Persist question history to localStorage.
+- [x] Implement subject selection for CSAPP and Data Structures.
+- [x] Implement all five learning mode selectors.
+- [x] Implement learning preference chips.
+- [x] Implement mode-specific material input forms.
+- [x] Implement mock structured AI analysis.
+- [x] Implement guided questions.
+- [x] Implement right-side question history sidebar.
+- [x] Implement user attempt input.
+- [x] Implement mock error diagnosis.
+- [x] Persist question history to localStorage.
 
 ## Day 3: Real Text Generation API
 
@@ -60,8 +60,8 @@ Status: frontend and backend skeletons initialized; UI skeleton and mock learnin
 
 ## Day 5: Acceptance, Export, And Delivery
 
-- [ ] Implement Obsidian Markdown copy.
-- [ ] Implement learning record save/delete/review through localStorage.
+- [x] Implement Obsidian Markdown copy.
+- [x] Implement learning record save/delete/review through localStorage.
 - [ ] Run the final demo path from the PRD.
 - [ ] Capture screenshots for delivery.
 - [ ] Update README with actual run commands.
@@ -70,7 +70,7 @@ Status: frontend and backend skeletons initialized; UI skeleton and mock learnin
 
 ## Next Development Task
 
-Build the single-page three-column UI skeleton and PPT original page side drawer skeleton.
+Polish mock mode-specific outputs and add focused tests for storage and Obsidian export.
 
 ## Scope Guardrails
 

@@ -2,6 +2,32 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.2.0] - 2026-06-01
+
+### Added
+
+- Built the enhanced single-page three-column learning workspace.
+- Added top-bar subject selection, five learning mode selection, and current status display.
+- Added learning preference chips, mode-specific material inputs, page number input, image upload placeholder, and mock generation button.
+- Added structured mock analysis with page number, topic, core concepts, essence, context relation, exam focus, engineering use, pitfalls, guided questions, user task, and page link.
+- Added PPT original page side drawer with image placeholder, extracted text placeholder, and related concepts.
+- Added mock guided-question deep dive flow that writes to the right-side question history sidebar.
+- Added mock user-answer diagnosis with error type, quoted answer, suggestion, and reinforcement task.
+- Added localStorage persistence for question history and learning records.
+- Added save/clear controls for question history and learning records.
+- Added Obsidian Markdown mock export with wikilink, callouts, related concepts, page source, copy action, and fallback text area.
+
+### Changed
+
+- Kept `App.jsx` as a thin wrapper around the componentized study workspace.
+- Updated README, task list, and project memory for the mock MVP stage.
+
+### Not Implemented
+
+- No real text generation API was connected.
+- No `.env` file was created.
+- No login, registration, teacher dashboard, OCR, vector database, cloud sync, or complete PPT parsing was added.
+
 ## [0.1.1] - 2026-06-01
 
 ### Added

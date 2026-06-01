@@ -48,9 +48,9 @@ The MVP must include:
 
 ## Project Status
 
-Current stage: frontend and backend skeletons initialized.
+Current stage: mock MVP learning loop implemented.
 
-The next development task is to build the single-page three-column UI skeleton and PPT original page side drawer skeleton.
+The app currently runs a local mock learning loop without calling a real AI provider. The next development task is to polish mode-specific mock outputs and add focused tests for storage and Obsidian export.
 
 ## Repository Structure
 
@@ -122,6 +122,20 @@ Default local URLs:
 - Frontend: `http://localhost:5173`
 - Backend health check: `http://localhost:3001/api/health`
 
+## Current Mock Flow
+
+The frontend can run without the backend for the mock learning loop:
+
+1. Select a subject and one of the five learning modes.
+2. Toggle learning preference chips.
+3. Enter material and a PPT page number.
+4. Generate a mock structured analysis.
+5. Open the PPT original page side drawer.
+6. Click a guided question to add it to question history.
+7. Submit a user attempt to show mock diagnosis and reinforcement.
+8. Save the learning record to localStorage.
+9. Copy or manually copy the Obsidian Markdown mock output.
+
 ## Documentation
 
 - Product requirements: `docs/PRD.md`
@@ -141,4 +155,4 @@ Default local URLs:
 
 ## Next Task
 
-Build the single-page three-column UI skeleton and PPT original page side drawer skeleton, then add mock learning-loop extension points.
+Polish mode-specific mock outputs and add focused tests for storage and Obsidian export.
