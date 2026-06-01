@@ -58,6 +58,17 @@ Notes:
 - `materialText` is the default text material field.
 - Mode-specific endpoints may accept additional fields.
 
+### Success Response
+
+All successful API responses use:
+
+```json
+{
+  "ok": true,
+  "data": {}
+}
+```
+
 ### Error Response
 
 ```json
@@ -71,6 +82,24 @@ Notes:
 ```
 
 The frontend should preserve user input and show a recoverable error state.
+
+Validation failures use HTTP `400` with `error.code` set to `VALIDATION_ERROR`.
+
+## GET /api/health
+
+Check that the Express backend is running in mock mode.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "service": "scaffoldmind-server",
+    "mode": "mock"
+  }
+}
+```
 
 ## POST /api/analyze
 
@@ -98,7 +127,7 @@ Generate structured analysis for a learning session.
 ```json
 {
   "ok": true,
-  "analysis": {
+  "data": {
     "pageNumber": 12,
     "topic": "Cache Miss",
     "summary": "This page explains why cache misses happen and why they affect performance.",
@@ -169,7 +198,7 @@ Answer a guided question selected by the user and record it in the question hist
 ```json
 {
   "ok": true,
-  "deepDive": {
+  "data": {
     "questionId": "q_001",
     "answer": "An examiner may give an access sequence and ask you to compute hits and misses.",
     "keyPoints": ["access sequence", "cache mapping", "hit/miss reasoning"],
@@ -214,7 +243,7 @@ Diagnose the user's answer to an AI-generated attempt question.
 ```json
 {
   "ok": true,
-  "diagnosis": {
+  "data": {
     "errorType": "concept_confusion",
     "quotedIssue": "Because the cache is too small.",
     "whatIsCorrect": "You noticed that cache capacity can matter.",
@@ -251,7 +280,9 @@ Generate Obsidian-friendly Markdown from the current learning loop.
 ```json
 {
   "ok": true,
-  "obsidianMarkdown": "# [[Cache Miss]]\n\n> [!summary] 核心本质\n> Cache miss means the requested data is not in the current cache layer.\n\n> [!question] 主动追问\n> Why is a larger cache line not always better?\n\n## 来源\n- PPT 第 12 页\n"
+  "data": {
+    "obsidianMarkdown": "# [[Cache Miss]]\n\n> [!summary] 核心本质\n> Cache miss means the requested data is not in the current cache layer.\n\n> [!question] 主动追问\n> Why is a larger cache line not always better?\n\n## 来源\n- PPT 第 12 页\n"
+  }
 }
 ```
 
@@ -277,7 +308,7 @@ Compare three user-provided text sources for the multi-source collision mode.
 ```json
 {
   "ok": true,
-  "collision": {
+  "data": {
     "sourceSummaries": [
       {
         "source": "A",
@@ -292,6 +323,19 @@ Compare three user-provided text sources for the multi-source collision mode.
   }
 }
 ```
+
+## Current Mock Backend Notes
+
+The backend currently returns deterministic mock JSON only. It does not call a real text generation provider. Required-field validation is active for:
+
+- `subject` and `mode` on learning endpoints
+- `materialText` on `/api/analyze`
+- `question` and `materialText` on `/api/deep-dive`
+- `question` and `userAttempt` on `/api/diagnose`
+- `analysis` on `/api/obsidian`
+- `sourceA`, `sourceB`, and `sourceC` on `/api/collision`
+
+Frontend helper support exists through `client/src/shared/api/client.js`, but `USE_BACKEND_MOCK` is `false` by default, so the page still uses local mock data.
 
 ## Future API Notes
 

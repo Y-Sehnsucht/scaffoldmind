@@ -2,6 +2,33 @@
 
 All notable changes to ScaffoldMind 明序 will be documented in this file.
 
+## [0.2.2] - 2026-06-01
+
+### Added
+
+- Added Express mock responses for:
+  - `POST /api/analyze`
+  - `POST /api/deep-dive`
+  - `POST /api/diagnose`
+  - `POST /api/obsidian`
+  - `POST /api/collision`
+- Added unified success response shape `{ ok: true, data }`.
+- Added unified validation error shape with `VALIDATION_ERROR`.
+- Added backend mock service and validation helpers.
+- Added `server/scripts/verifyMockApi.mjs` and `npm run test:mock`.
+- Added frontend API helper methods and `USE_BACKEND_MOCK = false`.
+
+### Changed
+
+- Updated API documentation for mock backend response format and validation rules.
+- Updated test plan, task list, and project memory for backend mock API readiness.
+
+### Not Implemented
+
+- No real text generation API was connected.
+- No `.env` file was created.
+- No login, registration, teacher dashboard, OCR, vector database, cloud sync, or complete PPT parsing was added.
+
 ## [0.2.1] - 2026-06-01
 
 ### Added

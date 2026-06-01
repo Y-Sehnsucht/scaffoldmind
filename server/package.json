@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test:mock": "node scripts/verifyMockApi.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

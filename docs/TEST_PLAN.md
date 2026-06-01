@@ -44,15 +44,16 @@ Run after the React app exists.
 
 Run after the Express backend exists.
 
-- Server starts with `PORT` from local `.env`.
-- Server fails gracefully or reports configuration clearly when required environment variables are missing.
-- `POST /api/analyze` accepts JSON and returns structured analysis.
-- `POST /api/deep-dive` accepts a selected guided question and returns an answer plus history item.
-- `POST /api/diagnose` quotes the user's answer and returns an error type.
-- `POST /api/obsidian` returns Markdown with callouts, wikilinks, and page source.
-- `POST /api/collision` compares three text sources.
+- Server starts on default port without requiring `.env`.
+- `GET /api/health` returns `ok: true` and mock service metadata.
+- `POST /api/analyze` accepts JSON and returns `{ "ok": true, "data": ... }`.
+- `POST /api/deep-dive` accepts a selected guided question and returns `{ "ok": true, "data": ... }`.
+- `POST /api/diagnose` quotes the user's answer and returns `{ "ok": true, "data": ... }`.
+- `POST /api/obsidian` returns Markdown with callouts, wikilinks, and page source under `data.obsidianMarkdown`.
+- `POST /api/collision` compares three text sources under `data`.
+- Missing required fields return HTTP `400` with `error.code = "VALIDATION_ERROR"`.
 - API errors return JSON with `ok: false`.
-- AI malformed responses produce recoverable fallback errors.
+- AI malformed responses produce recoverable fallback errors after real API integration.
 - API keys never appear in response bodies or browser-visible code.
 
 ## 4. Key Path Acceptance Test
@@ -90,6 +91,7 @@ Integration tests:
 - `POST /api/analyze` validates required fields.
 - `POST /api/diagnose` validates `userAttempt`.
 - API routes return structured errors.
+- `GET /api/health`, valid `/api/analyze`, invalid `/api/analyze`, and valid `/api/diagnose` are covered by `cd server && npm run test:mock`.
 
 E2E tests:
 
@@ -114,6 +116,7 @@ The frontend mock MVP is implemented. Current executable checks:
 
 - `cd client && npm run test:mock`
 - `cd client && npm run build`
+- `cd server && npm run test:mock`
 
 The mock verification covers:
 
@@ -121,3 +124,4 @@ The mock verification covers:
 - learning records localStorage round trip and clear
 - Obsidian Markdown callouts, wikilinks, and PPT page source
 - all five learning modes exposing distinct mode-specific mock fields
+- backend health check, validation failure, analyze mock response, and diagnose mock response

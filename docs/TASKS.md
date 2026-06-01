@@ -4,7 +4,7 @@
 
 Engineering context setup.
 
-Status: mock learning loop, localStorage persistence, Obsidian mock output, and enhanced UI skeleton are implemented.
+Status: frontend mock MVP and backend mock API boundaries are implemented; real text generation API is not connected.
 
 ## Day 1: Project Initialization And Context
 
@@ -37,16 +37,17 @@ Status: mock learning loop, localStorage persistence, Obsidian mock output, and 
 - [x] Implement mock error diagnosis.
 - [x] Persist question history to localStorage.
 
-## Day 3: Real Text Generation API
+## Day 3: Backend Mock API And Future Real API Boundary
 
-- [ ] Configure Express to read local `.env`.
-- [ ] Implement `POST /api/analyze`.
-- [ ] Implement `POST /api/deep-dive`.
-- [ ] Implement `POST /api/diagnose`.
-- [ ] Implement `POST /api/obsidian`.
-- [ ] Implement frontend API client under `client/src/shared/api`.
-- [ ] Add loading, error, and fallback states.
-- [ ] Verify the frontend does not expose API keys.
+- [x] Keep Express runnable without requiring `.env`.
+- [x] Implement mock `POST /api/analyze`.
+- [x] Implement mock `POST /api/deep-dive`.
+- [x] Implement mock `POST /api/diagnose`.
+- [x] Implement mock `POST /api/obsidian`.
+- [x] Implement mock `POST /api/collision`.
+- [x] Add frontend API helper functions with `USE_BACKEND_MOCK = false`.
+- [x] Add unified `ok/data` success responses and `VALIDATION_ERROR` failures.
+- [x] Verify the frontend does not expose API keys.
 
 ## Day 4: Complete Five Learning Modes
 
@@ -70,7 +71,7 @@ Status: mock learning loop, localStorage persistence, Obsidian mock output, and 
 
 ## Next Development Task
 
-Prepare real API integration boundaries without connecting a real text generation API.
+Add optional UI path for `USE_BACKEND_MOCK = true`, or add request/response schema checks before real API integration.
 
 ## Scope Guardrails
 

@@ -6,7 +6,7 @@ V0.1 MVP
 
 ## 当前状态
 
-项目已完成工程上下文搭建、React + Vite + Tailwind 前端骨架、Node.js Express 后端骨架、前端 mock MVP 学习闭环，以及五种学习模式的差异化 mock 输出。`docs/PRD.md` 仍是唯一产品事实来源，本轮未接入真实文本生成 API。
+项目已完成工程上下文搭建、React + Vite + Tailwind 前端骨架、Node.js Express 后端骨架、前端 mock MVP 学习闭环、五种学习模式的差异化 mock 输出，以及真实 API 接入前的后端 mock API 边界。`docs/PRD.md` 仍是唯一产品事实来源，本轮未接入真实文本生成 API。
 
 ## 已完成功能
 
@@ -33,10 +33,14 @@ V0.1 MVP
 - 完成五种学习模式的差异化 mock 输出结构。
 - 完成模式化 mock 输出 UI 渲染。
 - 新增 `npm run test:mock`，覆盖 localStorage、Obsidian Markdown 和五种模式输出字段。
+- 完成 Express 五个 mock API 路由：`/api/analyze`、`/api/deep-dive`、`/api/diagnose`、`/api/obsidian`、`/api/collision`。
+- 完成统一成功响应 `{ ok: true, data }` 和统一校验错误 `{ ok: false, error }`。
+- 完成 `server/scripts/verifyMockApi.mjs`，覆盖 health、analyze 成功/失败、diagnose 成功。
+- 前端 API helper 新增 `USE_BACKEND_MOCK = false` 和五个 mock 后端调用函数。
 
 ## 正在进行
 
-- 下一步进入真实 API 接入边界准备，但暂不连接真实文本生成 API。
+- 下一步可以为 `USE_BACKEND_MOCK = true` 增加可选 UI 调用路径，或补充请求/响应 schema 检查；仍暂不连接真实文本生成 API。
 
 ## 已知问题与取舍
 
@@ -49,11 +53,12 @@ V0.1 MVP
 - 必须保留右侧提问记录侧边栏。
 - 当前 AI 结果全部来自前端 mock 数据，不调用真实 AI API。
 - 当前轻量测试为 Node 脚本，不引入额外测试框架。
+- 后端 mock API 不读取真实 API Key，不调用任何文本生成服务。
 
 ## 下一步计划
 
-1. 准备真实 API 接入前的请求/响应校验，但暂不接真实 API。
-2. 为 Express API 占位路由补充 mock 响应或 schema 校验策略。
+1. 为 `USE_BACKEND_MOCK = true` 增加可选 UI 调用路径。
+2. 补充请求/响应 schema 检查，但暂不接真实 API。
 3. 增加空输入、复制失败、清空记录等手动测试记录。
 4. 后续再实现 Express mock/真实接口切换策略。
 5. 继续确认 `.env` 不被创建或提交。
@@ -66,6 +71,7 @@ V0.1 MVP
 - 2026-06-01：初始化 React + Vite + Tailwind 前端骨架和 Node.js Express 后端骨架。
 - 2026-06-01：完成前端 mock MVP 学习闭环、localStorage 保存和 Obsidian Markdown mock 输出。
 - 2026-06-01：完成五种学习模式差异化 mock 输出，并新增 `npm run test:mock` 轻量验证。
+- 2026-06-01：完成后端 mock API 边界、统一响应格式、基础校验和 `server npm run test:mock`。
 
 ## 快速参考
 

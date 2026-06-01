@@ -1,8 +1,16 @@
 import { Router } from 'express';
-import { notImplemented } from '../utils/notImplemented.js';
+import { buildMockAnalysis } from '../services/mockLearningService.js';
+import { ok, sendValidationError } from '../utils/responses.js';
+import { requireCommonLearningFields, requireFields } from '../utils/validation.js';
 
 export const analyzeRouter = Router();
 
-analyzeRouter.post('/', (_req, res) => {
-  res.status(501).json(notImplemented('ANALYZE_NOT_IMPLEMENTED', 'Analysis API skeleton is ready.'));
+analyzeRouter.post('/', (req, res) => {
+  const missing = [...requireCommonLearningFields(req.body), ...requireFields(req.body, ['materialText'])];
+
+  if (missing.length > 0) {
+    return sendValidationError(res, `Missing required field(s): ${missing.join(', ')}`);
+  }
+
+  return res.json(ok(buildMockAnalysis(req.body)));
 });
