@@ -36,7 +36,7 @@ export function QuestionHistoryPanel({ items, records, onClearQuestions, onClear
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-slate-950">最近学习记录</h2>
-            <p className="mt-1 text-xs text-slate-500">保存完整 mock 闭环</p>
+            <p className="mt-1 text-xs text-slate-500">保存完整 Mock 闭环</p>
           </div>
           <button className="text-xs font-medium text-slate-500 hover:text-red-600" type="button" onClick={onClearRecords}>
             清空

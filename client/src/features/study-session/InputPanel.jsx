@@ -1,7 +1,7 @@
 import { PreferenceChips } from './PreferenceChips.jsx';
 
 const modeInputLabels = {
-  context_stacking: ['上周内容', '本周内容', '阅读材料/未完成作业'],
+  context_stacking: ['上周内容', '本周内容', '阅读材料或未完成作业'],
   after_class_review: ['PPT 页文字'],
   examiner_perspective: ['题目', '我的初步思路', '相关知识点'],
   feynman: ['概念名称', '我的解释', '参考材料'],
@@ -78,7 +78,7 @@ export function InputPanel({
             {label}
             <textarea
               className="mt-1 min-h-24 w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm leading-6 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              placeholder={`输入${label}，用于 mock 学习闭环`}
+              placeholder={`输入${label}，用于 Mock 学习闭环`}
               value={index === 0 ? materialText : materialFields[label] || ''}
               onChange={(event) => {
                 if (index === 0) {

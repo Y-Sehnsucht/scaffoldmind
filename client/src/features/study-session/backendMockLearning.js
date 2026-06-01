@@ -34,7 +34,7 @@ export async function requestBackendAnalysis({ subject, mode, preferences, pageN
     materialText: combinedMaterial,
     collisionData,
   });
-  const obsidianMarkdown = await requestBackendObsidian(analysis);
+  const obsidianMarkdown = await requestBackendObsidian(analysis, mockSource);
 
   return {
     analysis,
@@ -59,7 +59,7 @@ export async function requestBackendDiagnosis({ subject, mode, question, userAtt
   return mockBackendApi.diagnose({
     subject,
     mode,
-    question: question?.question || question || 'Current user task',
+    question: question?.question || question || '当前用户尝试题',
     userAttempt,
     aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
   });
@@ -78,9 +78,9 @@ function buildCollisionPayload(commonPayload, materialFields) {
 
   return {
     ...commonPayload,
-    sourceA: commonPayload.materialText || 'Source A',
-    sourceB: values[0] || commonPayload.materialText || 'Source B',
-    sourceC: values[1] || commonPayload.materialText || 'Source C',
+    sourceA: commonPayload.materialText || '资料 A',
+    sourceB: values[0] || commonPayload.materialText || '资料 B',
+    sourceC: values[1] || commonPayload.materialText || '资料 C',
   };
 }
 
@@ -93,17 +93,17 @@ function normalizeAnalysis(data, fallback) {
     id: data.id || `backend_analysis_${Date.now()}`,
     mode: data.mode || fallback.mode,
     pageNumber: Number(data.pageNumber || fallback.pageNumber || 1),
-    topic: data.topic || 'Backend Mock Analysis',
-    summary: data.summary || 'Backend mock returned a structured analysis.',
+    topic: data.topic || '后端 Mock 结构化解析',
+    summary: data.summary || '后端 Mock 已返回中文结构化解析。',
     coreConcepts,
     guidedQuestions,
-    whyThisMatters: data.whyThisMatters || 'Backend mock explanation placeholder.',
+    whyThisMatters: data.whyThisMatters || '用于说明这个知识点为什么值得学习。',
     contextRelation: data.contextRelation || { previous: '', current: '', next: '' },
     examFocus: Array.isArray(data.examFocus) ? data.examFocus : [],
     engineeringUse: Array.isArray(data.engineeringUse) ? data.engineeringUse : [],
     pitfalls: Array.isArray(data.pitfalls) ? data.pitfalls : [],
     userTask: data.userTask || {
-      question: 'Explain this concept in your own words.',
+      question: '请用自己的话解释这个概念。',
       expectedKeyPoints: [],
     },
     pageText: data.pageText || fallback.materialText,
@@ -117,7 +117,7 @@ function normalizeAnalysis(data, fallback) {
 function normalizeCollisionSection(data) {
   return {
     type: 'multi_source_collision',
-    title: 'Backend Mock: 多维信息对撞输出',
+    title: '后端 Mock：多维信息对撞输出',
     sourceViews: (data.sourceSummaries || []).map((item) => ({
       source: `资料 ${item.source}`,
       view: item.coreView,

@@ -7,7 +7,7 @@ export const LEARNING_MODES = [
   {
     id: 'context_stacking',
     label: 'Context Stacking 超前学习',
-    hint: '把新旧材料叠起来，先建立本周知识地图。',
+    hint: '把新旧材料串起来，先建立本周知识地图。',
   },
   {
     id: 'after_class_review',

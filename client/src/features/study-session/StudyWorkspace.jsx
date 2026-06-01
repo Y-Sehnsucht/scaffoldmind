@@ -27,13 +27,13 @@ import { TopBar } from './TopBar.jsx';
 export function StudyWorkspace() {
   const [subject, setSubject] = useState(SUBJECTS[0].id);
   const [mode, setMode] = useState('after_class_review');
-  const [status, setStatus] = useState('Local mock ready');
+  const [status, setStatus] = useState('本地 Mock 就绪');
   const [mockSource, setMockSource] = useState(MOCK_SOURCES.local);
   const [loadingAction, setLoadingAction] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
   const [materialText, setMaterialText] = useState(
-    'Cache miss means the requested data is not found in the cache. Locality explains why cache can improve performance.',
+    '缓存未命中（cache miss）表示请求的数据不在缓存中。局部性（locality）解释了缓存为什么能提升性能。',
   );
   const [materialFields, setMaterialFields] = useState({});
   const [selectedPreferences, setSelectedPreferences] = useState(['framework_first', 'why_chain', 'exam_focus']);
@@ -84,7 +84,7 @@ export function StudyWorkspace() {
   async function handleGenerate() {
     setLoadingAction('generate');
     setErrorMessage('');
-    setStatus(usesBackendPath ? `Calling ${getSourceLabel(mockSource)}...` : 'Generating local mock...');
+    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}...` : '正在生成本地 Mock...');
 
     try {
       const combinedMaterial = combineMaterialText(materialText, materialFields);
@@ -117,10 +117,10 @@ export function StudyWorkspace() {
       setUserAnswer('');
       setCopied(false);
       setCopyFallbackVisible(false);
-      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)} analysis ready` : 'Local mock analysis ready');
+      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}解析已生成` : '本地 Mock 解析已生成');
     } catch (error) {
       setErrorMessage(formatError(error));
-      setStatus('Mock request failed');
+      setStatus('Mock 请求失败');
     } finally {
       setLoadingAction('');
     }
@@ -129,7 +129,7 @@ export function StudyWorkspace() {
   async function handleDeepDive(question) {
     setLoadingAction(`deep-dive:${question.id}`);
     setErrorMessage('');
-    setStatus(usesBackendPath ? `Calling ${getSourceLabel(mockSource)} deep-dive...` : 'Generating local deep-dive...');
+    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}追问...` : '正在生成本地追问回答...');
 
     try {
       const nextDeepDive =
@@ -141,16 +141,16 @@ export function StudyWorkspace() {
         question: question.question,
         pageNumber: question.pageNumber,
         concept: question.concept,
-        status: usesBackendPath ? `${getSourceLabel(mockSource)} answered` : 'Local mock answered',
+        status: usesBackendPath ? `${getSourceLabel(mockSource)}已回答` : '本地 Mock 已回答',
         createdAt: new Date().toISOString(),
       };
 
       setDeepDive(nextDeepDive);
       setQuestionHistory((current) => [historyItem, ...current]);
-      setStatus('Question history updated');
+      setStatus('提问记录已更新');
     } catch (error) {
       setErrorMessage(formatError(error));
-      setStatus('Deep-dive request failed');
+      setStatus('追问请求失败');
     } finally {
       setLoadingAction('');
     }
@@ -159,7 +159,7 @@ export function StudyWorkspace() {
   async function handleDiagnose() {
     setLoadingAction('diagnose');
     setErrorMessage('');
-    setStatus(usesBackendPath ? `Calling ${getSourceLabel(mockSource)} diagnosis...` : 'Generating local diagnosis...');
+    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}诊断...` : '正在生成本地诊断...');
 
     try {
       const nextDiagnosis =
@@ -168,10 +168,10 @@ export function StudyWorkspace() {
           : buildMockDiagnosis(userAnswer);
 
       setDiagnosis(nextDiagnosis);
-      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)} diagnosis ready` : 'Local mock diagnosis ready');
+      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}诊断已生成` : '本地 Mock 诊断已生成');
     } catch (error) {
       setErrorMessage(formatError(error));
-      setStatus('Diagnosis request failed');
+      setStatus('诊断请求失败');
     } finally {
       setLoadingAction('');
     }
@@ -199,24 +199,24 @@ export function StudyWorkspace() {
     };
 
     setLearningRecords((current) => [nextRecord, ...current]);
-    setStatus('Learning record saved');
+    setStatus('学习记录已保存');
   }
 
   function handleClearQuestions() {
     clearQuestionHistory();
     setQuestionHistory([]);
-    setStatus('Question history cleared');
+    setStatus('提问记录已清空');
   }
 
   function handleClearRecords() {
-    const confirmed = window.confirm('Clear all learning records?');
+    const confirmed = window.confirm('确认清空全部学习记录吗？');
     if (!confirmed) {
       return;
     }
 
     clearLearningRecords();
     setLearningRecords([]);
-    setStatus('Learning records cleared');
+    setStatus('学习记录已清空');
   }
 
   async function handleCopyObsidian() {
@@ -238,14 +238,14 @@ export function StudyWorkspace() {
 
       await navigator.clipboard.writeText(markdownToCopy);
       setCopied(true);
-      setStatus('Obsidian note copied');
+      setStatus('Obsidian 笔记已复制');
     } catch (error) {
       if (error.name === 'ApiResponseError') {
         setErrorMessage(formatError(error));
       }
 
       setCopyFallbackVisible(true);
-      setStatus('Manual Obsidian copy fallback shown');
+      setStatus('已显示 Obsidian 手动复制文本');
     }
   }
 
@@ -327,28 +327,28 @@ export function StudyWorkspace() {
 
 function formatError(error) {
   if (error?.code) {
-    return `API error (${error.code}): ${error.message}`;
+    return `API 错误（${error.code}）：${error.message}`;
   }
 
-  return error?.message || 'Request failed. Check whether the backend dev server is running.';
+  return error?.message || '请求失败，请检查后端开发服务是否正在运行。';
 }
 
 function getSourceLabel(source) {
   const labels = {
-    [MOCK_SOURCES.local]: 'Local mock',
-    [MOCK_SOURCES.backend]: 'Backend mock',
-    [MOCK_SOURCES.realApi]: 'Real API',
+    [MOCK_SOURCES.local]: '本地 Mock',
+    [MOCK_SOURCES.backend]: '后端 Mock',
+    [MOCK_SOURCES.realApi]: '真实 API',
   };
 
-  return labels[source] || 'Local mock';
+  return labels[source] || '本地 Mock';
 }
 
 function getSourceStatus(source) {
   const statuses = {
-    [MOCK_SOURCES.local]: 'Local mock selected',
-    [MOCK_SOURCES.backend]: 'Backend mock selected',
-    [MOCK_SOURCES.realApi]: 'Real API selected',
+    [MOCK_SOURCES.local]: '已选择本地 Mock',
+    [MOCK_SOURCES.backend]: '已选择后端 Mock',
+    [MOCK_SOURCES.realApi]: '已选择真实 API',
   };
 
-  return statuses[source] || 'Local mock selected';
+  return statuses[source] || '已选择本地 Mock';
 }

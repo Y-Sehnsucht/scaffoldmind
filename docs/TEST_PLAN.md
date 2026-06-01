@@ -133,6 +133,15 @@ Before delivery:
 
 ## 7. Current Status
 
+## AI Output Language Checks
+
+- 本地 Mock 输出应以中文为主。
+- 后端 Mock 输出应以中文为主。
+- 真实 API prompt 必须明确要求中文输出。
+- 专业词汇第一次出现时应带英文备注，例如缓存未命中（cache miss）、缓存行（cache line）、局部性（locality）。
+- Obsidian Markdown 输出应以中文为主，并保留 wikilink 和 callout。
+- 输出应保持结构化 JSON，不应退化成大段散文。
+
 The frontend mock MVP is implemented. Current executable checks:
 
 - `cd client && npm run test:mock`

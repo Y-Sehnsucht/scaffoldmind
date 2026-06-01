@@ -32,6 +32,14 @@ The frontend validates backend envelopes before using data:
 
 When a backend mock request fails, the page shows a friendly error message and keeps the user's current input.
 
+## AI 输出语言规范
+
+- 默认使用中文输出。
+- 专业词汇第一次出现时使用“中文 + 英文括注”，例如：缓存未命中（cache miss）、缓存行（cache line）、局部性（locality）、栈帧（stack frame）、指针（pointer）、时间复杂度（time complexity）。
+- 输出必须是结构化 JSON，不能返回长篇散文。
+- Obsidian Markdown 也以中文为主，英文术语只作备注。
+- 本地 Mock、后端 Mock 和真实 API prompt 都必须遵守同一语言规范。
+
 ## Common Types
 
 ### Subject

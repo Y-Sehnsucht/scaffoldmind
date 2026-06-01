@@ -34,7 +34,7 @@ export function PageDrawer({ open, analysis, fileName, onClose }) {
         <section className="mt-5 rounded-md border border-slate-200 p-4">
           <h3 className="text-sm font-semibold text-slate-950">关联知识点</h3>
           <div className="mt-3 flex flex-wrap gap-2">
-            {analysis.coreConcepts.map((concept) => (
+            {(analysis.coreConcepts || []).map((concept) => (
               <span key={concept.name} className="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-800">
                 {concept.name}
               </span>

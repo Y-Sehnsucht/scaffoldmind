@@ -39,13 +39,13 @@ export function AnalysisPanel({
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {analysis.coreConcepts.map((concept) => (
+          {(analysis.coreConcepts || []).map((concept) => (
             <div key={concept.name} className="rounded-md border border-slate-200 bg-slate-50 p-4">
               <h3 className="font-semibold text-slate-950">{concept.name}</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">{concept.simpleExplanation}</p>
               <p className="mt-2 text-sm leading-6 text-slate-800">本质：{concept.essence}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {concept.relatedConcepts.map((item) => (
+                {(concept.relatedConcepts || []).map((item) => (
                   <span key={item} className="rounded-full bg-white px-2 py-1 text-xs text-slate-600">
                     {item}
                   </span>
@@ -63,10 +63,10 @@ export function AnalysisPanel({
       <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="text-base font-semibold text-slate-950">主动追问</h3>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
-          {analysis.guidedQuestions.map((question) => (
+          {(analysis.guidedQuestions || []).map((question) => (
             <button
               key={question.id}
-              className="rounded-md border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-teal-300 hover:bg-teal-50"
+              className="rounded-md border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-teal-300 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-70"
               type="button"
               disabled={Boolean(loadingAction)}
               onClick={() => onDeepDive(question)}
@@ -76,7 +76,7 @@ export function AnalysisPanel({
               </span>
               <p className="mt-3 text-sm font-semibold leading-6 text-slate-950">{question.question}</p>
               {loadingAction === `deep-dive:${question.id}` ? (
-                <p className="mt-2 text-xs font-semibold text-teal-700">Loading backend mock...</p>
+                <p className="mt-2 text-xs font-semibold text-teal-700">正在请求...</p>
               ) : null}
               <p className="mt-2 text-xs leading-5 text-slate-500">{question.reason}</p>
             </button>
@@ -86,10 +86,10 @@ export function AnalysisPanel({
 
       {deepDive ? (
         <article className="rounded-md border border-teal-200 bg-teal-50 p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-teal-950">mock 深入回答</h3>
+          <h3 className="text-base font-semibold text-teal-950">深入回答</h3>
           <p className="mt-2 text-sm leading-6 text-teal-950">{deepDive.answer}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {deepDive.keyPoints.map((point) => (
+            {(deepDive.keyPoints || []).map((point) => (
               <span key={point} className="rounded-full bg-white px-2 py-1 text-xs text-teal-800">
                 {point}
               </span>
@@ -100,19 +100,20 @@ export function AnalysisPanel({
 
       <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="text-base font-semibold text-slate-950">用户尝试</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-700">{analysis.userTask.question}</p>
+        <p className="mt-2 text-sm leading-6 text-slate-700">{analysis.userTask?.question}</p>
         <textarea
           className="mt-3 min-h-24 w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm leading-6 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           value={userAnswer}
           onChange={(event) => onUserAnswerChange(event.target.value)}
-          placeholder="写下你的解释，再让 mock 诊断指出偏差"
+          placeholder="写下你的解释，再让 Mock 诊断指出偏差"
         />
         <button
-          className="mt-3 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="mt-3 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
           type="button"
+          disabled={loadingAction === 'diagnose'}
           onClick={onDiagnose}
         >
-          提交回答并诊断
+          {loadingAction === 'diagnose' ? '诊断中...' : '提交回答并诊断'}
         </button>
       </article>
 
@@ -122,7 +123,7 @@ export function AnalysisPanel({
             <span className="rounded bg-amber-200 px-2 py-1 text-xs font-semibold text-amber-950">
               错误类型：{diagnosis.errorType}
             </span>
-            <span className="rounded bg-white px-2 py-1 text-xs text-amber-900">mock 诊断</span>
+            <span className="rounded bg-white px-2 py-1 text-xs text-amber-900">诊断结果</span>
           </div>
           <p className="mt-3 text-sm leading-6 text-amber-950">引用回答："{diagnosis.quotedIssue}"</p>
           <p className="mt-2 text-sm leading-6 text-amber-950">{diagnosis.mainProblem}</p>
@@ -172,7 +173,7 @@ function ContextStackingSection({ section }) {
 function AfterClassReviewSection({ section }) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
-      <ListBlock title={`第 ${section.pageNumber} 页核心概念`} items={section.coreConcepts.map((item) => item.name)} />
+      <ListBlock title={`第 ${section.pageNumber} 页核心概念`} items={(section.coreConcepts || []).map((item) => item.name)} />
       <ListBlock title="本质解释" items={section.essenceExplanation} />
       <ListBlock title="考点" items={section.examFocus} />
       <ListBlock title="易错点" items={section.pitfalls} />
@@ -207,7 +208,7 @@ function FeynmanSection({ section }) {
 function CollisionSection({ section }) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
-      <ListBlock title="资料 A/B/C 观点" items={section.sourceViews.map((item) => `${item.source}: ${item.view}`)} />
+      <ListBlock title="资料 A/B/C 观点" items={(section.sourceViews || []).map((item) => `${item.source}: ${item.view}`)} />
       <ListBlock title="冲突点" items={section.conflicts} />
       <ListBlock title="证据强弱" items={section.evidenceStrength} />
       <ListBlock title="可采纳结论" items={section.adoptableConclusions} />
@@ -216,7 +217,7 @@ function CollisionSection({ section }) {
   );
 }
 
-function ListBlock({ title, items, className = '' }) {
+function ListBlock({ title, items = [], className = '' }) {
   return (
     <section className={`rounded-md border border-slate-200 bg-slate-50 p-4 ${className}`}>
       <h4 className="text-sm font-semibold text-slate-950">{title}</h4>
@@ -241,10 +242,10 @@ function TextBlock({ title, text, className = '' }) {
 function InfoGrid({ analysis }) {
   const items = [
     { title: '为什么讲这个知识点', content: analysis.whyThisMatters },
-    { title: '前后关联', content: `${analysis.contextRelation.previous} / ${analysis.contextRelation.next}` },
-    { title: '考试常考点', content: analysis.examFocus.join('；') },
-    { title: '工程应用', content: analysis.engineeringUse.join('；') },
-    { title: '易错点', content: analysis.pitfalls.join('；') },
+    { title: '前后关联', content: `${analysis.contextRelation?.previous || ''} / ${analysis.contextRelation?.next || ''}` },
+    { title: '考试常考点', content: (analysis.examFocus || []).join('；') },
+    { title: '工程应用', content: (analysis.engineeringUse || []).join('；') },
+    { title: '易错点', content: (analysis.pitfalls || []).join('；') },
     { title: '学科侧重', content: analysis.subjectFocus },
   ];
 

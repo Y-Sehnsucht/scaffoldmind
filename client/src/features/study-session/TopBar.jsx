@@ -54,7 +54,7 @@ export function TopBar({
           </label>
 
           <div className="text-xs font-medium text-slate-600">
-            Mock source
+            数据源
             <div className="mt-1 grid grid-cols-3 rounded-md border border-slate-300 bg-slate-100 p-1">
               <button
                 className={sourceButtonClass(mockSource === MOCK_SOURCES.local)}
