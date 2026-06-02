@@ -187,6 +187,75 @@ Run a tiny real-provider self-check from the backend. This endpoint never return
 }
 ```
 
+## POST /api/agent/chat/stream
+
+Main Agent Chat streaming endpoint for the current executable UI.
+
+The route returns `text/event-stream` and does not use the old structured `/api/analyze/stream` response contract. It accepts attachment metadata only; the new main path must not call `/api/parse-ppt` and must not send parsed PPTX XML or file contents.
+
+### Request
+
+```json
+{
+  "subject": "CSAPP",
+  "mode": "default",
+  "message": "Explain cache locality.",
+  "attachments": [
+    {
+      "name": "lecture.pptx",
+      "size": 123456,
+      "type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "selectedAt": "2026-06-02T00:00:00.000Z"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "上一次问题"
+    },
+    {
+      "role": "assistant",
+      "content": "上一次回答"
+    }
+  ],
+  "aiConfig": {}
+}
+```
+
+Allowed Agent modes:
+
+- `default`
+- `context_stacking`
+- `feynman`
+
+### Stream Events
+
+```text
+data: {"type":"status","message":"正在分析材料..."}
+
+data: {"type":"delta","text":"## 总结\n..."}
+
+data: {"type":"done"}
+```
+
+### Output Contract
+
+The first knowledge answer should include:
+
+- `## 总结`
+- `## 框架`
+- `## 5 个核心概念`
+- `## 你可以继续选择`
+
+The frontend parses 3-4 options under `## 你可以继续选择` and renders them as clickable follow-up actions.
+
+### Failure Behavior
+
+- Empty `message` returns HTTP `400` with `VALIDATION_ERROR`.
+- Missing key, provider failure, or empty provider content streams a fallback markdown answer instead of crashing the frontend.
+- PPTX and image attachments are treated as metadata only. The answer may state: `已附加，当前版本暂不解析内容`.
+- The route must not print, return, or expose API keys.
+
 ## POST /api/materials/extract
 
 Extract text from an uploaded learning material before analysis.

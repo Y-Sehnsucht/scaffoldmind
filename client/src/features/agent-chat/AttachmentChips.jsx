@@ -1,0 +1,36 @@
+const UNPARSED_PATTERN = /\.(pptx|png|jpg|jpeg|webp)$/i;
+
+export function AttachmentChips({ attachments = [], onRemove }) {
+  if (!attachments.length) {
+    return null;
+  }
+
+  return (
+    <div className="flex min-w-0 flex-wrap gap-2">
+      {attachments.map((file) => (
+        <span
+          key={`${file.name}-${file.selectedAt}`}
+          className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300"
+        >
+          <span className="min-w-0 truncate">{file.name}</span>
+          {isUnparsed(file) && <span className="shrink-0 text-amber-300">暂不解析</span>}
+          {onRemove && (
+            <button
+              className="shrink-0 rounded-full text-slate-500 hover:text-white"
+              type="button"
+              onClick={() => onRemove(file)}
+              aria-label={`移除 ${file.name}`}
+            >
+              ×
+            </button>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function isUnparsed(file) {
+  const value = `${file.name || ''} ${file.type || ''}`;
+  return UNPARSED_PATTERN.test(value) || value.toLowerCase().includes('image/');
+}

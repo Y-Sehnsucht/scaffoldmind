@@ -17,6 +17,19 @@ This is the initial MVP test plan based on `docs/PRD.md`.
 Run after the React app exists.
 
 - App loads without crashing.
+- Current main entry is the center-led `AgentWorkspace`, not the old `StudyWorkspace`.
+- The center chat area is the primary visual focus.
+- The bottom composer has a plus button for attachments.
+- Attachment chips show file name/type metadata only.
+- PPTX and image attachments show that they are attached but not parsed.
+- The new main path does not call `/api/parse-ppt` or `requestPptParsing`.
+- Long text input can be sent without freezing the page.
+- Streaming output appears as the assistant response is generated.
+- First knowledge answer includes `## 总结`, `## 框架`, `## 5 个核心概念`, and `## 你可以继续选择`.
+- Interactive options below the latest answer can be clicked and sent as the next user message.
+- Default knowledge parsing, Context Stacking, and Feynman modes are selectable and have visibly different follow-up options.
+- Backend unavailable, missing key, provider failure, or empty provider output shows a friendly fallback and does not white-screen.
+- Browser zoom at 80%, 100%, 125%, and 150% should not create horizontal overflow or incoherent overlap.
 - Top-bar AI settings panel is visible.
 - Provider/model/API URL/API Key fields can be edited and saved locally.
 - Single-page three-column layout is visible.
@@ -102,6 +115,9 @@ Unit tests:
 
 Integration tests:
 
+- `POST /api/agent/chat/stream` validates empty messages.
+- `POST /api/agent/chat/stream` emits `status`, `delta`, and `done` SSE events.
+- Provider failure on `/api/agent/chat/stream` emits fallback markdown with the required sections.
 - `POST /api/analyze` validates required fields.
 - `POST /api/diagnose` validates `userAttempt`.
 - API routes return structured errors.
@@ -110,6 +126,8 @@ Integration tests:
 - Multi-slide `.pptx` response coverage is included in `cd server && npm run test:acceptance`.
 - Complete backend learning loop `materials/extract -> analyze -> deep-dive -> diagnose -> obsidian -> records -> profile` is covered by `cd server && npm run test:loop` and included in `cd server && npm run test:acceptance`.
 - Backend learning record store recovery from corrupted JSON and record API write-failure response shape are covered by `cd server && npm run test:records` and included in `cd server && npm run test:acceptance`.
+- Agent Chat stream and fallback behavior are covered by `cd server && npm run test:acceptance`.
+- Agent Chat client request construction, SSE parsing, and metadata-only attachment payloads are covered by `cd client && npm run test:acceptance`.
 
 E2E tests:
 

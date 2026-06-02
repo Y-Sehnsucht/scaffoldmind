@@ -1,5 +1,5 @@
-import { StudyWorkspace } from './features/study-session/StudyWorkspace.jsx';
+import { AgentWorkspace } from './features/agent-chat/AgentWorkspace.jsx';
 
 export default function App() {
-  return <StudyWorkspace />;
+  return <AgentWorkspace />;
 }

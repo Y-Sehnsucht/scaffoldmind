@@ -2,6 +2,43 @@
 
 所有 ScaffoldMind 明序的重要变更都会记录在这里。
 
+## [0.4.0] - 2026-06-02
+
+### Added
+
+- 新增 `AgentWorkspace` 作为当前页面主入口，形成中间主导式 AI 学习智能体体验。
+- 新增 `client/src/features/agent-chat/` 组件组：聊天壳、消息、输入框、附件 chip、交互选项和 SSE API helper。
+- 新增 `POST /api/agent/chat/stream`，支持 `status`、`delta`、`done` SSE 事件。
+- 新增 `buildAgentChatPrompt(input)`，要求首次知识回答包含 `## 总结`、`## 框架`、`## 5 个核心概念`、`## 你可以继续选择`。
+- 新增 provider 失败、缺 key 或空输出时的 Agent Chat 流式 fallback。
+- 新增 Agent Chat client/server acceptance 验证脚本。
+
+### Changed
+
+- `client/src/App.jsx` 改为挂载 `AgentWorkspace`。
+- 新主路径附件只保存 metadata，不解析 PPTX、图片或其他文件内容。
+- 全局 CSS 移除 `body min-width: 1024px`，改善缩放和窄屏布局稳定性。
+- README、API、任务、测试计划和 memory 同步到 Agent Chat 主路径。
+
+### Preserved
+
+- 旧 `StudyWorkspace`、旧结构化学习 API、旧 `/api/parse-ppt` 均保留。
+- 新主路径不调用 `/api/parse-ppt` 或 `requestPptParsing`。
+
+### Verified
+
+- `cd server && npm run test:acceptance`
+- `cd client && npm run build`
+- `cd client && npm run test:acceptance`
+
+### Not Changed
+
+- 未修改 `docs/PRD.md`。
+- 未读取、创建或修改 `server/.env`。
+- 未写入或打印真实 API Key。
+- 未新增大型依赖。
+- 未实现 OCR、完整 PPT 解析、RAG、向量数据库、登录或云同步。
+
 ## [0.3.9] - 2026-06-02
 
 ### Changed

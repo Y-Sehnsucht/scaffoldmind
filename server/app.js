@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { agentChatRouter } from './routes/agentChat.js';
 import { aiRouter } from './routes/ai.js';
 import { analyzeRouter } from './routes/analyze.js';
 import { collisionRouter } from './routes/collision.js';
@@ -25,6 +26,7 @@ export function createApp() {
     });
   });
 
+  app.use('/api/agent', agentChatRouter);
   app.use('/api/ai', aiRouter);
   app.use('/api/analyze', analyzeRouter);
   app.use('/api/deep-dive', deepDiveRouter);

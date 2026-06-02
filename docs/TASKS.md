@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-Course-project acceptance and handoff.
+Agent Chat main-path migration.
 
-Status: browser AI configuration, real provider path, structured fallback, material parsing, learning records, learner profile, Obsidian export, and AI-platform browser acceptance are implemented.
+Status: the executable main entry is now `AgentWorkspace`, a center-led AI learning agent with SSE streaming, attachment metadata chips, interactive follow-up options, provider fallback, and stable client/server acceptance checks. The old `StudyWorkspace`, old structured learning APIs, and old lightweight PPTX API remain in the codebase but are not the page's main entry.
 
 ## Day 1: Project Initialization And Context
 
@@ -85,7 +85,7 @@ Status: browser AI configuration, real provider path, structured fallback, mater
 
 ## Next Development Task
 
-Prepare presentation materials: a short demo script, screenshots if required by the course, and an explanation of the browser AI configuration plus learning loop architecture.
+Run manual browser acceptance for the new Agent Chat path: long-text input, three modes, attachment chips, streaming fallback, interactive options, and layout zoom at 80%, 100%, 125%, and 150%.
 
 ## Scope Guardrails
 
