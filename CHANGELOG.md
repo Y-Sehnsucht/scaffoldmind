@@ -1,193 +1,121 @@
 # Changelog
 
-All notable changes to ScaffoldMind 明序 will be documented in this file.
+所有 ScaffoldMind 明序的重要变更都会记录在这里。
+
+## [0.3.7] - 2026-06-02
+
+### Changed
+
+- 执行全项目编码审计，扫描 `client`、`server`、`docs`、`memory`、`README.md`、`CHANGELOG.md` 中的冲突标记和明显乱码。
+- 重写 `README.md`、`memory/MEMORY.md`、`CHANGELOG.md` 为中文 UTF-8 清稿。
+- 修复后端记录存储中的乱码中文。
+- 将后端学习记录存储从当前 Node 20 不支持的 `node:sqlite` 改为同接口轻量 JSON 文件存储，避免 mock 验证失败。
+- 保留 TXT、Markdown、PDF 文字提取和 PPTX 轻量解析路径。
+- 右侧“最近学习记录”支持点击恢复完整学习上下文，包括材料、结构化解析、追问、用户回答、诊断和 Obsidian 输出。
+- 将客户端保存成功文案和 `docs/API.md` 中的记录存储描述从 SQLite 更新为后端本地轻量记录存储。
+- 学习画像增加“复制计划”入口，可将薄弱概念、高频错误、最近主题和待追问问题整理为 Obsidian 复习计划 Markdown。
+- 提问记录保存主动追问的 `type/typeLabel`，学习画像新增“常见问题类型”统计，并同步写入复习计划。
+- 学习记录会保存问题链 `questionHistory`，后端 `GET /api/profile/summary` 会从已保存记录中汇总 `commonQuestionTypes`。
+- 页面初始化时会在本地提问记录为空的情况下，从后端学习记录的 `questionHistory` 恢复右侧提问记录。
+- 新增 `server/scripts/verifyLearningLoop.mjs` 和 `npm run test:loop`，自动验证材料提取、解析、追问、诊断、Obsidian、保存记录和学习画像的完整后端闭环。
+- 扩展结构化 AI 验证：覆盖 provider 返回纯文本时 fallback，以及 provider 返回结构化 JSON 时标记为 `real_api` 的成功路径。
+- 前端分析结果增加更清晰的 provider 来源说明，将真实 AI、结构化 fallback、缺失 API Key 和结构化校验错误翻译为中文可读状态。
+- 前端生成和诊断前增加本地输入校验：空材料或空用户回答会给出中文提示，不发起无意义请求，也不清空已有输入。
+- 前端 API helper 会把网络失败标准化为 `BACKEND_UNAVAILABLE`，并通过统一错误文案区分后端未启动、校验失败、材料解析失败和真实 AI 请求失败。
+- 新增 `client/scripts/verifyWorkspaceSmoke.mjs` 和 `npm run test:workspace`，无需新增浏览器测试依赖即可验证前端工作台核心状态闭环。
+- 新增 `server/scripts/verifyRecordStore.mjs` 和 `npm run test:records`，验证学习记录 JSON 文件损坏时可安全回退并继续保存记录。
+
+### Verified
+
+- `cd client && npm run test:mock`
+- `cd client && npm run build`
+- `cd server && npm run test:mock`
+- 冲突标记扫描未命中。
+- 明显乱码扫描未命中。
+
+### Not Changed
+
+- 未修改 `docs/PRD.md`。
+- 未创建或修改 `server/.env`。
+- 未写入或打印真实 API Key。
+- 未新增大型依赖。
+- 未实现登录注册、教师后台、OCR、旧版 `.ppt` parser、向量数据库或云同步。
 
 ## [0.3.6] - 2026-06-01
 
 ### Added
 
-- Added PPTX parse result navigation in the left source panel.
-- After parsing a PPTX, all detected slides now appear with text/image counts and a short text preview.
-- Clicking a parsed slide fills that slide's text and page structure into the center composer.
-
-### Changed
-
-- Cleaned the source panel and workspace state text back to readable Chinese.
-- Cleaned backend PPTX parser warnings and image placeholder descriptions.
+- 添加 PPTX 解析结果导航。
+- 左侧来源面板展示每页页码、文字块数量、图片占位数量和首段预览。
+- 点击某一页可将该页文字与结构填入中间输入区。
 
 ### Verified
 
 - `cd server && npm run test:mock`
 - `cd client && npm run test:mock`
 - `cd client && npm run build`
-
-### Not Implemented
-
-- No OCR engine, PDF parser, legacy `.ppt` parser, or visual diagram understanding was added.
-- No new dependency was added.
-- No `docs/PRD.md` changes.
-- No `.env` or `server/.env` changes.
 
 ## [0.3.5] - 2026-06-01
 
 ### Added
 
-- Added `POST /api/parse-ppt` for lightweight `.pptx` parsing without new dependencies.
-- Added a backend PPTX parser that reads slide XML text and image relationship placeholders from Office Open XML packages.
-- Connected the frontend file parser action to the backend parser for `.pptx` files.
-- Added fallback copy for PDF, image, and legacy `.ppt` files explaining that OCR and full image-structure recognition need a later dedicated parsing service.
-- Added mock API tests for PPTX text extraction and image placeholder detection.
-
-### Verified
-
-- `cd server && npm run test:mock`
-- `cd client && npm run test:mock`
-- `cd client && npm run build`
+- 添加 `POST /api/parse-ppt`，支持轻量 `.pptx` 解析。
+- 后端读取 Office Open XML 中的 slide XML 和图片关系占位。
+- 前端文件解析操作接入后端 PPTX parser。
 
 ### Not Implemented
 
-- No OCR engine, slide rendering pipeline, vector database, or large parsing dependency was added.
-- No `docs/PRD.md` changes.
-- No `.env` or `server/.env` changes.
+- 未加入 OCR、幻灯片渲染、向量数据库或大型解析依赖。
 
 ## [0.3.4] - 2026-06-01
 
 ### Changed
 
-- Widened the three-panel workspace to use the full viewport with minimal side whitespace and proportions closer to the referenced notebook/studio layout.
-- Moved the material/question input composer into the center conversation panel.
-- Refocused the left panel on source files, file adding, PPT page number, and learning preferences.
-- Added a PPT/PDF/image file source entry with a PPT parsing action that fills editable parsed placeholder text into the center composer.
-- Added automatic learning-record saving for each generated analysis, deep-dive answer, user answer update, diagnosis, and Obsidian state.
-- Added automatic question saving: generated guided questions enter the right sidebar immediately as `待追问`, then update after deep dive.
-
-### Verified
-
-- `cd client && npm run test:mock`
-- `cd client && npm run build`
-- `cd server && npm run test:mock`
-
-### Not Implemented
-
-- No full PPT automatic parsing, OCR pipeline, or image-structure recognition engine was added because the current PRD keeps this outside the MVP scope.
-- No new dependency was added.
-- No `docs/PRD.md` changes.
-- No `.env` or `server/.env` changes.
+- 将页面调整为更接近参考图的宽屏三栏工作台。
+- 将材料和问题输入区移动到中间对话区。
+- 左侧聚焦来源文件、PPT 页码、学习便签和 slide 预览。
+- 自动保存生成的问题与学习记录。
 
 ## [0.3.3] - 2026-06-01
 
 ### Changed
 
-- Redesigned the frontend workspace toward a cleaner modern dark three-panel layout inspired by notebook/studio tools.
-- Updated the top bar, source input panel, central learning flow, question history sidebar, Obsidian export, and PPT page drawer visual styling.
-- Reduced visual noise by using consistent dark surfaces, softer borders, rounded controls, clearer sticky panel headers, and more restrained accent colors.
-- Preserved all required product functions: five learning modes, local/backend/real API source switch, question history sidebar, PPT drawer, localStorage records, and Obsidian export.
-
-### Verified
-
-- `cd client && npm run test:mock`
-- `cd client && npm run build`
-- `cd server && npm run test:mock`
-
-### Not Implemented
-
-- No `docs/PRD.md` changes.
-- No `.env` or `server/.env` changes.
-- No new dependency was added.
+- 优化首页空状态、生成后状态、右侧提问记录状态和错误提示。
+- 统一主要 UI 文案为中文。
 
 ## [0.3.2] - 2026-06-01
 
 ### Changed
 
-- Cleaned frontend UI copy in the study workspace, top bar, input panel, analysis panel, Obsidian export, PPT page drawer, and question history sidebar.
-- Restored readable Chinese labels for the five learning modes, learning preference chips, source switch, loading states, and localStorage controls.
-- Kept the default source as `本地 Mock` and preserved `后端 Mock` / `真实 API`.
-
-### Verified
-
-- `cd client && npm run test:mock`
-- `cd client && npm run build`
-- `cd server && npm run test:mock`
-
-### Not Implemented
-
-- No `docs/PRD.md` changes.
-- No `server/.env` changes.
-- No API key was printed or written.
+- README 改为中文主文档。
+- 本地 Mock、后端 Mock、真实 API prompt 统一为中文优先输出。
+- 专业术语首次出现时使用“中文 + 英文括注”。
 
 ## [0.3.1] - 2026-06-01
 
-### Changed
+### Added
 
-- Rewrote README as a Chinese-first project guide.
-- Updated local mock output, backend mock output, Obsidian Markdown output, and real API prompts to require Chinese-first structured output.
-- Added language acceptance checks for Chinese content and English terminology notes.
-
-### Not Implemented
-
-- No `docs/PRD.md` changes.
-- No `server/.env` changes.
-- No API key was printed or written.
+- 添加真实 API 可控入口和三源切换：本地 Mock、后端 Mock、真实 API。
+- 缺少 key 或 provider 调用失败时使用结构化 fallback。
 
 ## [0.3.0] - 2026-06-01
 
 ### Added
 
-- Added opt-in real text generation API mode through the existing Express routes.
-- Added `真实 API` to the frontend source selector while keeping `本地 Mock` as the default and preserving `后端 Mock`.
-- Added mode-specific prompt builders for all five learning modes.
-- Added real API fallback handling for missing API key, provider failure, empty response, and plain-text provider output.
-
-## [0.2.4] - 2026-06-01
-
-### Added
-
-- Added explicit backend environment loading from `server/.env`.
-- Added `hasTextGenerationApiKey` to the backend env object without printing or exposing the key.
-- Added `server/scripts/verifyEnv.mjs` to verify env loading and missing-file tolerance.
-
-## [0.2.3] - 2026-06-01
-
-### Added
-
-- Added the top-bar source switch for `本地 Mock` and `后端 Mock`.
-- Added frontend backend mock flow for analysis, deep dive, diagnosis, Obsidian output, and multi-source collision.
-- Added frontend API response parsing and recoverable loading/error states.
-
-## [0.2.2] - 2026-06-01
-
-### Added
-
-- Added Express mock responses for `POST /api/analyze`, `/api/deep-dive`, `/api/diagnose`, `/api/obsidian`, and `/api/collision`.
-- Added unified backend success and error response shapes.
-- Added backend mock validation scripts.
-
-## [0.2.1] - 2026-06-01
-
-### Added
-
-- Added distinct mode-specific mock output structures for all five learning modes.
-- Added UI rendering for each mode-specific mock structure.
-- Added `client/scripts/verifyMockMvp.mjs` and `npm run test:mock`.
+- 添加后端 Mock API 和统一响应格式。
+- 添加前端 API helper 和响应解析工具。
 
 ## [0.2.0] - 2026-06-01
 
 ### Added
 
-- Built the enhanced single-page three-column learning workspace.
-- Added structured mock analysis, guided questions, deep-dive answers, diagnosis, reinforcement tasks, localStorage persistence, and Obsidian Markdown export.
-- Added the right-side question history sidebar and PPT original page side drawer.
-
-## [0.1.1] - 2026-06-01
-
-### Added
-
-- Initialized React + Vite + Tailwind frontend skeleton under `client/`.
-- Initialized Node.js Express backend skeleton under `server/`.
+- 完成本地 Mock 学习闭环。
+- 添加 localStorage 保存、提问记录和 Obsidian Markdown 输出。
+- 补齐五种学习模式的差异化 mock 结构。
 
 ## [0.1.0] - 2026-05-31
 
 ### Added
 
-- Created initial engineering context documents based on `docs/PRD.md`.
-- Added `.env.example` placeholders without secrets.
+- 建立 PRD 驱动的工程上下文。
+- 初始化 React + Vite + Tailwind 前端和 Node.js Express 后端骨架。

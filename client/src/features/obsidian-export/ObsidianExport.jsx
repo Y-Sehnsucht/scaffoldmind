@@ -8,7 +8,7 @@ export function ObsidianExport({ markdown, copied, fallbackVisible, onCopy }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-white">Obsidian Markdown</h3>
-          <p className="mt-1 text-sm text-slate-400">Mock 输出，包含 callout、wikilink 和 PPT 页码来源。</p>
+          <p className="mt-1 text-sm text-slate-400">结构化笔记，包含 callout、wikilink 和 PPT 页码来源。</p>
         </div>
         <button
           className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#111418] transition hover:bg-slate-200"

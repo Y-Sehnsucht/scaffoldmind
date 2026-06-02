@@ -108,6 +108,8 @@ Integration tests:
 - `GET /api/health`, valid `/api/analyze`, invalid `/api/analyze`, and valid `/api/diagnose` are covered by `cd server && npm run test:mock`.
 - Lightweight `.pptx` text extraction and image placeholder detection are covered by `cd server && npm run test:mock`.
 - Multi-slide `.pptx` response coverage is included in `cd server && npm run test:mock`.
+- Complete backend learning loop `materials/extract -> analyze -> deep-dive -> diagnose -> obsidian -> records -> profile` is covered by `cd server && npm run test:loop` and included in `cd server && npm run test:mock`.
+- Backend learning record store recovery from corrupted JSON is covered by `cd server && npm run test:records` and included in `cd server && npm run test:mock`.
 
 E2E tests:
 
@@ -115,6 +117,7 @@ E2E tests:
 - Question history persists after refresh.
 - Side drawer opens and closes.
 - API failure shows error state and keeps user input.
+- Lightweight frontend workspace smoke flow `material -> analysis -> question history -> deep dive -> diagnosis -> record -> restored questions -> review plan` is covered by `cd client && npm run test:workspace` and included in `cd client && npm run test:mock`.
 
 ## 6. Build And Security Checks
 
@@ -134,6 +137,8 @@ Before delivery:
 - Without `TEXT_GENERATION_API_KEY`, `真实 API` mode returns structured fallback data and does not crash.
 - With a valid local backend key, `真实 API` mode can generate structured analysis through Express.
 - Provider failure returns structured fallback data or a structured error, while preserving user input and existing results.
+- Structured provider JSON is accepted as `providerStatus: "real_api"` and covered by `cd server && npm run test:mock`.
+- Plain-text provider output is rejected as unstructured and converted to fallback data, covered by `cd server && npm run test:mock`.
 - API keys never appear in response bodies, browser-visible code, docs, tests, or logs.
 
 ## 7. Current Status
@@ -150,8 +155,11 @@ Before delivery:
 The frontend mock MVP is implemented. Current executable checks:
 
 - `cd client && npm run test:mock`
+- `cd client && npm run test:workspace`
 - `cd client && npm run build`
 - `cd server && npm run test:mock`
+- `cd server && npm run test:loop`
+- `cd server && npm run test:records`
 
 The mock verification covers:
 
@@ -161,3 +169,6 @@ The mock verification covers:
 - all five learning modes exposing distinct mode-specific mock fields
 - frontend backend mock response parser and request construction
 - backend health check, validation failure, analyze mock response, and diagnose mock response
+- backend complete learning loop, saved record, question history persistence, and learner profile summary
+- frontend workspace smoke flow, restored question history, question type stats, and review plan output
+- backend record-store corruption recovery and profile rebuilding after recovery

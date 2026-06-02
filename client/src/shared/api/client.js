@@ -41,15 +41,23 @@ export function createJsonRequest(path, body) {
 }
 
 export async function requestJson(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
+  let response;
 
-  const data = await response.json();
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+  } catch (error) {
+    throw new ApiResponseError('Express 后端不可用，请确认服务已启动。', 'BACKEND_UNAVAILABLE', {
+      cause: error?.message || String(error),
+    });
+  }
+
+  const data = await parseJsonBody(response);
 
   try {
     return parseApiResponse(data);
@@ -67,7 +75,59 @@ export function postJson(path, body) {
   return requestJson(path, request.options);
 }
 
+export function deleteJson(path) {
+  return requestJson(path, {
+    method: 'DELETE',
+  });
+}
+
+export async function postFormData(path, formData) {
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      body: formData,
+    });
+  } catch (error) {
+    throw new ApiResponseError('Express 后端不可用，请确认服务已启动。', 'BACKEND_UNAVAILABLE', {
+      cause: error?.message || String(error),
+    });
+  }
+
+  const data = await parseJsonBody(response);
+  return parseApiResponse(data);
+}
+
+async function parseJsonBody(response) {
+  try {
+    return await response.json();
+  } catch {
+    throw new ApiResponseError('后端返回了不可解析的响应。', 'INVALID_JSON_RESPONSE', null);
+  }
+}
+
 export const mockBackendApi = {
+  aiStatus() {
+    return requestJson('/api/ai/status');
+  },
+  extractMaterial(file) {
+    const formData = new FormData();
+    formData.append('material', file);
+    return postFormData('/api/materials/extract', formData);
+  },
+  listRecords(limit = 20) {
+    return requestJson(`/api/records?limit=${limit}`);
+  },
+  saveRecord(payload) {
+    return postJson('/api/records', payload);
+  },
+  clearRecords() {
+    return deleteJson('/api/records');
+  },
+  profileSummary() {
+    return requestJson('/api/profile/summary');
+  },
   analyze(payload) {
     return postJson('/api/analyze', payload);
   },

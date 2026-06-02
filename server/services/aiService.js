@@ -1,4 +1,5 @@
 import { env } from '../config/env.js';
+import { validateAiOutput } from './aiSchemas.js';
 import {
   buildAnalyzePrompt,
   buildCollisionPrompt,
@@ -19,6 +20,7 @@ export async function generateAnalysis(input) {
     prompt: buildAnalyzePrompt(input),
     fallback: () => buildMockAnalysis(input),
     normalize: (value) => normalizeAnalysis(value, input),
+    schemaName: 'analysis',
     fallbackReason: 'missing_api_key',
   });
 }
@@ -27,7 +29,8 @@ export async function generateDeepDive(input) {
   return generateWithFallback({
     prompt: buildDeepDivePrompt(input),
     fallback: () => buildMockDeepDive(input),
-    normalize: normalizeObject,
+    normalize: (value) => normalizeDeepDive(value, input),
+    schemaName: 'deepDive',
     fallbackReason: 'missing_api_key',
   });
 }
@@ -36,7 +39,8 @@ export async function generateDiagnosis(input) {
   return generateWithFallback({
     prompt: buildDiagnosePrompt(input),
     fallback: () => buildMockDiagnosis(input),
-    normalize: normalizeObject,
+    normalize: (value) => normalizeDiagnosis(value, input),
+    schemaName: 'diagnosis',
     fallbackReason: 'missing_api_key',
   });
 }
@@ -45,7 +49,8 @@ export async function generateObsidian(input) {
   return generateWithFallback({
     prompt: buildObsidianPrompt(input),
     fallback: () => buildMockObsidian(input),
-    normalize: normalizeObject,
+    normalize: (value) => normalizeObsidian(value, input),
+    schemaName: 'obsidian',
     fallbackReason: 'missing_api_key',
   });
 }
@@ -54,7 +59,8 @@ export async function generateCollision(input) {
   return generateWithFallback({
     prompt: buildCollisionPrompt(input),
     fallback: () => buildMockCollision(input),
-    normalize: normalizeObject,
+    normalize: (value) => normalizeCollision(value, input),
+    schemaName: 'collision',
     fallbackReason: 'missing_api_key',
   });
 }
@@ -63,10 +69,22 @@ export async function generateText(prompt) {
   if (!env.hasTextGenerationApiKey) {
     return {
       ok: false,
-      code: 'AI_API_KEY_MISSING',
+      code: `${env.aiProvider.toUpperCase()}_API_KEY_MISSING`,
       text: '',
     };
   }
+
+  const requestPayload = {
+    model: env.textGenerationModel,
+    messages: [
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+    temperature: 0.2,
+    ...buildResponseFormat(),
+  };
 
   const response = await fetch(env.textGenerationApiUrl, {
     method: 'POST',
@@ -74,16 +92,7 @@ export async function generateText(prompt) {
       Authorization: `Bearer ${env.textGenerationApiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: env.textGenerationModel,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.2,
-    }),
+    body: JSON.stringify(requestPayload),
   });
 
   if (!response.ok) {
@@ -94,8 +103,8 @@ export async function generateText(prompt) {
     };
   }
 
-  const payload = await response.json();
-  const text = payload?.choices?.[0]?.message?.content || payload?.output_text || payload?.text || '';
+  const providerPayload = await response.json();
+  const text = providerPayload?.choices?.[0]?.message?.content || providerPayload?.output_text || providerPayload?.text || '';
 
   if (!text) {
     return {
@@ -112,9 +121,9 @@ export async function generateText(prompt) {
   };
 }
 
-async function generateWithFallback({ prompt, fallback, normalize, fallbackReason }) {
+async function generateWithFallback({ prompt, fallback, normalize, schemaName, fallbackReason }) {
   if (!env.hasTextGenerationApiKey) {
-    return markFallback(fallback(), fallbackReason);
+    return markFallback(fallback(), `${env.aiProvider}_${fallbackReason}`);
   }
 
   try {
@@ -124,10 +133,35 @@ async function generateWithFallback({ prompt, fallback, normalize, fallbackReaso
       return markFallback(fallback(), result.code);
     }
 
-    return markReal(normalize(parseJsonOrText(result.text)));
+    const parsed = parseJsonOrText(result.text);
+
+    if (isRawTextOnly(parsed)) {
+      return markFallback(fallback(), 'AI_RESPONSE_INVALID', ['Provider response must be structured JSON.']);
+    }
+
+    const normalized = normalize(parsed);
+    const validation = validateAiOutput(schemaName, normalized);
+
+    if (!validation.valid) {
+      return markFallback(fallback(), 'AI_RESPONSE_INVALID', validation.errors);
+    }
+
+    return markReal(normalized);
   } catch {
     return markFallback(fallback(), 'AI_CALL_FAILED');
   }
+}
+
+function buildResponseFormat() {
+  if (env.jsonResponseFormat === 'none') {
+    return {};
+  }
+
+  return {
+    response_format: {
+      type: env.jsonResponseFormat,
+    },
+  };
 }
 
 function parseJsonOrText(text) {
@@ -137,12 +171,33 @@ function parseJsonOrText(text) {
   try {
     return JSON.parse(withoutFence);
   } catch {
-    return {
-      summary: withoutFence,
-      answer: withoutFence,
-      rawText: withoutFence,
-    };
+    const jsonText = extractJsonObject(withoutFence);
+
+    if (jsonText) {
+      try {
+        return JSON.parse(jsonText);
+      } catch {
+        // Fall through to raw text fallback.
+      }
+    }
+
+    return { rawText: withoutFence };
   }
+}
+
+function extractJsonObject(text) {
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    return '';
+  }
+
+  return text.slice(firstBrace, lastBrace + 1);
+}
+
+function isRawTextOnly(value) {
+  return value && typeof value === 'object' && Object.keys(value).length === 1 && typeof value.rawText === 'string';
 }
 
 function normalizeObject(value) {
@@ -168,11 +223,71 @@ function normalizeAnalysis(value, input) {
   };
 }
 
-function markFallback(data, reason) {
+function normalizeDeepDive(value, input) {
+  const base = buildMockDeepDive(input);
+  const normalized = normalizeObject(value);
+
+  return {
+    ...base,
+    ...normalized,
+    answer: normalized.answer || normalized.rawText || base.answer,
+    keyPoints: Array.isArray(normalized.keyPoints) ? normalized.keyPoints : base.keyPoints,
+    followUpQuestions: Array.isArray(normalized.followUpQuestions) ? normalized.followUpQuestions : base.followUpQuestions,
+    historyItem: normalized.historyItem || base.historyItem,
+  };
+}
+
+function normalizeDiagnosis(value, input) {
+  const base = buildMockDiagnosis(input);
+  const normalized = normalizeObject(value);
+
+  return {
+    ...base,
+    ...normalized,
+    quotedIssue: normalized.quotedIssue || input.userAttempt || base.quotedIssue,
+  };
+}
+
+function normalizeObsidian(value, input) {
+  const base = buildMockObsidian(input);
+  const normalized = normalizeObject(value);
+
+  return {
+    ...base,
+    ...normalized,
+    obsidianMarkdown: normalized.obsidianMarkdown || normalized.rawText || base.obsidianMarkdown,
+  };
+}
+
+function normalizeCollision(value, input) {
+  const base = buildMockCollision(input);
+  const normalized = normalizeObject(value);
+
+  return {
+    ...base,
+    ...normalized,
+    sourceSummaries: Array.isArray(normalized.sourceSummaries) ? normalized.sourceSummaries : base.sourceSummaries,
+    conflicts: Array.isArray(normalized.conflicts) ? normalized.conflicts : base.conflicts,
+    evidenceComparison: Array.isArray(normalized.evidenceComparison)
+      ? normalized.evidenceComparison
+      : base.evidenceComparison,
+    adoptableConclusions: Array.isArray(normalized.adoptableConclusions)
+      ? normalized.adoptableConclusions
+      : base.adoptableConclusions,
+    openDoubts: Array.isArray(normalized.openDoubts) ? normalized.openDoubts : base.openDoubts,
+    learningValue: normalized.learningValue || base.learningValue,
+  };
+}
+
+function markFallback(data, reason, validationErrors = []) {
   return {
     ...data,
     providerStatus: 'fallback',
+    provider: env.aiProvider,
+    providerLabel: env.aiProviderLabel,
+    model: env.textGenerationModel,
     fallbackReason: reason,
+    validationErrors,
   };
 }
 
@@ -180,6 +295,20 @@ function markReal(data) {
   return {
     ...data,
     providerStatus: 'real_api',
+    provider: env.aiProvider,
+    providerLabel: env.aiProviderLabel,
+    model: env.textGenerationModel,
     fallbackReason: null,
+  };
+}
+
+export function getAiRuntimeStatus() {
+  return {
+    provider: env.aiProvider,
+    providerLabel: env.aiProviderLabel,
+    model: env.textGenerationModel,
+    hasApiKey: env.hasTextGenerationApiKey,
+    apiMode: 'openai_compatible_chat_completions',
+    jsonResponseFormat: env.jsonResponseFormat,
   };
 }

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { LEARNING_MODES } from '../src/core/constants.js';
+import { validateMaterialInput, validateUserAttempt } from '../src/utils/inputValidation.js';
 import { buildMockAnalysis, buildObsidianMarkdown } from '../src/utils/mockLearning.js';
+import { buildQuestionHistoryFromRecords, buildQuestionTypeStats } from '../src/utils/profileInsights.js';
+import { formatFallbackDetails, getProviderSourceMeta } from '../src/utils/providerStatus.js';
+import { buildReviewPlanMarkdown } from '../src/utils/reviewPlan.js';
 
 function createMemoryStorage() {
   const store = new Map();
@@ -91,5 +95,80 @@ assert.match(markdown, /> \[!question\]/, 'Obsidian markdown should include ques
 assert.match(markdown, /> \[!warning\]/, 'Obsidian markdown should include warning callout');
 assert.match(markdown, /缓存未命中（cache miss）/, 'Obsidian markdown should include Chinese term with English note');
 assert.match(markdown, /PPT 第 12 页/, 'Obsidian markdown should include PPT page source');
+
+const reviewPlan = buildReviewPlanMarkdown(
+  {
+    totalRecords: 2,
+    weakConcepts: [{ label: '缓存未命中（cache miss）', count: 2 }],
+    frequentErrorTypes: [{ label: '因果关系混淆', count: 1 }],
+    recentTopics: ['局部性（locality）'],
+    nextReviewSuggestion: '优先复习缓存未命中（cache miss）。',
+  },
+  [],
+  [
+    {
+      id: 'q2',
+      question: '为什么局部性（locality）能提升缓存命中率？',
+      concept: '局部性（locality）',
+      typeLabel: '底层逻辑型',
+      status: '待追问',
+    },
+  ],
+);
+
+const questionTypeStats = buildQuestionTypeStats([
+  { typeLabel: '底层逻辑型' },
+  { typeLabel: '底层逻辑型' },
+  { typeLabel: '工程应用型' },
+]);
+const restoredQuestions = buildQuestionHistoryFromRecords([
+  {
+    id: 'record_1',
+    title: '缓存复习',
+    questionHistory: [
+      { id: 'q1', questionId: 'q_cache', question: '为什么缓存行（cache line）会影响性能？', typeLabel: '工程应用型' },
+    ],
+  },
+  {
+    id: 'record_2',
+    title: '重复问题',
+    questionHistory: [
+      { id: 'q2', questionId: 'q_cache', question: '为什么缓存行（cache line）会影响性能？', typeLabel: '工程应用型' },
+    ],
+  },
+]);
+
+assert.deepEqual(questionTypeStats[0], { label: '底层逻辑型', count: 2 }, 'question type stats should count repeated labels');
+assert.equal(restoredQuestions.length, 1, 'restored question history should deduplicate repeated questions');
+assert.equal(restoredQuestions[0].sourceRecordTitle, '缓存复习', 'restored question should retain source record title');
+assert.match(reviewPlan, /# \[\[ScaffoldMind 明序复习计划\]\]/, 'review plan should include title wikilink');
+assert.match(reviewPlan, /> \[!summary\]/, 'review plan should include summary callout');
+assert.match(reviewPlan, /\[\[缓存未命中（cache miss）\]\]/, 'review plan should include weak concept wikilink');
+assert.match(reviewPlan, /\[\[底层逻辑型\]\]/, 'review plan should include common question type wikilink');
+assert.match(reviewPlan, /> \[!question\]/, 'review plan should include pending questions callout');
+
+const realMeta = getProviderSourceMeta({
+  providerStatus: 'real_api',
+  providerLabel: 'OpenAI',
+  model: 'gpt-test',
+});
+assert.equal(realMeta.label, '真实 AI · OpenAI / gpt-test', 'provider meta should label real API results');
+
+const fallbackDetails = formatFallbackDetails({
+  providerStatus: 'fallback',
+  fallbackReason: 'custom_missing_api_key',
+  validationErrors: ['字段缺失'],
+});
+assert.match(fallbackDetails[0], /没有配置当前 provider 的 API Key/, 'fallback details should explain missing API key in Chinese');
+assert.equal(fallbackDetails[1], '字段缺失', 'fallback details should preserve validation errors');
+
+assert.equal(validateMaterialInput('', {}).valid, false, 'empty material input should be rejected');
+assert.equal(
+  validateMaterialInput('', { '资料 B': '局部性（locality）材料' }).valid,
+  true,
+  'mode-specific material fields should count as valid material input',
+);
+assert.equal(validateUserAttempt('   ').valid, false, 'empty user attempt should be rejected');
+assert.equal(validateUserAttempt('缓存未命中（cache miss）说明请求数据不在缓存中。').valid, true, 'non-empty user attempt should pass');
 
 console.log('Mock MVP verification passed.');

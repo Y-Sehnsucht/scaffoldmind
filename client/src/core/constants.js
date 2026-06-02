@@ -12,7 +12,7 @@ export const LEARNING_MODES = [
   {
     id: 'after_class_review',
     label: '课后深度复习',
-    hint: '按 PPT 页码建立结构化理解和追问链。',
+    hint: '按 PPT 页码或课程材料建立结构化理解和追问链。',
   },
   {
     id: 'examiner_perspective',

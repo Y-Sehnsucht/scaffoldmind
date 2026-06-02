@@ -2,143 +2,120 @@
 
 ## Current Version
 
-V0.1 MVP, implementation checkpoint `0.3.6`.
+V0.1 MVP, implementation checkpoint `0.3.7`.
 
 ## Current Status
 
-ScaffoldMind 明序 now has the engineering context, React + Vite + Tailwind frontend, Node.js Express backend, frontend mock MVP learning loop, backend mock API boundaries, a controlled three-source frontend selector, and an opt-in real text generation API path.
+ScaffoldMind 明序已经具备工程上下文、React + Vite + Tailwind 前端、Node.js Express 后端、三栏学习工作台、本地 Mock 学习闭环、后端 Mock API、真实 API 可控入口、PPTX 轻量解析、TXT/Markdown/PDF 文字提取、学习记录和提问记录。
 
-The default source remains `本地 Mock`. `后端 Mock` and `真实 API` remain available. Real API calls happen only when the user explicitly selects `真实 API`. `docs/PRD.md` remains the product source of truth and must not be edited during implementation checkpoints.
+默认数据源仍是“本地 Mock”。“后端 Mock”和“真实 API”仍可手动切换。真实 API 只在用户选择后通过 Express 后端调用；前端不读取、不展示、不保存 API Key。
 
-The latest checkpoint upgraded PPTX parsing UX: after parsing, the left source panel lists all detected slides with text/image counts and previews. Clicking a slide fills that page's extracted text and structure into the center composer. OCR, slide rendering, PDF parsing, old `.ppt` parsing, and image-structure recognition remain future dedicated parsing-service work.
+`docs/PRD.md` 是产品事实来源，当前 checkpoint 未修改 PRD。
 
 ## Completed Features
 
-- Created and maintained engineering context docs: `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/API.md`, `docs/TEST_PLAN.md`, `.ai/AGENTS.md`, `README.md`, `CHANGELOG.md`.
-- Initialized `client/` with React + Vite + Tailwind.
-- Initialized `server/` with Node.js Express.
-- Built the single-page three-column learning workspace.
-- Preserved the five required learning modes:
-  - Context Stacking 超前学习
-  - 课后深度复习
-  - 出题人视角
-  - 费曼反讲
-  - 多维信息对撞
-- Built learning preference chips, mode-specific inputs, page number input, image upload placeholder, generate/save controls, and readable Chinese UI labels.
-- Redesigned the frontend visual system as a modern dark three-panel workspace while preserving all existing MVP functions.
-- Moved the material/question input area into the center conversation panel.
-- Added source file selection for PPT/PPTX, PDF, and images.
-- Added a PPT parsing entry that fills editable parsed placeholder text into the center composer.
-- Added `POST /api/parse-ppt` for lightweight `.pptx` parsing.
-- Added backend XML text extraction and image placeholder detection for PPTX slides without adding dependencies.
-- Connected frontend `.pptx` parsing to the backend parser.
-- Added parsed slide navigation in the left source panel.
-- Added one-click fill from any parsed slide into the center composer.
-- Automatically saves generated guided questions into the right question history sidebar.
-- Automatically updates the active learning record when analysis, deep dive, user answer, diagnosis, or Obsidian output changes.
-- Built structured local mock analysis, guided questions, deep-dive answers, user attempt diagnosis, reinforcement task, and Obsidian Markdown output.
-- Built the right-side question history sidebar.
-- Built the PPT original page side drawer.
-- Saved question history and learning records through localStorage.
-- Added distinct mode-specific local mock output structures for all five learning modes.
-- Added Express endpoints:
-  - `POST /api/analyze`
-  - `POST /api/deep-dive`
-  - `POST /api/diagnose`
-  - `POST /api/obsidian`
-  - `POST /api/collision`
-- Added unified backend responses:
-  - success: `{ ok: true, data, error: null }`
-  - failure: `{ ok: false, data: null, error }`
-- Added frontend backend helper methods under `client/src/shared/api`.
-- Added a top-bar source switch:
-  - `本地 Mock`
-  - `后端 Mock`
-  - `真实 API`
-- Kept `本地 Mock` as the default.
-- Added frontend API response parser and recoverable API error handling.
-- Added loading and error states for backend/real API requests without clearing user input.
-- Hardened backend environment loading so `server/config/env.js` explicitly reads `server/.env`.
-- Added `env.hasTextGenerationApiKey` without exposing or printing the actual key.
-- Added `server/scripts/verifyEnv.mjs` for env loader verification.
-- Added prompt builders for all five learning modes.
-- Added `aiService` real API path with structured fallback for missing key, provider failure, empty response, or plain-text response.
-- Rewrote README as a Chinese-first project guide.
-- Standardized local mock, backend mock, Obsidian output, and real API prompts to Chinese-first output.
-- Added mock test assertions for Chinese content and English term notes.
-- Added lightweight verification scripts:
-  - `cd server && npm run test:mock`
-  - `cd client && npm run test:mock`
+- 创建并维护工程上下文文档：`docs/ARCHITECTURE.md`、`docs/TASKS.md`、`docs/API.md`、`docs/TEST_PLAN.md`、`.ai/AGENTS.md`、`README.md`、`CHANGELOG.md`。
+- 初始化 `client/`：React + Vite + Tailwind CSS。
+- 初始化 `server/`：Node.js + Express。
+- 构建现代深色三栏学习工作台：
+  - 左侧来源与文件。
+  - 中间对话、材料输入、学习闭环。
+  - 右侧提问记录、学习记录、学习画像。
+- 保留五种学习模式：
+  - Context Stacking 超前学习。
+  - 课后深度复习。
+  - 出题人视角。
+  - 费曼反讲。
+  - 多维信息对撞。
+- 实现本地 Mock、后端 Mock、真实 API 三源切换，默认本地 Mock。
+- 实现结构化解析、主动追问、用户尝试、错误诊断、强化题和 Obsidian Markdown 输出。
+- 实现右侧提问记录快速浏览回顾侧边栏。
+- 实现 PPT 原页侧拉面板。
+- 实现 localStorage 提问记录和离线学习记录 fallback。
+- 实现后端学习记录接口和基础学习画像。
+- 实现 `POST /api/parse-ppt` 轻量 PPTX 解析，提取页码、文字块和图片占位。
+- 实现 `POST /api/materials/extract`，支持 TXT、Markdown、PDF 文字提取。
+- 实现后端统一响应格式：
+  - 成功：`{ ok: true, data, error: null }`
+  - 失败：`{ ok: false, data: null, error }`
+- 完成 README 中文化和 AI 输出中文规范。
+- 完成编码审计修复：
+  - 清理冲突标记。
+  - 修复确定的乱码中文。
+  - 将 `README.md`、`CHANGELOG.md`、`memory/MEMORY.md` 重写为 UTF-8 中文清稿。
+  - 将后端记录存储从当前 Node 不支持的 `node:sqlite` 改为同接口轻量 JSON 文件存储。
+- 右侧“最近学习记录”现在可以点击恢复到当前工作台，恢复内容包括材料、结构化解析、追问、用户回答、诊断和 Obsidian 输出。
+- 学习画像区支持复制 Obsidian 复习计划，内容包含薄弱概念、高频错误、最近学习主题、待追问问题和下一步复习动作。
+- 提问记录保存主动追问类型，学习画像和复习计划会统计常见问题类型，帮助用户看见自己更常追问考试、工程、上下文还是底层逻辑。
+- 学习记录保存 `questionHistory`，后端学习画像会从历史记录中汇总 `commonQuestionTypes`，刷新后仍能保留常见问题类型维度。
+- 页面加载时，如果浏览器本地提问记录为空，会从后端学习记录恢复问题链，让右侧提问记录在刷新后更可靠。
+- 新增后端学习闭环 smoke 脚本 `server/scripts/verifyLearningLoop.mjs`，覆盖材料提取、结构化解析、追问、诊断、Obsidian、学习记录保存和学习画像汇总。
+- `server/scripts/verifyStructuredAi.mjs` 覆盖真实 provider 两条关键路径：纯文本输出会 fallback，结构化 JSON 输出会保留为 `providerStatus: "real_api"`。
+- 前端通过 `client/src/utils/providerStatus.js` 将真实 AI 与结构化 fallback 的来源和失败原因显示为中文可读状态。
+- 前端生成解析和提交诊断前有本地输入校验，空材料或空回答会提示用户补充内容，避免发起无意义请求并保留已有输入。
+- 前端 API helper 会把网络失败标准化成 `BACKEND_UNAVAILABLE`，UI 通过 `client/src/utils/errorMessages.js` 输出可恢复的中文错误提示。
+- 新增前端工作台 smoke 脚本 `client/scripts/verifyWorkspaceSmoke.mjs`，用无浏览器依赖的方式验证本地闭环、记录恢复、问题类型统计和复习计划。
+- 新增后端记录存储恢复验证 `server/scripts/verifyRecordStore.mjs`，测试坏 JSON 记录文件不会导致服务崩溃，并且恢复后仍可保存记录和生成画像。
 
 ## In Progress
 
-- Real API mode is implemented but should be manually verified in the browser with both dev servers running.
-- Automated tests avoid printing or exposing the API key and do not require a provider response.
+- 真实 API 模式已具备代码路径，但仍建议在浏览器中用真实 key 做一次人工验收。
+- TXT/Markdown/PDF/PPTX 上传路径已接入；扫描版 PDF、图片 OCR、旧版 `.ppt` 不属于当前 MVP。
 
-## Known Constraints And Tradeoffs
+## Known Constraints
 
-- Codex must not create, edit, print, or commit `server/.env`.
-- API keys must live only in local backend `server/.env`.
-- Frontend must never expose text generation API keys.
-- MVP storage remains browser localStorage only.
-- No login or registration.
-- No teacher dashboard.
-- No OCR pipeline.
-- No complete PPT automatic parsing.
-- No vector database.
-- No cloud sync.
-- Current tests are lightweight Node scripts, not a full test framework.
-- AI output should remain Chinese-first and structured; English should appear mainly as term notes.
+- 不创建、不修改、不读取、不打印 `server/.env`。
+- API Key 只能存在于本地后端环境变量。
+- 前端不得读取任何真实 API Key。
+- 不实现登录注册。
+- 不添加教师后台。
+- 不实现 OCR。
+- 不实现旧版 `.ppt` parser。
+- 不实现向量数据库。
+- 不实现云同步。
+- 不修改 `docs/PRD.md`。
+- 当前测试是轻量 Node 验证脚本，不是完整 UI 自动化测试。
+
+## Latest Validation
+
+- `cd client && npm run test:mock`：通过。
+- `cd client && npm run test:workspace`：通过。
+- `cd client && npm run build`：通过。
+- `cd server && npm run test:mock`：通过。
+- `cd server && npm run test:loop`：通过。
+- `cd server && npm run test:records`：通过。
+- 冲突标记扫描：未命中。
+- 明显乱码扫描：未命中。
+- `docs/PRD.md` 状态检查：未改动。
 
 ## Next Plan
 
-1. Manually test all three source modes in the browser:
-   - `本地 Mock`
-   - `后端 Mock`
-   - `真实 API`
-2. Add a small browser-level smoke test for the main learning loop if the project adopts a UI test runner.
-3. Do a manual visual pass in the browser across the empty state, generated state, and file-added state.
-4. If the product scope changes beyond MVP, design a dedicated parsing service for PDF parsing, legacy `.ppt`, slide rendering, OCR, and visual structure recognition.
-5. Add stricter request/response schema checks around real provider output.
-6. Continue confirming `server/.env` is ignored and `docs/PRD.md` is unchanged.
+1. 在浏览器中手动验收完整路径：本地 Mock、后端 Mock、真实 API。
+2. 对 TXT/Markdown/PDF/PPTX 上传分别做一次人工 smoke test。
+3. 为真实 API 输出增加更严格的 schema 修复和字段补全。
+4. 如果产品范围扩大，再单独设计 OCR、旧版 `.ppt`、幻灯片视觉结构解析和向量检索服务。
 
 ## Recent Important Changes
 
-- 2026-05-31: Added PRD-based engineering context docs.
-- 2026-06-01: Initialized React + Vite + Tailwind frontend and Node.js Express backend.
-- 2026-06-01: Completed frontend local mock MVP learning loop, localStorage, and Obsidian output.
-- 2026-06-01: Added distinct mock output structures for all five learning modes.
-- 2026-06-01: Added backend mock API boundaries with unified response formats.
-- 2026-06-01: Added controlled frontend mock source switch and frontend API response parser.
-- 2026-06-01: Hardened backend env loading to explicitly target `server/.env`.
-- 2026-06-01: Added opt-in real text generation API path with structured fallback and a three-source frontend selector.
-- 2026-06-01: Standardized README and AI outputs to Chinese-first language rules.
-- 2026-06-01: Cleaned frontend UI copy and removed mojibake from the main workspace components.
-- 2026-06-01: Redesigned the frontend into a cleaner modern dark three-panel workspace.
-- 2026-06-01: Widened the workspace, moved input into the center panel, added source file entry, and enabled automatic record/question saving.
-- 2026-06-01: Added lightweight PPTX text and image-placeholder parsing through `POST /api/parse-ppt`.
-- 2026-06-01: Added parsed PPTX slide navigation and one-click slide-to-composer filling.
-
-## Quick References
-
-- Product source of truth: `docs/PRD.md`
-- Architecture: `docs/ARCHITECTURE.md`
-- API: `docs/API.md`
-- Test plan: `docs/TEST_PLAN.md`
-- Tasks: `docs/TASKS.md`
-- AI rules: `.ai/AGENTS.md`
-- Frontend entry: `client/src/App.jsx`
-- Study workspace: `client/src/features/study-session/StudyWorkspace.jsx`
-- Frontend API helper: `client/src/shared/api/client.js`
-- Backend app: `server/app.js`
-- Backend entry: `server/index.js`
-- Backend env loader: `server/config/env.js`
-- Backend prompt builder: `server/services/promptBuilder.js`
-- Backend AI service: `server/services/aiService.js`
-- Backend mock service: `server/services/mockLearningService.js`
-
-## Must Update After Each Milestone
-
-- `memory/MEMORY.md`
-- `CHANGELOG.md`
-- `docs/TASKS.md`
+- 2026-05-31：完成 PRD 驱动的工程上下文文档。
+- 2026-06-01：初始化 React + Vite + Tailwind 前端和 Node.js Express 后端。
+- 2026-06-01：完成本地 Mock MVP 学习闭环、localStorage 和 Obsidian 输出。
+- 2026-06-01：补齐五种学习模式的差异化 mock 输出。
+- 2026-06-01：加入后端 Mock API 和三源切换。
+- 2026-06-01：加入真实 API 可控入口和结构化 fallback。
+- 2026-06-01：统一 README 与 AI 输出为中文优先。
+- 2026-06-01：重构为现代深色三栏工作台。
+- 2026-06-01：加入 PPTX 轻量解析和 slide 列表预览。
+- 2026-06-02：完成编码审计，修复冲突/乱码，稳定 TXT/Markdown/PDF/PPTX 材料输入路径。
+- 2026-06-02：新增最近学习记录点击恢复能力，使历史学习成果可重新进入学习闭环。
+- 2026-06-02：新增基于学习画像的 Obsidian 复习计划复制能力。
+- 2026-06-02：新增常见问题类型统计，补齐学习画像中的问题链维度。
+- 2026-06-02：将问题链写入学习记录，并同步到后端画像汇总。
+- 2026-06-02：支持从后端学习记录恢复右侧提问记录。
+- 2026-06-02：新增后端完整学习闭环 smoke 验证脚本。
+- 2026-06-02：补强真实 API 结构化输出验收，覆盖 fallback 和成功路径。
+- 2026-06-02：增强前端 provider 状态展示，清晰区分真实 AI 与结构化 fallback。
+- 2026-06-02：新增前端空材料和空回答校验，改善可恢复错误体验。
+- 2026-06-02：新增前端 API 错误分类，区分后端不可用、校验失败、解析失败和真实 AI 请求失败。
+- 2026-06-02：新增前端工作台状态 smoke 验证脚本。
+- 2026-06-02：新增后端记录存储损坏恢复验证脚本。

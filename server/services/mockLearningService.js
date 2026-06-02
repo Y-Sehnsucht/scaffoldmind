@@ -42,8 +42,9 @@ export function buildMockAnalysis(body) {
 
   return {
     pageNumber,
+    mode: body.mode || 'after_class_review',
     topic: body.mode === 'multi_source_collision' ? '多资料中的缓存（cache）观点对撞' : '缓存未命中（cache miss）深度理解',
-    summary: `后端 mock：已基于 ${body.subject} / ${body.mode} 生成中文结构化解析。`,
+    summary: `后端演示：已基于 ${body.subject} / ${body.mode} 生成中文结构化解析。`,
     coreConcepts: [
       {
         name: '缓存未命中（cache miss）',
@@ -66,10 +67,8 @@ export function buildMockAnalysis(body) {
       question: '请用自己的话解释缓存未命中（cache miss）为什么影响性能。',
       expectedKeyPoints: ['数据不在缓存（cache）中', '访问更慢存储层级', '访问模式影响命中率'],
     },
-    pageLink: {
-      pageNumber,
-      label: `查看第 ${pageNumber} 页原始内容`,
-    },
+    pageText: body.materialText,
+    modeSpecific: buildModeSpecific(body.mode || 'after_class_review', pageNumber),
   };
 }
 
@@ -78,7 +77,7 @@ export function buildMockDeepDive(body) {
 
   return {
     questionId: question.id || 'mock_q_selected',
-    answer: `后端 mock 深入回答：${question.question} 需要从概念定义推进到访问模式、映射规则和性能代价。`,
+    answer: `后端演示深入回答：${question.question} 需要从概念定义推进到访问模式、映射规则和性能代价。`,
     keyPoints: ['定位知识点', '说明底层原因', '连接考试或工程场景'],
     followUpQuestions: [
       {
@@ -148,5 +147,67 @@ export function buildMockCollision(body) {
     adoptableConclusions: ['先按课程定义建立概念边界，再用工程例子理解访问模式。'],
     openDoubts: ['没有硬件参数时，不绝对判断某个缓存配置一定更优。'],
     learningValue: '帮助区分课程考点、工程经验和需要保留怀疑的结论。',
+  };
+}
+
+function buildModeSpecific(mode, pageNumber) {
+  const common = {
+    type: mode,
+    title: '后端演示模式输出',
+  };
+
+  if (mode === 'context_stacking') {
+    return {
+      ...common,
+      weeklyCoreConcepts: ['存储层级（memory hierarchy）', '局部性（locality）', '缓存未命中（cache miss）'],
+      connectionToLastWeek: ['从程序执行模型连接到存储层级。'],
+      classroomValidationChecklist: ['观察老师是否强调访问模式。'],
+      gapChecklist: ['补齐缓存映射规则。'],
+      examinerDistinction: ['能否解释访问序列带来的性能差异。'],
+    };
+  }
+
+  if (mode === 'examiner_perspective') {
+    return {
+      ...common,
+      testedPoints: ['访问序列分析', '缓存未命中原因'],
+      examinerIntent: '区分背定义和能解释因果链。',
+      surfaceTraps: ['只说缓存越大越好。'],
+      underlyingLogic: '访问模式影响命中率，命中率影响性能。',
+      transferQuestions: ['比较按行和按列访问二维数组。'],
+    };
+  }
+
+  if (mode === 'feynman') {
+    return {
+      ...common,
+      accurateParts: ['知道数据不在缓存中。'],
+      biggestDeviation: '没有解释为什么慢。',
+      whyDeviationMatters: '缺少迁移能力。',
+      twelveYearOldExplanation: '缓存像桌面，主存像书架，东西不在桌面就要去书架拿。',
+      checkingQuestion: '你能解释连续访问为什么更快吗？',
+    };
+  }
+
+  if (mode === 'multi_source_collision') {
+    return {
+      ...common,
+      sourceViews: [{ source: '资料 A', view: '关注定义。' }],
+      conflicts: ['定义视角和工程视角不同。'],
+      evidenceStrength: ['课程材料适合考试，工程材料适合理解性能。'],
+      adoptableConclusions: ['先定义，再工程化。'],
+      doubtsToKeep: ['需要硬件参数才能下最终判断。'],
+    };
+  }
+
+  return {
+    ...common,
+    pageNumber,
+    coreConcepts: [{ name: '缓存未命中（cache miss）' }],
+    essenceExplanation: ['缓存未命中反映访问模式和存储层级速度差。'],
+    contextRelation: { previous: '局部性', current: '缓存未命中', next: '缓存优化' },
+    examFocus: ['命中率分析'],
+    pitfalls: ['只背定义'],
+    guidedQuestions,
   };
 }

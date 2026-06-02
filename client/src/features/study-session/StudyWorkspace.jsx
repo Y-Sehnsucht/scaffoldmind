@@ -12,15 +12,25 @@ import {
   saveQuestionHistory,
 } from '../../shared/storage/learningStorage.js';
 import { buildMockAnalysis, buildMockDeepDive, buildMockDiagnosis, buildObsidianMarkdown } from '../../utils/mockLearning.js';
+import { validateMaterialInput, validateUserAttempt } from '../../utils/inputValidation.js';
+import { formatRecoverableError } from '../../utils/errorMessages.js';
+import { buildQuestionHistoryFromRecords, buildQuestionTypeStats } from '../../utils/profileInsights.js';
+import { buildReviewPlanMarkdown } from '../../utils/reviewPlan.js';
 import { AnalysisPanel } from './AnalysisPanel.jsx';
 import {
   MOCK_SOURCES,
   combineMaterialText,
+  requestAiStatus,
   requestBackendAnalysis,
   requestBackendDeepDive,
   requestBackendDiagnosis,
   requestBackendObsidian,
+  requestClearLearningRecords,
+  requestLearningRecords,
+  requestMaterialExtraction,
   requestPptParsing,
+  requestProfileSummary,
+  requestSaveLearningRecord,
 } from './backendMockLearning.js';
 import { InputPanel } from './InputPanel.jsx';
 import { MaterialComposer } from './MaterialComposer.jsx';
@@ -29,7 +39,7 @@ import { TopBar } from './TopBar.jsx';
 export function StudyWorkspace() {
   const [subject, setSubject] = useState(SUBJECTS[0].id);
   const [mode, setMode] = useState('after_class_review');
-  const [status, setStatus] = useState('本地 Mock 就绪');
+  const [status, setStatus] = useState('本地演示就绪');
   const [mockSource, setMockSource] = useState(MOCK_SOURCES.local);
   const [loadingAction, setLoadingAction] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -40,9 +50,9 @@ export function StudyWorkspace() {
   const [materialFields, setMaterialFields] = useState({});
   const [selectedPreferences, setSelectedPreferences] = useState(['framework_first', 'why_chain', 'exam_focus']);
   const [sourceFile, setSourceFile] = useState(null);
-  const [sourceFileObject, setSourceFileObject] = useState(null);
+  const [materialInfo, setMaterialInfo] = useState(null);
   const [parsedPpt, setParsedPpt] = useState(null);
-  const [pptParseStatus, setPptParseStatus] = useState('');
+  const [sourceStatus, setSourceStatus] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [activeRecordId, setActiveRecordId] = useState('');
   const [deepDive, setDeepDive] = useState(null);
@@ -51,14 +61,20 @@ export function StudyWorkspace() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [questionHistory, setQuestionHistory] = useState(() => loadQuestionHistory());
   const [learningRecords, setLearningRecords] = useState(() => loadLearningRecords());
+  const [profileSummary, setProfileSummary] = useState(null);
   const [copied, setCopied] = useState(false);
   const [copyFallbackVisible, setCopyFallbackVisible] = useState(false);
   const [backendObsidianMarkdown, setBackendObsidianMarkdown] = useState('');
+  const [aiStatus, setAiStatus] = useState(null);
 
   const currentMode = useMemo(() => LEARNING_MODES.find((item) => item.id === mode) || LEARNING_MODES[0], [mode]);
   const localObsidianMarkdown = useMemo(() => buildObsidianMarkdown(analysis, diagnosis), [analysis, diagnosis]);
   const usesBackendPath = mockSource !== MOCK_SOURCES.local;
   const obsidianMarkdown = usesBackendPath ? backendObsidianMarkdown : localObsidianMarkdown;
+  const questionTypeStats = useMemo(() => {
+    const localStats = buildQuestionTypeStats(questionHistory);
+    return localStats.length ? localStats : profileSummary?.commonQuestionTypes || [];
+  }, [profileSummary?.commonQuestionTypes, questionHistory]);
 
   useEffect(() => {
     saveQuestionHistory(questionHistory);
@@ -67,6 +83,37 @@ export function StudyWorkspace() {
   useEffect(() => {
     saveLearningRecords(learningRecords);
   }, [learningRecords]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBackendState() {
+      try {
+        const [nextStatus, records, profile] = await Promise.all([
+          requestAiStatus(),
+          requestLearningRecords(20),
+          requestProfileSummary(),
+        ]);
+
+        if (!cancelled) {
+          setAiStatus(nextStatus);
+          setLearningRecords((current) => (records.length ? records : current));
+          setQuestionHistory((current) => (current.length ? current : buildQuestionHistoryFromRecords(records)));
+          setProfileSummary(profile);
+        }
+      } catch {
+        if (!cancelled) {
+          setAiStatus(null);
+        }
+      }
+    }
+
+    loadBackendState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!analysis || !activeRecordId) {
@@ -85,6 +132,7 @@ export function StudyWorkspace() {
       userAnswer,
       diagnosis,
       obsidianMarkdown,
+      questionHistory,
     });
 
     setLearningRecords((current) => {
@@ -101,6 +149,7 @@ export function StudyWorkspace() {
     mockSource,
     mode,
     obsidianMarkdown,
+    questionHistory,
     sourceFile,
     subject,
     userAnswer,
@@ -122,73 +171,73 @@ export function StudyWorkspace() {
   function handleMockSourceChange(nextSource) {
     setMockSource(nextSource);
     setErrorMessage('');
-    setStatus(getSourceStatus(nextSource));
+    setStatus(getSourceStatus(nextSource, aiStatus));
   }
 
-  function handleFileSelect(file) {
+  async function handleFileSelect(file) {
+    setErrorMessage('');
+    setMaterialInfo(null);
+    setParsedPpt(null);
+    setSourceStatus('');
+
     if (!file) {
+      setSourceFile(null);
       return;
     }
 
-    setSourceFile({
+    const nextFile = {
       name: file.name,
       size: file.size,
       type: file.type || inferFileType(file.name),
       selectedAt: new Date().toISOString(),
-    });
-    setSourceFileObject(file);
-    setParsedPpt(null);
-    setPptParseStatus('文件已添加。PPTX 可解析全部页面文本和图片占位。');
-    setStatus('来源文件已添加');
-  }
-
-  async function handleParsePpt() {
-    if (!sourceFile || !sourceFileObject) {
-      setErrorMessage('请先添加 PPT、PDF 或图片文件。');
-      return;
-    }
-
-    if (!sourceFile.name.toLowerCase().endsWith('.pptx')) {
-      const fallbackText = [
-        `【文件来源】${sourceFile.name}`,
-        `PPT 第 ${pageNumber} 页：系统已建立来源链接。`,
-        '当前轻量解析器只支持 .pptx 的文本和图片占位结构读取。',
-        'PDF、图片 OCR、旧版 .ppt 和图片结构精准识别需要后续专门解析服务。',
-      ].join('\n');
-
-      setMaterialText(fallbackText);
-      setPptParseStatus('该文件类型暂不支持真实解析，已填入可编辑来源占位。');
-      setStatus('来源占位已填入输入框');
-      return;
-    }
-
-    setLoadingAction('parse-ppt');
-    setErrorMessage('');
-    setPptParseStatus('正在读取 PPTX 全部幻灯片文本和图片占位结构...');
+    };
+    setSourceFile(nextFile);
+    setLoadingAction('material');
 
     try {
-      const fileBase64 = await readFileAsBase64(sourceFileObject);
-      const parsed = await requestPptParsing({
-        fileName: sourceFile.name,
-        fileBase64,
-        pageNumber,
-      });
+      if (file.name.toLowerCase().endsWith('.pptx')) {
+        setStatus(`正在解析 PPTX：${file.name}`);
+        setSourceStatus('正在读取 PPTX 全部幻灯片文本和图片占位结构...');
+        const fileBase64 = await readFileAsBase64(file);
+        const parsed = await requestPptParsing({
+          fileName: file.name,
+          fileBase64,
+          pageNumber,
+        });
+        setParsedPpt(parsed);
+        applyParsedSlide(parsed, parsed.pageNumber);
+        setSourceStatus(`已解析 ${parsed.slideCount} 页，可在下方选择页面。`);
+        setStatus('PPTX 全部页面已解析');
+        return;
+      }
 
-      setParsedPpt(parsed);
-      applyParsedSlide(parsed, parsed.pageNumber);
-      setPptParseStatus(`已解析 ${parsed.slideCount} 页。可在左侧选择任意页填入中间输入框。`);
-      setStatus('PPTX 全部页面已解析');
-    } catch (error) {
+      if (isTextMaterial(file.name)) {
+        setStatus(`正在提取材料：${file.name}`);
+        setSourceStatus('正在提取 TXT / Markdown / PDF 文本...');
+        const extracted = await requestMaterialExtraction(file);
+        setMaterialInfo(extracted);
+        setMaterialText(extracted.extractedText || '');
+        setSourceStatus(
+          extracted.warnings?.length
+            ? `材料已导入，但 ${extracted.warnings[0]}`
+            : `材料已导入：${extracted.fileName}`,
+        );
+        setStatus('材料已导入输入框');
+        return;
+      }
+
       const fallbackText = [
-        `【PPT 解析失败 fallback】文件：${sourceFile.name}`,
-        `PPT 第 ${pageNumber} 页：请手动粘贴该页文字。`,
-        '系统保留文件来源和页码，不清空已有输入。',
+        `【文件来源】${file.name}`,
+        `当前版本支持 TXT、Markdown、PDF 文本提取和 PPTX 轻量解析。`,
+        '图片 OCR、旧版 .ppt 和视觉结构理解需要后续专门解析服务。',
       ].join('\n');
-
-      setMaterialText((current) => current || fallbackText);
-      setPptParseStatus('解析失败，已保留当前输入。请确认后端服务运行且文件为 .pptx。');
-      setErrorMessage(formatError(error));
-      setStatus('PPTX 解析失败');
+      setMaterialText(fallbackText);
+      setSourceStatus('该文件类型暂不支持真实提取，已填入可编辑来源占位。');
+      setStatus('来源占位已填入输入框');
+    } catch (error) {
+      setErrorMessage(formatRecoverableError(error, file.name.toLowerCase().endsWith('.pptx') ? 'ppt' : 'material'));
+      setSourceStatus('材料提取失败，页面已保留原有输入。');
+      setStatus('材料提取失败');
     } finally {
       setLoadingAction('');
     }
@@ -215,9 +264,16 @@ export function StudyWorkspace() {
   }
 
   async function handleGenerate() {
+    const validation = validateMaterialInput(materialText, materialFields);
+    if (!validation.valid) {
+      setErrorMessage(validation.message);
+      setStatus('等待学习材料');
+      return;
+    }
+
     setLoadingAction('generate');
     setErrorMessage('');
-    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}...` : '正在生成本地 Mock...');
+    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}分析材料...` : '正在生成本地演示解析...');
 
     try {
       const combinedMaterial = combineMaterialText(materialText, materialFields);
@@ -254,10 +310,10 @@ export function StudyWorkspace() {
       setCopied(false);
       setCopyFallbackVisible(false);
       appendGeneratedQuestions(result.analysis);
-      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}解析已生成并自动保存` : '本地 Mock 解析已生成并自动保存');
+      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}解析已生成并自动保存` : '本地演示解析已生成并自动保存');
     } catch (error) {
-      setErrorMessage(formatError(error));
-      setStatus('Mock 请求失败');
+      setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
+      setStatus('生成请求失败');
     } finally {
       setLoadingAction('');
     }
@@ -266,7 +322,7 @@ export function StudyWorkspace() {
   async function handleDeepDive(question) {
     setLoadingAction(`deep-dive:${question.id}`);
     setErrorMessage('');
-    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}追问...` : '正在生成本地追问回答...');
+    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}回答追问...` : '正在生成本地演示追问...');
 
     try {
       const nextDeepDive =
@@ -278,7 +334,7 @@ export function StudyWorkspace() {
       markQuestionAnswered(question);
       setStatus('追问已回答并自动保存');
     } catch (error) {
-      setErrorMessage(formatError(error));
+      setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
       setStatus('追问请求失败');
     } finally {
       setLoadingAction('');
@@ -286,9 +342,16 @@ export function StudyWorkspace() {
   }
 
   async function handleDiagnose() {
+    const validation = validateUserAttempt(userAnswer);
+    if (!validation.valid) {
+      setErrorMessage(validation.message);
+      setStatus('等待用户回答');
+      return;
+    }
+
     setLoadingAction('diagnose');
     setErrorMessage('');
-    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}诊断...` : '正在生成本地诊断...');
+    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}诊断回答...` : '正在生成本地演示诊断...');
 
     try {
       const nextDiagnosis =
@@ -297,21 +360,52 @@ export function StudyWorkspace() {
           : buildMockDiagnosis(userAnswer);
 
       setDiagnosis(nextDiagnosis);
-      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}诊断已生成并自动保存` : '本地 Mock 诊断已生成并自动保存');
+      markQuestionsReinforced();
+      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}诊断已生成并自动保存` : '本地演示诊断已生成并自动保存');
     } catch (error) {
-      setErrorMessage(formatError(error));
+      setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
       setStatus('诊断请求失败');
     } finally {
       setLoadingAction('');
     }
   }
 
-  function handleSaveRecord() {
+  async function handleSaveRecord() {
     if (!analysis || !activeRecordId) {
       return;
     }
 
-    setStatus('当前学习记录已自动保存');
+    const record = buildLearningRecord(activeRecordId, {
+      analysis,
+      subject,
+      mode,
+      modeLabel: currentMode.label,
+      mockSource,
+      materialText,
+      sourceFile,
+      deepDive,
+      userAnswer,
+      diagnosis,
+      obsidianMarkdown,
+      questionHistory,
+    });
+
+    setLoadingAction('save-record');
+    setErrorMessage('');
+
+    try {
+      const savedRecord = await requestSaveLearningRecord(record);
+      const [records, profile] = await Promise.all([requestLearningRecords(20), requestProfileSummary()]);
+      setLearningRecords(records);
+      setProfileSummary(profile);
+      setStatus(`学习记录已保存到后端：${savedRecord.title}`);
+    } catch (error) {
+      setLearningRecords((current) => [record, ...current.filter((item) => item.id !== record.id)].slice(0, 20));
+      setErrorMessage(formatRecoverableError(error, 'backend'));
+      setStatus('后端保存失败，已临时保存到浏览器本地');
+    } finally {
+      setLoadingAction('');
+    }
   }
 
   function handleClearQuestions() {
@@ -320,16 +414,56 @@ export function StudyWorkspace() {
     setStatus('提问记录已清空');
   }
 
-  function handleClearRecords() {
+  async function handleClearRecords() {
     const confirmed = window.confirm('确认清空全部学习记录吗？');
     if (!confirmed) {
       return;
     }
 
-    clearLearningRecords();
-    setLearningRecords([]);
-    setActiveRecordId('');
-    setStatus('学习记录已清空');
+    setLoadingAction('clear-records');
+    setErrorMessage('');
+
+    try {
+      await requestClearLearningRecords();
+      const profile = await requestProfileSummary();
+      clearLearningRecords();
+      setLearningRecords([]);
+      setActiveRecordId('');
+      setProfileSummary(profile);
+      setStatus('学习记录已清空');
+    } catch (error) {
+      clearLearningRecords();
+      setLearningRecords([]);
+      setActiveRecordId('');
+      setErrorMessage(formatRecoverableError(error, 'backend'));
+      setStatus('后端清空失败，已清空浏览器本地记录');
+    } finally {
+      setLoadingAction('');
+    }
+  }
+
+  function handleSelectRecord(record) {
+    if (!record?.analysis) {
+      setErrorMessage('这条学习记录缺少结构化解析内容，暂时无法恢复。');
+      return;
+    }
+
+    setActiveRecordId(record.id);
+    setSubject(record.subject || SUBJECTS[0].id);
+    setMode(record.mode || 'after_class_review');
+    setMockSource(record.mockSource || MOCK_SOURCES.local);
+    setMaterialText(record.input || '');
+    setSourceFile(record.sourceFile || null);
+    setAnalysis(record.analysis);
+    setDeepDive(record.deepDive || null);
+    setUserAnswer(record.userAnswer || '');
+    setDiagnosis(record.diagnosis || null);
+    setQuestionHistory(record.questionHistory?.length ? record.questionHistory : loadQuestionHistory());
+    setBackendObsidianMarkdown(record.obsidianMarkdown || '');
+    setErrorMessage('');
+    setCopied(false);
+    setCopyFallbackVisible(false);
+    setStatus(`已恢复学习记录：${record.title || record.analysis.topic}`);
   }
 
   async function handleCopyObsidian() {
@@ -354,11 +488,29 @@ export function StudyWorkspace() {
       setStatus('Obsidian 笔记已复制');
     } catch (error) {
       if (error.name === 'ApiResponseError') {
-        setErrorMessage(formatError(error));
+        setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
       }
 
       setCopyFallbackVisible(true);
       setStatus('已显示 Obsidian 手动复制文本');
+    }
+  }
+
+  async function handleCopyReviewPlan() {
+    setErrorMessage('');
+
+    try {
+      const markdown = buildReviewPlanMarkdown(profileSummary, learningRecords, questionHistory, questionTypeStats);
+
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('当前浏览器不支持自动复制。');
+      }
+
+      await navigator.clipboard.writeText(markdown);
+      setStatus('复习计划已复制，可粘贴到 Obsidian');
+    } catch (error) {
+      setErrorMessage(`复习计划复制失败：${error?.message || '请检查浏览器剪贴板权限。'}`);
+      setStatus('复习计划复制失败');
     }
   }
 
@@ -374,6 +526,8 @@ export function StudyWorkspace() {
       question: question.question,
       pageNumber: question.pageNumber,
       concept: question.concept,
+      type: question.type,
+      typeLabel: question.typeLabel,
       status: '待追问',
       createdAt: new Date().toISOString(),
     }));
@@ -386,16 +540,7 @@ export function StudyWorkspace() {
   }
 
   function markQuestionAnswered(question) {
-    const fallbackItem = {
-      id: `history_${Date.now()}`,
-      questionId: question.id,
-      question: question.question,
-      pageNumber: question.pageNumber,
-      concept: question.concept,
-      status: usesBackendPath ? `${getSourceLabel(mockSource)}已回答` : '本地 Mock 已回答',
-      createdAt: new Date().toISOString(),
-    };
-
+    const statusLabel = usesBackendPath ? `${getSourceLabel(mockSource)}已回答` : '本地演示已回答';
     setQuestionHistory((current) => {
       let updated = false;
       const nextItems = current.map((item) => {
@@ -406,13 +551,40 @@ export function StudyWorkspace() {
         updated = true;
         return {
           ...item,
-          status: fallbackItem.status,
+          status: statusLabel,
           answeredAt: new Date().toISOString(),
         };
       });
 
-      return updated ? nextItems : [fallbackItem, ...current].slice(0, 50);
+      if (updated) {
+        return nextItems;
+      }
+
+      return [
+        {
+          id: `history_${Date.now()}`,
+          questionId: question.id,
+          question: question.question,
+          pageNumber: question.pageNumber,
+          concept: question.concept,
+          type: question.type,
+          typeLabel: question.typeLabel,
+          status: statusLabel,
+          createdAt: new Date().toISOString(),
+        },
+        ...current,
+      ].slice(0, 50);
     });
+  }
+
+  function markQuestionsReinforced() {
+    setQuestionHistory((current) =>
+      current.map((item, index) =>
+        index === 0 || item.status.includes('已回答')
+          ? { ...item, status: '已强化', reinforcedAt: new Date().toISOString() }
+          : item,
+      ),
+    );
   }
 
   return (
@@ -424,6 +596,7 @@ export function StudyWorkspace() {
         modes={LEARNING_MODES}
         status={status}
         mockSource={mockSource}
+        aiStatus={aiStatus}
         onSubjectChange={setSubject}
         onModeChange={setMode}
         onMockSourceChange={handleMockSourceChange}
@@ -431,7 +604,7 @@ export function StudyWorkspace() {
 
       {errorMessage ? (
         <div className="mx-auto mt-4 px-4">
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+          <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm leading-6 text-rose-100">
             {errorMessage}
           </div>
         </div>
@@ -444,14 +617,14 @@ export function StudyWorkspace() {
           selectedPreferences={selectedPreferences}
           preferences={LEARNING_PREFERENCES}
           sourceFile={sourceFile}
+          materialInfo={materialInfo}
           parsedPpt={parsedPpt}
-          pptParseStatus={pptParseStatus}
+          sourceStatus={sourceStatus}
           onPageNumberChange={setPageNumber}
           onPreferenceToggle={handlePreferenceToggle}
           onFileSelect={handleFileSelect}
-          onParsePpt={handleParsePpt}
           onUseParsedSlide={handleUseParsedSlide}
-          isParsing={loadingAction === 'parse-ppt'}
+          isFileLoading={loadingAction === 'material'}
         />
 
         <div className="min-h-0 overflow-y-auto rounded-[22px] border border-white/10 bg-[#1d2229] shadow-2xl shadow-black/20">
@@ -473,6 +646,8 @@ export function StudyWorkspace() {
               onSaveRecord={handleSaveRecord}
               canSave={Boolean(analysis)}
               isLoading={loadingAction === 'generate'}
+              isSaving={loadingAction === 'save-record'}
+              loadingMessage={mockSource === MOCK_SOURCES.realApi ? '正在分析材料，真实 AI 可能需要稍等...' : '正在分析材料...'}
               mockSource={mockSource}
             />
             <AnalysisPanel
@@ -485,6 +660,7 @@ export function StudyWorkspace() {
               onDeepDive={handleDeepDive}
               onDiagnose={handleDiagnose}
               loadingAction={loadingAction}
+              sourceLabel={getSourceLabel(mockSource)}
             />
             <ObsidianExport
               markdown={obsidianMarkdown}
@@ -498,6 +674,11 @@ export function StudyWorkspace() {
         <QuestionHistoryPanel
           items={questionHistory}
           records={learningRecords}
+          profileSummary={profileSummary}
+          questionTypeStats={questionTypeStats}
+          activeRecordId={activeRecordId}
+          onSelectRecord={handleSelectRecord}
+          onCopyReviewPlan={handleCopyReviewPlan}
           onClearQuestions={handleClearQuestions}
           onClearRecords={handleClearRecords}
         />
@@ -523,37 +704,32 @@ function buildLearningRecord(id, data) {
     userAnswer: data.userAnswer,
     diagnosis: data.diagnosis,
     obsidianMarkdown: data.obsidianMarkdown,
+    questionHistory: data.questionHistory || [],
     updatedAt: new Date().toISOString(),
     createdAt: data.analysis.id?.replace('analysis_', '') || new Date().toISOString(),
   };
 }
 
-function formatError(error) {
-  if (error?.code) {
-    return `API 错误（${error.code}）：${error.message}`;
-  }
-
-  return error?.message || '请求失败，请检查后端开发服务是否正在运行。';
-}
-
 function getSourceLabel(source) {
   const labels = {
-    [MOCK_SOURCES.local]: '本地 Mock',
-    [MOCK_SOURCES.backend]: '后端 Mock',
-    [MOCK_SOURCES.realApi]: '真实 API',
+    [MOCK_SOURCES.local]: '本地演示',
+    [MOCK_SOURCES.backend]: '后端演示',
+    [MOCK_SOURCES.realApi]: '真实 AI',
   };
 
-  return labels[source] || '本地 Mock';
+  return labels[source] || '本地演示';
 }
 
-function getSourceStatus(source) {
+function getSourceStatus(source, aiStatus) {
   const statuses = {
-    [MOCK_SOURCES.local]: '已选择本地 Mock',
-    [MOCK_SOURCES.backend]: '已选择后端 Mock',
-    [MOCK_SOURCES.realApi]: '已选择真实 API',
+    [MOCK_SOURCES.local]: '已选择本地演示',
+    [MOCK_SOURCES.backend]: '已选择后端演示，请确认 Express 后端已启动',
+    [MOCK_SOURCES.realApi]: aiStatus?.hasApiKey
+      ? `已选择真实 AI：${aiStatus.providerLabel} / ${aiStatus.model}`
+      : `已选择真实 AI：${aiStatus?.providerLabel || 'provider'} 未配置 API Key`,
   };
 
-  return statuses[source] || '已选择本地 Mock';
+  return statuses[source] || '已选择本地演示';
 }
 
 function inferFileType(fileName) {
@@ -564,7 +740,18 @@ function inferFileType(fileName) {
   if (lowerName.endsWith('.pdf')) {
     return 'PDF';
   }
+  if (lowerName.endsWith('.md') || lowerName.endsWith('.markdown')) {
+    return 'Markdown';
+  }
+  if (lowerName.endsWith('.txt')) {
+    return 'TXT';
+  }
   return '文件';
+}
+
+function isTextMaterial(fileName) {
+  const lowerName = fileName.toLowerCase();
+  return lowerName.endsWith('.txt') || lowerName.endsWith('.md') || lowerName.endsWith('.markdown') || lowerName.endsWith('.pdf');
 }
 
 function readFileAsBase64(file) {
@@ -577,7 +764,8 @@ function readFileAsBase64(file) {
 }
 
 function formatParsedSlideText(parsed, slide) {
-  const text = slide.textBlocks.map((block) => block.text).filter(Boolean).join('\n') ||
+  const text =
+    slide.textBlocks.map((block) => block.text).filter(Boolean).join('\n') ||
     '当前页没有可直接读取的文本。若文字在图片中，需要 OCR 或视觉模型。';
   const structure = (slide.structure || [])
     .map((item) => {

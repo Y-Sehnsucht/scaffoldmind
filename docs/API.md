@@ -134,6 +134,46 @@ Check that the Express backend is running in mock mode.
 }
 ```
 
+## POST /api/materials/extract
+
+Extract text from an uploaded learning material before analysis.
+
+### Request
+
+Use `multipart/form-data` with one file field:
+
+```text
+material=<TXT | Markdown | PDF file>
+```
+
+Supported extensions:
+
+- `.txt`
+- `.md`
+- `.markdown`
+- `.pdf`
+
+The file size limit is 15MB. Image OCR and PPT parsing are not implemented in this endpoint.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "fileName": "cache-notes.md",
+    "sourceType": "markdown",
+    "mimeType": "text/markdown",
+    "pageCount": null,
+    "extractedText": "# Cache\nLocality material",
+    "warnings": []
+  },
+  "error": null
+}
+```
+
+If a PDF is scanned or image-only, `extractedText` may be empty and `warnings` explains that no usable text was found.
+
 ## POST /api/analyze
 
 Generate structured analysis for a learning session.
@@ -345,15 +385,106 @@ Compare three user-provided text sources for the multi-source collision mode.
     "sourceSummaries": [
       {
         "source": "A",
-        "coreView": "The course material emphasizes abstract operations."
+        "coreView": "资料 A 强调抽象数据类型（abstract data type）的操作边界。"
       }
     ],
-    "conflicts": ["Source B focuses on engineering tradeoffs while source A focuses on exam definitions."],
-    "evidenceComparison": ["Source A is authoritative for course exams."],
-    "adoptableConclusions": ["Keep the ADT definition as the main frame."],
-    "openDoubts": ["Whether the implementation detail matters depends on the exam scope."],
-    "learningValue": "This comparison helps separate course requirements from broader engineering discussion."
+    "conflicts": ["资料 B 更关注工程取舍，资料 A 更关注考试定义。"],
+    "evidenceComparison": ["资料 A 对课程考试更权威，资料 B 对实现代价更有帮助。"],
+    "adoptableConclusions": ["以抽象数据类型（abstract data type）的定义作为主框架。"],
+    "openDoubts": ["实现细节是否重要取决于考试范围。"],
+    "learningValue": "这次对撞帮助区分课程要求和更宽泛的工程讨论。"
   }
+}
+```
+
+## GET /api/records
+
+List saved learning records from the backend local lightweight record store.
+
+### Query
+
+```text
+limit=20
+```
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "record_001",
+      "title": "缓存未命中（cache miss）",
+      "subject": "CSAPP",
+      "mode": "after_class_review",
+      "modeLabel": "课后深度复习",
+      "mockSource": "real_api",
+      "input": "缓存未命中（cache miss）与局部性（locality）材料",
+      "analysis": {},
+      "deepDive": null,
+      "userAnswer": "",
+      "diagnosis": null,
+      "obsidianMarkdown": "# [[缓存未命中（cache miss）]]",
+      "createdAt": "2026-06-02T00:00:00.000Z"
+    }
+  ],
+  "error": null
+}
+```
+
+## POST /api/records
+
+Save a complete learning loop record to backend local lightweight storage.
+
+### Request
+
+```json
+{
+  "title": "缓存未命中（cache miss）",
+  "subject": "CSAPP",
+  "mode": "after_class_review",
+  "modeLabel": "课后深度复习",
+  "mockSource": "real_api",
+  "input": "缓存未命中（cache miss）与局部性（locality）材料",
+  "analysis": {},
+  "deepDive": null,
+  "userAnswer": "我认为缓存未命中就是缓存坏了。",
+  "diagnosis": {},
+  "obsidianMarkdown": "# [[缓存未命中（cache miss）]]"
+}
+```
+
+`analysis` is required. The backend returns HTTP `201` when the record is saved.
+
+## DELETE /api/records
+
+Clear all saved backend learning records. The frontend may still keep localStorage as a temporary fallback when the backend is unavailable.
+
+## DELETE /api/records/:id
+
+Delete one saved learning record by id.
+
+## GET /api/profile/summary
+
+Build a lightweight learner profile from recent backend learning records.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "totalRecords": 3,
+    "frequentErrorTypes": [{ "label": "因果关系混淆", "count": 2 }],
+    "weakConcepts": [{ "label": "缓存未命中（cache miss）", "count": 2 }],
+    "commonQuestionTypes": [{ "label": "考试常考型", "count": 2 }],
+    "commonModes": [{ "label": "课后深度复习", "count": 3 }],
+    "recentTopics": ["缓存未命中（cache miss）"],
+    "nextReviewSuggestion": "优先用费曼反讲复习缓存未命中（cache miss），重点检查“因果关系混淆”这类偏差。",
+    "updatedAt": "2026-06-02T00:00:00.000Z"
+  },
+  "error": null
 }
 ```
 
@@ -432,10 +563,14 @@ Unsupported file types return:
 When `aiSource` is `real_api`:
 
 - If `TEXT_GENERATION_API_KEY` is missing, the backend returns structured mock fallback data.
+- When `AI_JSON_RESPONSE_FORMAT=json_object`, the backend asks OpenAI-compatible providers to return JSON object responses.
+- If a custom provider rejects `response_format`, set `AI_JSON_RESPONSE_FORMAT=none`; schema validation still runs after the response.
 - If the provider call fails, the backend returns structured mock fallback data.
+- If the provider returns malformed JSON or a response that fails the task schema, the backend returns structured fallback data.
 - Fallback responses include `providerStatus: "fallback"` and `fallbackReason`.
+- Schema fallback responses may include `validationErrors` with a short list of failed fields.
 - Successful real provider responses include `providerStatus: "real_api"`.
-- If the provider returns plain text, the backend converts it into the existing frontend-displayable structure.
+- If the provider returns plain text instead of JSON, the backend treats it as `AI_RESPONSE_INVALID` and returns structured fallback data.
 
 ## Current Backend Notes
 

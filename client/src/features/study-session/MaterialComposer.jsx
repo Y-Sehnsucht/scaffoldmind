@@ -1,6 +1,6 @@
 const modeInputLabels = {
   context_stacking: ['上周内容', '本周内容', '阅读材料或未完成作业'],
-  after_class_review: ['PPT 页文字'],
+  after_class_review: ['PPT 页文字 / 课程材料'],
   examiner_perspective: ['题目', '我的初步思路', '相关知识点'],
   feynman: ['概念名称', '我的解释', '参考材料'],
   multi_source_collision: ['资料 A', '资料 B', '资料 C'],
@@ -16,6 +16,8 @@ export function MaterialComposer({
   onSaveRecord,
   canSave,
   isLoading = false,
+  isSaving = false,
+  loadingMessage = '正在分析材料...',
   mockSource = 'local',
 }) {
   const labels = modeInputLabels[currentMode.id] || modeInputLabels.after_class_review;
@@ -25,10 +27,17 @@ export function MaterialComposer({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-white">提问或粘贴学习材料</h3>
-          <p className="mt-1 text-xs text-slate-400">输入区放在对话中心，生成后会自动保存本次学习过程和问题链。</p>
+          <p className="mt-1 text-xs text-slate-400">上传文本材料后会自动填入这里；也可以直接粘贴课程笔记或题目。</p>
         </div>
         <span className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-slate-400">{currentMode.label}</span>
       </div>
+
+      {isLoading ? (
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm text-teal-100">
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-teal-300" />
+          {loadingMessage}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-3">
         {labels.map((label, index) => (
@@ -58,20 +67,20 @@ export function MaterialComposer({
           onClick={onGenerate}
         >
           {isLoading
-            ? '生成中...'
+            ? '分析中...'
             : mockSource === 'real_api'
-              ? '生成真实 API 解析'
+              ? '生成真实 AI 解析'
               : mockSource === 'backend'
-                ? '生成后端 Mock 解析'
-                : '生成本地 Mock 解析'}
+                ? '生成后端演示解析'
+                : '生成本地演示解析'}
         </button>
         <button
           className="rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-teal-300/50 hover:bg-teal-300/10 disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          disabled={!canSave}
+          disabled={!canSave || isSaving}
           onClick={onSaveRecord}
         >
-          保存当前快照
+          {isSaving ? '保存中...' : '保存本次学习记录'}
         </button>
       </div>
     </section>

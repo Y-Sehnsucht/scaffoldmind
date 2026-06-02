@@ -6,12 +6,17 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "node index.js",
-    "test:mock": "node scripts/verifyMockApi.mjs",
+    "test:mock": "node scripts/verifyMockApi.mjs && node scripts/verifyStructuredAi.mjs && node scripts/verifyLearningLoop.mjs && node scripts/verifyRecordStore.mjs",
+    "test:loop": "node scripts/verifyLearningLoop.mjs",
+    "test:records": "node scripts/verifyRecordStore.mjs",
     "test:real": "node scripts/verifyRealProvider.mjs"
   },
   "dependencies": {
+    "ajv": "^8.20.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "multer": "^2.1.1",
+    "pdf-parse": "^2.4.5"
   }
 }

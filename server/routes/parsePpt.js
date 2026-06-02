@@ -32,6 +32,6 @@ parsePptRouter.post('/', (req, res, next) => {
   } catch (error) {
     error.status = 400;
     error.code = 'PPT_PARSE_ERROR';
-    next(error);
+    return next(error);
   }
 });

@@ -7,13 +7,14 @@ export function TopBar({
   modes,
   status,
   mockSource,
+  aiStatus,
   onSubjectChange,
   onModeChange,
   onMockSourceChange,
 }) {
   return (
     <header className="border-b border-white/10 bg-[#171b21]/95 px-5 py-4 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
+      <div className="mx-auto flex max-w-[1800px] flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
         <div className="flex items-center gap-4">
           <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-lg font-black text-[#111418] shadow-sm">
             S
@@ -22,12 +23,12 @@ export function TopBar({
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-300">ScaffoldMind</p>
             <h1 className="text-2xl font-semibold text-white">ScaffoldMind 明序</h1>
             <p className="mt-1 text-sm text-slate-400">
-              输入材料 · 结构化解析 · 主动追问 · 尝试表达 · 诊断强化
+              材料输入 · 结构化解析 · 主动追问 · 尝试表达 · 诊断强化
             </p>
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[150px_minmax(240px,420px)_300px_180px] md:items-end">
+        <div className="grid gap-3 md:grid-cols-[150px_minmax(240px,420px)_300px_220px] md:items-end">
           <label className="text-xs font-medium text-slate-400">
             学科
             <select
@@ -61,26 +62,14 @@ export function TopBar({
           <div className="text-xs font-medium text-slate-400">
             数据源
             <div className="mt-1 grid grid-cols-3 rounded-full border border-white/10 bg-[#22272f] p-1">
-              <button
-                className={sourceButtonClass(mockSource === MOCK_SOURCES.local)}
-                type="button"
-                onClick={() => onMockSourceChange(MOCK_SOURCES.local)}
-              >
-                本地 Mock
+              <button className={sourceButtonClass(mockSource === MOCK_SOURCES.local)} type="button" onClick={() => onMockSourceChange(MOCK_SOURCES.local)}>
+                本地演示
               </button>
-              <button
-                className={sourceButtonClass(mockSource === MOCK_SOURCES.backend)}
-                type="button"
-                onClick={() => onMockSourceChange(MOCK_SOURCES.backend)}
-              >
-                后端 Mock
+              <button className={sourceButtonClass(mockSource === MOCK_SOURCES.backend)} type="button" onClick={() => onMockSourceChange(MOCK_SOURCES.backend)}>
+                后端演示
               </button>
-              <button
-                className={sourceButtonClass(mockSource === MOCK_SOURCES.realApi)}
-                type="button"
-                onClick={() => onMockSourceChange(MOCK_SOURCES.realApi)}
-              >
-                真实 API
+              <button className={sourceButtonClass(mockSource === MOCK_SOURCES.realApi)} type="button" onClick={() => onMockSourceChange(MOCK_SOURCES.realApi)}>
+                真实 AI
               </button>
             </div>
           </div>
@@ -88,6 +77,11 @@ export function TopBar({
           <div className="rounded-2xl border border-teal-400/20 bg-teal-400/10 px-3 py-2 text-sm text-teal-50">
             <span className="block text-xs font-medium text-teal-300">当前状态</span>
             {status}
+            {aiStatus ? (
+              <span className="mt-1 block text-xs text-teal-100/80">
+                {aiStatus.providerLabel} / {aiStatus.model} / {aiStatus.hasApiKey ? '已配置' : '未配置'}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>

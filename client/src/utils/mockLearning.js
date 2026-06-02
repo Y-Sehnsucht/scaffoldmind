@@ -26,24 +26,11 @@ export function buildMockAnalysis({ subject, mode, preferences, pageNumber, mate
     pageNumber,
     topic,
     summary: materialText
-      ? `已基于输入材料生成中文 mock 解析：${materialText.slice(0, 42)}${materialText.length > 42 ? '...' : ''}`
-      : '已生成中文 mock 解析，用于跑通学习闭环。',
+      ? `已基于输入材料生成中文演示解析：${materialText.slice(0, 42)}${materialText.length > 42 ? '...' : ''}`
+      : '已生成中文演示解析，用于跑通学习闭环。',
     subjectFocus,
     preferences,
-    coreConcepts: [
-      {
-        name: '缓存未命中（cache miss）',
-        simpleExplanation: 'CPU 想访问的数据不在当前缓存（cache）中，只能去更慢的存储层级寻找。',
-        essence: '本质是程序访问模式和存储层级（memory hierarchy）速度差之间的冲突。',
-        relatedConcepts: ['局部性（locality）', '缓存行（cache line）', '存储层级（memory hierarchy）'],
-      },
-      {
-        name: '局部性（locality）',
-        simpleExplanation: '程序往往会反复访问相近时间或相近地址的数据。',
-        essence: '缓存设计能成立，是因为访问不是完全随机的。',
-        relatedConcepts: ['时间局部性（temporal locality）', '空间局部性（spatial locality）'],
-      },
-    ],
+    coreConcepts: buildCoreConcepts(),
     whyThisMatters: '它解释了为什么同样的代码逻辑，换一种访问顺序就可能产生完全不同的性能。',
     contextRelation: {
       previous: '承接局部性（locality）和存储层级（memory hierarchy）。',
@@ -52,7 +39,7 @@ export function buildMockAnalysis({ subject, mode, preferences, pageNumber, mate
     },
     examFocus: ['判断未命中类型', '分析访问序列命中率', '区分缓存行（cache line）和缓存容量（cache size）'],
     engineeringUse: ['优化二维数组遍历顺序', '减少随机访存', '通过数据布局提升缓存命中率'],
-    pitfalls: ['把缓存行（cache line）和缓存容量（cache size）混为一谈', '只背定义，不会根据访问序列推理', '忽略局部性（locality）和性能之间的因果链'],
+    pitfalls: ['混淆缓存行（cache line）和缓存容量（cache size）', '只背定义，不会根据访问序列推理', '忽略局部性（locality）和性能之间的因果链'],
     guidedQuestions: QUESTION_TYPES.map((item, index) => ({
       id: `q_${Date.now()}_${index}`,
       type: item.type,
@@ -66,7 +53,7 @@ export function buildMockAnalysis({ subject, mode, preferences, pageNumber, mate
       question: '请用自己的话解释：为什么缓存未命中（cache miss）会影响程序性能？',
       expectedKeyPoints: ['数据不在缓存（cache）中', '需要访问更慢的存储层级', '访问模式会影响命中率'],
     },
-    pageText: materialText || '这里展示用户输入或 AI 提取出的 PPT 当前页文字占位。',
+    pageText: materialText || '这里展示用户输入或系统提取出的当前页材料文字。',
   };
 
   return {
@@ -80,7 +67,7 @@ export function buildMockDeepDive(question) {
     id: `deep_${Date.now()}`,
     questionId: question.id,
     title: question.question,
-    answer: `中文 mock 深入回答：${question.question} 关键在于把“定义”推进到“解释现象”。只说缓存未命中（cache miss）是没有命中缓存还不够，还要说明它为什么发生、带来什么代价，以及访问模式如何改变结果。`,
+    answer: `演示深入回答：${question.question} 关键在于把“定义”推进到“解释现象”。只说缓存未命中（cache miss）是没有命中缓存还不够，还要说明它为什么发生、带来什么代价，以及访问模式如何改变结果。`,
     keyPoints: ['先定位知识点', '再说明底层原因', '最后连接考试或工程场景'],
     pageNumber: question.pageNumber,
     concept: question.concept,
@@ -133,6 +120,23 @@ ${uniqueConcepts.map((concept) => `- [[${concept}]]`).join('\n')}
 ## 强化练习
 - ${diagnosis?.reinforcementTask || analysis.userTask.question}
 `;
+}
+
+function buildCoreConcepts() {
+  return [
+    {
+      name: '缓存未命中（cache miss）',
+      simpleExplanation: 'CPU 想访问的数据不在当前缓存（cache）中，只能去更慢的存储层级寻找。',
+      essence: '本质是程序访问模式和存储层级（memory hierarchy）速度差之间的冲突。',
+      relatedConcepts: ['局部性（locality）', '缓存行（cache line）', '存储层级（memory hierarchy）'],
+    },
+    {
+      name: '局部性（locality）',
+      simpleExplanation: '程序往往会反复访问相近时间或相近地址的数据。',
+      essence: '缓存设计能成立，是因为访问不是完全随机的。',
+      relatedConcepts: ['时间局部性（temporal locality）', '空间局部性（spatial locality）'],
+    },
+  ];
 }
 
 function buildQuestion(type, pageNumber) {
