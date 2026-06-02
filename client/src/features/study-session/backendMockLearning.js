@@ -12,6 +12,30 @@ export function combineMaterialText(materialText, materialFields) {
     .join('\n\n');
 }
 
+export function requestAiStatus() {
+  return mockBackendApi.aiStatus();
+}
+
+export function requestMaterialExtraction(file) {
+  return mockBackendApi.extractMaterial(file);
+}
+
+export function requestLearningRecords(limit = 20) {
+  return mockBackendApi.listRecords(limit);
+}
+
+export function requestSaveLearningRecord(record) {
+  return mockBackendApi.saveRecord(record);
+}
+
+export function requestClearLearningRecords() {
+  return mockBackendApi.clearRecords();
+}
+
+export function requestProfileSummary() {
+  return mockBackendApi.profileSummary();
+}
+
 export async function requestBackendAnalysis({ subject, mode, preferences, pageNumber, materialText, materialFields, mockSource }) {
   const combinedMaterial = combineMaterialText(materialText, materialFields);
   const commonPayload = {
@@ -93,8 +117,8 @@ function normalizeAnalysis(data, fallback) {
     id: data.id || `backend_analysis_${Date.now()}`,
     mode: data.mode || fallback.mode,
     pageNumber: Number(data.pageNumber || fallback.pageNumber || 1),
-    topic: data.topic || '后端 Mock 结构化解析',
-    summary: data.summary || '后端 Mock 已返回中文结构化解析。',
+    topic: data.topic || '后端演示结构化解析',
+    summary: data.summary || '后端演示已返回中文结构化解析。',
     coreConcepts,
     guidedQuestions,
     whyThisMatters: data.whyThisMatters || '用于说明这个知识点为什么值得学习。',
@@ -117,7 +141,7 @@ function normalizeAnalysis(data, fallback) {
 function normalizeCollisionSection(data) {
   return {
     type: 'multi_source_collision',
-    title: '后端 Mock：多维信息对撞输出',
+    title: '后端演示：多维信息对撞输出',
     sourceViews: (data.sourceSummaries || []).map((item) => ({
       source: `资料 ${item.source}`,
       view: item.coreView,

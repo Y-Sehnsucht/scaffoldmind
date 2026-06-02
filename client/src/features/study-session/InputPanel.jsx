@@ -16,15 +16,18 @@ export function InputPanel({
   selectedPreferences,
   preferences,
   fileName,
+  materialInfo,
   onPageNumberChange,
   onMaterialTextChange,
   onMaterialFieldChange,
   onPreferenceToggle,
-  onFileNameChange,
+  onMaterialFileChange,
   onGenerate,
   onSaveRecord,
   canSave,
   isLoading = false,
+  isSaving = false,
+  isMaterialLoading = false,
   mockSource = 'local',
 }) {
   const labels = modeInputLabels[currentMode.id] || modeInputLabels.after_class_review;
@@ -57,19 +60,27 @@ export function InputPanel({
           </label>
 
           <label className="text-xs font-medium text-slate-600">
-            图片占位
+            材料文件
             <input
               className="mt-1 block w-full text-xs text-slate-500 file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-2 file:py-2 file:text-xs file:font-medium file:text-slate-700"
               type="file"
-              accept="image/*"
-              onChange={(event) => onFileNameChange(event.target.files?.[0]?.name || '')}
+              accept=".txt,.md,.markdown,.pdf,text/plain,text/markdown,application/pdf"
+              disabled={isMaterialLoading}
+              onChange={(event) => onMaterialFileChange(event.target.files?.[0] || null)}
             />
           </label>
         </div>
 
         {fileName ? (
           <div className="rounded border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            已选择截图占位：{fileName}
+            {isMaterialLoading
+              ? `正在提取：${fileName}`
+              : materialInfo
+                ? `已导入：${materialInfo.fileName} · ${materialInfo.sourceType}${materialInfo.pageCount ? ` · ${materialInfo.pageCount} 页` : ''} · ${materialInfo.extractedText.length} 字`
+                : `已选择：${fileName}`}
+            {materialInfo?.warnings?.length ? (
+              <div className="mt-1 text-amber-700">{materialInfo.warnings.join('；')}</div>
+            ) : null}
           </div>
         ) : null}
 
@@ -78,7 +89,7 @@ export function InputPanel({
             {label}
             <textarea
               className="mt-1 min-h-24 w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm leading-6 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              placeholder={`输入${label}，用于 Mock 学习闭环`}
+              placeholder={`输入${label}，或上传 TXT / MD / PDF 自动提取`}
               value={index === 0 ? materialText : materialFields[label] || ''}
               onChange={(event) => {
                 if (index === 0) {
@@ -96,24 +107,26 @@ export function InputPanel({
         <button
           className="w-full rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-70"
           type="button"
-          disabled={isLoading}
+          disabled={isLoading || isMaterialLoading}
           onClick={onGenerate}
         >
-          {isLoading
+          {isMaterialLoading
+            ? '材料提取中...'
+            : isLoading
             ? '生成中...'
             : mockSource === 'real_api'
-              ? '生成真实 API 解析'
+              ? '生成真实 AI 解析'
               : mockSource === 'backend'
-                ? '生成后端 Mock 解析'
-                : '生成本地 Mock 解析'}
+                ? '生成后端演示解析'
+                : '生成本地演示解析'}
         </button>
         <button
           className="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-300 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
-          disabled={!canSave}
+          disabled={!canSave || isSaving}
           onClick={onSaveRecord}
         >
-          保存本次学习记录
+          {isSaving ? '保存中...' : '保存本次学习记录'}
         </button>
       </section>
     </aside>

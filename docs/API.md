@@ -134,6 +134,46 @@ Check that the Express backend is running in mock mode.
 }
 ```
 
+## POST /api/materials/extract
+
+Extract text from an uploaded learning material before analysis.
+
+### Request
+
+Use `multipart/form-data` with one file field:
+
+```text
+material=<TXT | Markdown | PDF file>
+```
+
+Supported extensions:
+
+- `.txt`
+- `.md`
+- `.markdown`
+- `.pdf`
+
+The file size limit is 15MB. Image OCR and PPT parsing are not implemented in this endpoint.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "fileName": "cache-notes.md",
+    "sourceType": "markdown",
+    "mimeType": "text/markdown",
+    "pageCount": null,
+    "extractedText": "# Cache\nLocality material",
+    "warnings": []
+  },
+  "error": null
+}
+```
+
+If a PDF is scanned or image-only, `extractedText` may be empty and `warnings` explains that no usable text was found.
+
 ## POST /api/analyze
 
 Generate structured analysis for a learning session.
@@ -357,15 +397,109 @@ Compare three user-provided text sources for the multi-source collision mode.
 }
 ```
 
+## GET /api/records
+
+List saved learning records from the local SQLite database.
+
+### Query
+
+```text
+limit=20
+```
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "record_001",
+      "title": "Cache Miss",
+      "subject": "CSAPP",
+      "mode": "after_class_review",
+      "modeLabel": "课后深度复习",
+      "mockSource": "real_api",
+      "input": "Cache material",
+      "analysis": {},
+      "deepDive": null,
+      "userAnswer": "",
+      "diagnosis": null,
+      "obsidianMarkdown": "# [[Cache Miss]]",
+      "createdAt": "2026-06-02T00:00:00.000Z"
+    }
+  ],
+  "error": null
+}
+```
+
+## POST /api/records
+
+Save a complete learning loop record to local SQLite storage.
+
+### Request
+
+```json
+{
+  "title": "Cache Miss",
+  "subject": "CSAPP",
+  "mode": "after_class_review",
+  "modeLabel": "课后深度复习",
+  "mockSource": "real_api",
+  "input": "Cache material",
+  "analysis": {},
+  "deepDive": null,
+  "userAnswer": "My explanation",
+  "diagnosis": {},
+  "obsidianMarkdown": "# [[Cache Miss]]"
+}
+```
+
+`analysis` is required. The backend returns HTTP `201` when the record is saved.
+
+## DELETE /api/records
+
+Clear all saved SQLite learning records. The frontend may still keep localStorage as a temporary fallback when the backend is unavailable.
+
+## DELETE /api/records/:id
+
+Delete one saved learning record by id.
+
+## GET /api/profile/summary
+
+Build a lightweight learner profile from recent SQLite learning records.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "totalRecords": 3,
+    "frequentErrorTypes": [{ "label": "concept_confusion", "count": 2 }],
+    "weakConcepts": [{ "label": "缓存未命中（cache miss）", "count": 2 }],
+    "commonModes": [{ "label": "课后深度复习", "count": 3 }],
+    "recentTopics": ["Cache Miss"],
+    "nextReviewSuggestion": "优先用费曼反讲复习缓存未命中（cache miss），重点检查“concept_confusion”这类偏差。",
+    "updatedAt": "2026-06-02T00:00:00.000Z"
+  },
+  "error": null
+}
+```
+
 ## Real API Fallback Notes
 
 When `aiSource` is `real_api`:
 
 - If `TEXT_GENERATION_API_KEY` is missing, the backend returns structured mock fallback data.
+- When `AI_JSON_RESPONSE_FORMAT=json_object`, the backend asks OpenAI-compatible providers to return JSON object responses.
+- If a custom provider rejects `response_format`, set `AI_JSON_RESPONSE_FORMAT=none`; schema validation still runs after the response.
 - If the provider call fails, the backend returns structured mock fallback data.
+- If the provider returns malformed JSON or a response that fails the task schema, the backend returns structured fallback data.
 - Fallback responses include `providerStatus: "fallback"` and `fallbackReason`.
+- Schema fallback responses may include `validationErrors` with a short list of failed fields.
 - Successful real provider responses include `providerStatus: "real_api"`.
-- If the provider returns plain text, the backend converts it into the existing frontend-displayable structure.
+- If the provider returns plain text instead of JSON, the backend treats it as `AI_RESPONSE_INVALID` and returns structured fallback data.
 
 ## Current Backend Notes
 

@@ -6,6 +6,7 @@ ScaffoldMind 明序是一个面向 CSAPP 和数据结构学习的 AI 学习助�
 
 - 单页面三栏学习工作台：左侧输入，中间学习闭环，右侧提问记录。
 - 支持 CSAPP 和数据结构两个学科方向。
+- 支持粘贴文本，也支持上传 TXT、Markdown、PDF 并自动提取文字进入学习材料。
 - 保留五种学习模式：
   - Context Stacking 超前学习
   - 课后深度复习
@@ -17,13 +18,14 @@ ScaffoldMind 明序是一个面向 CSAPP 和数据结构学习的 AI 学习助�
 - 右侧提问记录快速浏览回顾侧边栏。
 - 用户尝试回答后的错误诊断和强化题。
 - Obsidian Markdown 输出，包含 wikilink 和 callout。
-- localStorage 保存提问记录和学习记录。
+- 结果卡片会标明本地演示、后端演示、真实 AI 或结构化 fallback 来源。
+- SQLite 保存学习记录并生成基础学习画像；localStorage 保留提问记录和离线 fallback。
 
 ## 技术栈
 
 - 前端：React + Vite + Tailwind CSS
 - 后端：Node.js + Express
-- MVP 存储：浏览器 localStorage
+- 存储：后端 SQLite 保存学习记录，浏览器 localStorage 作为临时 fallback
 - AI 调用：只能通过 Express 后端，前端不接触 API Key
 
 ## 运行方式
@@ -49,15 +51,38 @@ npm run dev
 - 前端：`http://localhost:5173`
 - 后端健康检查：`http://localhost:3001/api/health`
 
+也可以在项目根目录直接运行一键启动脚本：
+
+```bash
+start-dev.cmd
+```
+
+它会分别打开前端和后端开发窗口；如果某一侧还没安装依赖，会先自动执行 `npm install`。
+
 ## 环境变量说明
 
 真实 API Key 只能放在本地 `server/.env`，不要提交到 Git。
 
-`.env.example` 只保留空占位：
+`.env.example` 只保留空占位。真实调用时在 `server/.env` 里选择 provider：
 
 ```text
-TEXT_GENERATION_API_KEY=
 PORT=3001
+AI_PROVIDER=openai
+AI_JSON_RESPONSE_FORMAT=json_object
+OPENAI_API_KEY=
+```
+
+可选 provider：
+
+- `openai`：使用 `OPENAI_API_KEY`、`OPENAI_MODEL`、`OPENAI_API_URL`
+- `deepseek`：使用 `DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`、`DEEPSEEK_API_URL`
+- `glm`：使用 `GLM_API_KEY`、`GLM_MODEL`、`GLM_API_URL`
+- `custom`：使用 `CUSTOM_API_KEY`、`CUSTOM_MODEL`、`CUSTOM_API_URL`
+
+默认会向兼容接口发送 `response_format: { "type": "json_object" }`，让模型优先返回 JSON。如果某个自定义 provider 不支持这个参数，可以在 `server/.env` 设置：
+
+```text
+AI_JSON_RESPONSE_FORMAT=none
 ```
 
 后端会显式读取 `server/.env`。从项目根目录或 `server/` 目录启动都应指向同一个后端环境文件。
@@ -66,17 +91,17 @@ PORT=3001
 
 页面顶部可以切换数据源：
 
-- 本地 Mock：默认选项，完全在前端用 mock 数据跑通学习闭环。
-- 后端 Mock：调用 Express mock API，验证前后端接口边界。
-- 真实 API：通过 Express 后端调用真实文本生成 API。
+- 本地演示：默认选项，完全在前端用演示数据跑通学习闭环。
+- 后端演示：调用 Express 演示 API，验证前后端接口边界。
+- 真实 AI：通过 Express 后端调用配置好的 provider。
 
-默认始终是“本地 Mock”，保证演示稳定。只有手动选择“真实 API”时才会尝试真实 provider 调用。
+默认始终是“本地演示”，保证演示稳定。只有手动选择“真实 AI”时才会尝试真实 provider 调用。
 
 ## API Key 安全说明
 
 - 不要把真实 API Key 写进代码。
 - 不要把真实 API Key 写进 README、docs、测试或截图。
-- 不要让前端读取 `TEXT_GENERATION_API_KEY`。
+- 不要让前端读取任何 provider API Key。
 - 不要提交 `.env`、`server/.env` 或 `client/.env`。
 - 如果真实 API 调用失败，后端会返回结构化 fallback，不让前端崩溃。
 
@@ -103,6 +128,7 @@ PORT=3001
 - Node.js Express 后端骨架
 - 三栏 UI 学习工作台
 - 五种学习模式
+- TXT、Markdown、PDF 材料上传和文字提取
 - 本地 Mock 学习闭环
 - 后端 Mock API
 - 真实 API 可选路径和 fallback

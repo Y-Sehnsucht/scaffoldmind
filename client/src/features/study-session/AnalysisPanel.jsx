@@ -8,6 +8,7 @@ export function AnalysisPanel({
   onDeepDive,
   onDiagnose,
   loadingAction = '',
+  sourceLabel = '本地演示',
 }) {
   if (!analysis) {
     return (
@@ -25,9 +26,13 @@ export function AnalysisPanel({
       <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold text-teal-700">PPT 第 {analysis.pageNumber} 页</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold text-teal-700">PPT 第 {analysis.pageNumber} 页</p>
+              <SourceBadge result={analysis} sourceLabel={sourceLabel} />
+            </div>
             <h2 className="mt-1 text-2xl font-semibold text-slate-950">{analysis.topic}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">{analysis.summary}</p>
+            <SourceDetails result={analysis} />
           </div>
           <button
             className="rounded-md border border-teal-200 px-3 py-2 text-sm font-medium text-teal-800 transition hover:bg-teal-50"
@@ -86,8 +91,12 @@ export function AnalysisPanel({
 
       {deepDive ? (
         <article className="rounded-md border border-teal-200 bg-teal-50 p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-teal-950">深入回答</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-semibold text-teal-950">深入回答</h3>
+            <SourceBadge result={deepDive} sourceLabel={sourceLabel} />
+          </div>
           <p className="mt-2 text-sm leading-6 text-teal-950">{deepDive.answer}</p>
+          <SourceDetails result={deepDive} />
           <div className="mt-3 flex flex-wrap gap-2">
             {(deepDive.keyPoints || []).map((point) => (
               <span key={point} className="rounded-full bg-white px-2 py-1 text-xs text-teal-800">
@@ -105,7 +114,7 @@ export function AnalysisPanel({
           className="mt-3 min-h-24 w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm leading-6 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           value={userAnswer}
           onChange={(event) => onUserAnswerChange(event.target.value)}
-          placeholder="写下你的解释，再让 Mock 诊断指出偏差"
+          placeholder="写下你的解释，再让系统诊断指出偏差"
         />
         <button
           className="mt-3 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
@@ -124,8 +133,10 @@ export function AnalysisPanel({
               错误类型：{diagnosis.errorType}
             </span>
             <span className="rounded bg-white px-2 py-1 text-xs text-amber-900">诊断结果</span>
+            <SourceBadge result={diagnosis} sourceLabel={sourceLabel} />
           </div>
           <p className="mt-3 text-sm leading-6 text-amber-950">引用回答："{diagnosis.quotedIssue}"</p>
+          <SourceDetails result={diagnosis} />
           <p className="mt-2 text-sm leading-6 text-amber-950">{diagnosis.mainProblem}</p>
           <p className="mt-2 text-sm leading-6 text-amber-950">修改建议：{diagnosis.suggestion}</p>
           <div className="mt-3 rounded-md bg-white p-3 text-sm leading-6 text-slate-800">
@@ -135,6 +146,51 @@ export function AnalysisPanel({
       ) : null}
     </section>
   );
+}
+
+function SourceBadge({ result, sourceLabel }) {
+  const source = getSourceMeta(result, sourceLabel);
+
+  return (
+    <span className={`rounded px-2 py-1 text-xs font-semibold ${source.className}`}>
+      {source.label}
+    </span>
+  );
+}
+
+function SourceDetails({ result }) {
+  if (result?.providerStatus !== 'fallback') {
+    return null;
+  }
+
+  const details = [result.fallbackReason, ...(result.validationErrors || [])].filter(Boolean);
+
+  if (details.length === 0) {
+    return null;
+  }
+
+  return <p className="mt-2 text-xs leading-5 text-amber-700">Fallback 原因：{details.join('；')}</p>;
+}
+
+function getSourceMeta(result, sourceLabel) {
+  if (result?.providerStatus === 'real_api') {
+    return {
+      label: `真实 AI · ${result.providerLabel || result.provider || 'Provider'} / ${result.model || 'model'}`,
+      className: 'bg-emerald-100 text-emerald-800',
+    };
+  }
+
+  if (result?.providerStatus === 'fallback') {
+    return {
+      label: `结构化 fallback · ${result.providerLabel || result.provider || 'Provider'}`,
+      className: 'bg-amber-100 text-amber-900',
+    };
+  }
+
+  return {
+    label: sourceLabel,
+    className: 'bg-slate-100 text-slate-600',
+  };
 }
 
 function ModeSpecificSection({ section }) {

@@ -67,7 +67,43 @@ export function postJson(path, body) {
   return requestJson(path, request.options);
 }
 
+export function deleteJson(path) {
+  return requestJson(path, {
+    method: 'DELETE',
+  });
+}
+
+export async function postFormData(path, formData) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const data = await response.json();
+  return parseApiResponse(data);
+}
+
 export const mockBackendApi = {
+  aiStatus() {
+    return requestJson('/api/ai/status');
+  },
+  extractMaterial(file) {
+    const formData = new FormData();
+    formData.append('material', file);
+    return postFormData('/api/materials/extract', formData);
+  },
+  listRecords(limit = 20) {
+    return requestJson(`/api/records?limit=${limit}`);
+  },
+  saveRecord(payload) {
+    return postJson('/api/records', payload);
+  },
+  clearRecords() {
+    return deleteJson('/api/records');
+  },
+  profileSummary() {
+    return requestJson('/api/profile/summary');
+  },
   analyze(payload) {
     return postJson('/api/analyze', payload);
   },

@@ -1,5 +1,6 @@
 import { createApp } from '../app.js';
 import { env } from '../config/env.js';
+import { validateAiOutput } from '../services/aiSchemas.js';
 
 const app = createApp();
 const server = app.listen(0);
@@ -27,6 +28,7 @@ try {
   const body = await response.json();
   const data = body?.data || {};
   const textForLength = data.rawText || data.summary || data.answer || data.topic || '';
+  const validation = validateAiOutput('analysis', data);
 
   console.log(
     JSON.stringify(
@@ -38,6 +40,8 @@ try {
         fallbackReason: data.fallbackReason || null,
         httpStatus: response.status,
         contentLength: data.providerStatus === 'real_api' ? String(textForLength).length : null,
+        schemaValid: validation.valid,
+        validationErrors: validation.errors,
         structuredFields: {
           hasTopic: Boolean(data.topic),
           hasSummary: Boolean(data.summary),

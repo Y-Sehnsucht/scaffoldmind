@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
+import { validateAiOutput } from '../services/aiSchemas.js';
 
 const app = createApp();
 const server = app.listen(0);
@@ -14,6 +15,26 @@ try {
   assert.equal(health.body.ok, true, 'health should use ok response');
   assert.equal(health.body.data.service, 'scaffoldmind-server', 'health should identify service');
 
+  const aiStatus = await getJson(`${baseUrl}/api/ai/status`);
+  assert.equal(aiStatus.status, 200, 'ai status should return 200');
+  assert.equal(aiStatus.body.data.jsonResponseFormat, 'json_object', 'ai status should expose JSON response mode');
+
+  const materialForm = new FormData();
+  materialForm.append('material', new Blob(['# Cache\nLocality material'], { type: 'text/markdown' }), 'cache.md');
+  const validMaterial = await postFormData(`${baseUrl}/api/materials/extract`, materialForm);
+  assert.equal(validMaterial.status, 200, 'materials extract should return 200 for markdown input');
+  assert.equal(validMaterial.body.ok, true, 'materials extract should use ok/data shape');
+  assert.equal(validMaterial.body.data.sourceType, 'markdown', 'materials extract should classify markdown files');
+  assert.match(validMaterial.body.data.extractedText, /Locality material/, 'materials extract should return file text');
+
+  const pdfForm = new FormData();
+  pdfForm.append('material', new Blob([createSamplePdf()], { type: 'application/pdf' }), 'sample.pdf');
+  const validPdfMaterial = await postFormData(`${baseUrl}/api/materials/extract`, pdfForm);
+  assert.equal(validPdfMaterial.status, 200, 'materials extract should return 200 for pdf input');
+  assert.equal(validPdfMaterial.body.data.sourceType, 'pdf', 'materials extract should classify pdf files');
+  assert.equal(validPdfMaterial.body.data.pageCount, 1, 'materials extract should return pdf page count');
+  assert.match(validPdfMaterial.body.data.extractedText, /Cache locality/, 'materials extract should return pdf text');
+
   const validAnalyze = await postJson(`${baseUrl}/api/analyze`, {
     subject: 'CSAPP',
     mode: 'after_class_review',
@@ -24,6 +45,7 @@ try {
   assert.equal(validAnalyze.status, 200, 'analyze should return 200 for valid input');
   assert.equal(validAnalyze.body.ok, true, 'analyze should use ok/data shape');
   assert.ok(validAnalyze.body.data.topic, 'analyze should return mock analysis topic');
+  assert.equal(validateAiOutput('analysis', validAnalyze.body.data).valid, true, 'analyze output should match AI schema');
 
   const invalidAnalyze = await postJson(`${baseUrl}/api/analyze`, {
     subject: 'CSAPP',
@@ -42,9 +64,68 @@ try {
   assert.equal(validDiagnose.status, 200, 'diagnose should return 200 for valid input');
   assert.equal(validDiagnose.body.ok, true, 'diagnose should use ok/data shape');
   assert.equal(validDiagnose.body.data.quotedIssue, 'Cache is too small.', 'diagnose should quote user attempt');
+  assert.equal(validateAiOutput('diagnosis', validDiagnose.body.data).valid, true, 'diagnosis output should match AI schema');
+
+  const invalidAiShape = validateAiOutput('diagnosis', { rawText: 'plain text answer' });
+  assert.equal(invalidAiShape.valid, false, 'schema validation should reject unstructured diagnosis output');
+
+  const validDeepDive = await postJson(`${baseUrl}/api/deep-dive`, {
+    subject: 'CSAPP',
+    mode: 'after_class_review',
+    materialText: 'cache material',
+    question: validAnalyze.body.data.guidedQuestions[0],
+  });
+  assert.equal(validDeepDive.status, 200, 'deep dive should return 200 for valid input');
+  assert.equal(validateAiOutput('deepDive', validDeepDive.body.data).valid, true, 'deep dive output should match AI schema');
+
+  const validObsidian = await postJson(`${baseUrl}/api/obsidian`, {
+    analysis: validAnalyze.body.data,
+  });
+  assert.equal(validObsidian.status, 200, 'obsidian should return 200 for valid input');
+  assert.equal(validateAiOutput('obsidian', validObsidian.body.data).valid, true, 'obsidian output should match AI schema');
+
+  const validCollision = await postJson(`${baseUrl}/api/collision`, {
+    subject: 'CSAPP',
+    mode: 'multi_source_collision',
+    sourceA: 'course material',
+    sourceB: 'engineering article',
+    sourceC: 'opposing view',
+  });
+  assert.equal(validCollision.status, 200, 'collision should return 200 for valid input');
+  assert.equal(validateAiOutput('collision', validCollision.body.data).valid, true, 'collision output should match AI schema');
+
+  await deleteJson(`${baseUrl}/api/records`);
+  const savedRecord = await postJson(`${baseUrl}/api/records`, {
+    title: 'Cache Miss',
+    subject: 'CSAPP',
+    mode: 'after_class_review',
+    modeLabel: '课后深度复习',
+    mockSource: 'backend',
+    input: 'cache material',
+    analysis: validAnalyze.body.data,
+    diagnosis: validDiagnose.body.data,
+    obsidianMarkdown: '# [[Cache Miss]]',
+  });
+  assert.equal(savedRecord.status, 201, 'records should return 201 when saved');
+  assert.equal(savedRecord.body.ok, true, 'records save should use ok/data shape');
+  assert.equal(savedRecord.body.data.title, 'Cache Miss', 'records save should return saved title');
+
+  const records = await getJson(`${baseUrl}/api/records`);
+  assert.equal(records.status, 200, 'records list should return 200');
+  assert.equal(records.body.data.length, 1, 'records list should include saved record');
+
+  const profile = await getJson(`${baseUrl}/api/profile/summary`);
+  assert.equal(profile.status, 200, 'profile summary should return 200');
+  assert.equal(profile.body.data.totalRecords, 1, 'profile summary should count saved records');
+  assert.ok(profile.body.data.nextReviewSuggestion, 'profile summary should include next review suggestion');
+
+  const deletedRecord = await deleteJson(`${baseUrl}/api/records/${savedRecord.body.data.id}`);
+  assert.equal(deletedRecord.status, 200, 'record delete should return 200');
+  assert.equal(deletedRecord.body.data.deleted, true, 'record delete should report deleted true');
 
   console.log('Mock API verification passed.');
 } finally {
+  await deleteJson(`http://127.0.0.1:${server.address()?.port}/api/records`).catch(() => {});
   await new Promise((resolve) => server.close(resolve));
 }
 
@@ -69,4 +150,55 @@ async function postJson(url, body) {
     status: response.status,
     body: await response.json(),
   };
+}
+
+async function postFormData(url, body) {
+  const response = await fetch(url, {
+    method: 'POST',
+    body,
+  });
+
+  return {
+    status: response.status,
+    body: await response.json(),
+  };
+}
+
+async function deleteJson(url) {
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  return {
+    status: response.status,
+    body: await response.json(),
+  };
+}
+
+function createSamplePdf() {
+  const objects = [
+    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+    '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n',
+    '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+    '5 0 obj\n<< /Length 48 >>\nstream\nBT /F1 24 Tf 100 700 Td (Cache locality) Tj ET\nendstream\nendobj\n',
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+
+  for (const object of objects) {
+    offsets.push(Buffer.byteLength(pdf, 'ascii'));
+    pdf += object;
+  }
+
+  const xrefOffset = Buffer.byteLength(pdf, 'ascii');
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += '0000000000 65535 f \n';
+
+  for (let index = 1; index < offsets.length; index += 1) {
+    pdf += `${String(offsets[index]).padStart(10, '0')} 00000 n \n`;
+  }
+
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return Buffer.from(pdf, 'ascii');
 }
