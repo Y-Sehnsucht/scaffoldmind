@@ -1,10 +1,4 @@
-import { mockBackendApi } from '../../shared/api/client.js';
-
-export const MOCK_SOURCES = {
-  local: 'local',
-  backend: 'backend',
-  realApi: 'real_api',
-};
+import { mockBackendApi, postSSE } from '../../shared/api/client.js';
 
 export function combineMaterialText(materialText, materialFields) {
   return [materialText, ...Object.entries(materialFields).map(([key, value]) => `${key}: ${value}`)]
@@ -14,6 +8,10 @@ export function combineMaterialText(materialText, materialFields) {
 
 export function requestAiStatus() {
   return mockBackendApi.aiStatus();
+}
+
+export function requestAiPreflight(aiConfig) {
+  return mockBackendApi.aiPreflight({ aiConfig });
 }
 
 export function requestMaterialExtraction(file) {
@@ -36,7 +34,22 @@ export function requestProfileSummary() {
   return mockBackendApi.profileSummary();
 }
 
-export async function requestBackendAnalysis({ subject, mode, preferences, pageNumber, materialText, materialFields, mockSource }) {
+export function requestStreamAnalysis({ subject, mode, preferences, pageNumber, materialText, materialFields, aiConfig }, callbacks) {
+  const combinedMaterial = combineMaterialText(materialText, materialFields);
+  const payload = {
+    subject,
+    mode,
+    preferences,
+    pageNumber,
+    materialText: combinedMaterial,
+    aiSource: 'real_api',
+    aiConfig,
+  };
+
+  return postSSE('/api/analyze/stream', payload, callbacks);
+}
+
+export async function requestBackendAnalysis({ subject, mode, preferences, pageNumber, materialText, materialFields, aiConfig }) {
   const combinedMaterial = combineMaterialText(materialText, materialFields);
   const commonPayload = {
     subject,
@@ -44,7 +57,8 @@ export async function requestBackendAnalysis({ subject, mode, preferences, pageN
     preferences,
     pageNumber,
     materialText: combinedMaterial,
-    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
+    aiSource: 'real_api',
+    aiConfig,
   };
 
   const [analysisData, collisionData] = await Promise.all([
@@ -58,7 +72,7 @@ export async function requestBackendAnalysis({ subject, mode, preferences, pageN
     materialText: combinedMaterial,
     collisionData,
   });
-  const obsidianMarkdown = await requestBackendObsidian(analysis, mockSource);
+  const obsidianMarkdown = await requestBackendObsidian(analysis, aiConfig);
 
   return {
     analysis,
@@ -66,33 +80,36 @@ export async function requestBackendAnalysis({ subject, mode, preferences, pageN
   };
 }
 
-export async function requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question, mockSource }) {
+export async function requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question, aiConfig }) {
   const data = await mockBackendApi.deepDive({
     subject,
     mode,
     pageNumber,
     materialText: combineMaterialText(materialText, materialFields),
     question,
-    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
+    aiSource: 'real_api',
+    aiConfig,
   });
 
   return normalizeDeepDive(data, question, pageNumber);
 }
 
-export async function requestBackendDiagnosis({ subject, mode, question, userAttempt, mockSource }) {
+export async function requestBackendDiagnosis({ subject, mode, question, userAttempt, aiConfig }) {
   return mockBackendApi.diagnose({
     subject,
     mode,
     question: question?.question || question || '当前用户尝试题',
     userAttempt,
-    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
+    aiSource: 'real_api',
+    aiConfig,
   });
 }
 
-export async function requestBackendObsidian(analysis, mockSource = MOCK_SOURCES.backend) {
+export async function requestBackendObsidian(analysis, aiConfig) {
   const data = await mockBackendApi.obsidian({
     analysis,
-    aiSource: mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend_mock',
+    aiSource: 'real_api',
+    aiConfig,
   });
   return data.obsidianMarkdown || '';
 }
@@ -125,8 +142,8 @@ function normalizeAnalysis(data, fallback) {
     id: data.id || `backend_analysis_${Date.now()}`,
     mode: data.mode || fallback.mode,
     pageNumber: Number(data.pageNumber || fallback.pageNumber || 1),
-    topic: data.topic || '后端演示结构化解析',
-    summary: data.summary || '后端演示已返回中文结构化解析。',
+    topic: data.topic || 'AI 平台结构化解析',
+    summary: data.summary || 'AI 平台已返回中文结构化解析。',
     coreConcepts,
     guidedQuestions,
     whyThisMatters: data.whyThisMatters || '用于说明这个知识点为什么值得学习。',
@@ -149,7 +166,7 @@ function normalizeAnalysis(data, fallback) {
 function normalizeCollisionSection(data) {
   return {
     type: 'multi_source_collision',
-    title: '后端演示：多维信息对撞输出',
+    title: 'AI 平台：多维信息对撞输出',
     sourceViews: (data.sourceSummaries || []).map((item) => ({
       source: `资料 ${item.source}`,
       view: item.coreView,

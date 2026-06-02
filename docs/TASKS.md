@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-Engineering context setup.
+Course-project acceptance and handoff.
 
-Status: frontend mock MVP, backend mock API boundaries, controlled local/backend/real API source switching, and opt-in real text generation API fallback are implemented.
+Status: browser AI configuration, real provider path, structured fallback, material parsing, learning records, learner profile, Obsidian export, and AI-platform browser acceptance are implemented.
 
 ## Day 1: Project Initialization And Context
 
@@ -24,48 +24,48 @@ Status: frontend mock MVP, backend mock API boundaries, controlled local/backend
 - [x] Build single-page three-column UI skeleton.
 - [x] Add PPT original page side drawer skeleton.
 
-## Day 2: Mock Learning Loop
+## Day 2: Prototype Learning Loop
 
 - [x] Implement subject selection for CSAPP and Data Structures.
 - [x] Implement all five learning mode selectors.
 - [x] Implement learning preference chips.
 - [x] Implement mode-specific material input forms.
-- [x] Implement mock structured AI analysis.
+- [x] Implement structured learning analysis fallback.
 - [x] Implement guided questions.
 - [x] Implement right-side question history sidebar.
 - [x] Implement user attempt input.
-- [x] Implement mock error diagnosis.
+- [x] Implement structured error diagnosis fallback.
 - [x] Persist question history to localStorage.
 
-## Day 3: Backend Mock API And Future Real API Boundary
+## Day 3: Backend Learning API And Future Real API Boundary
 
 - [x] Keep Express runnable without requiring `.env`.
-- [x] Implement mock `POST /api/analyze`.
-- [x] Implement mock `POST /api/deep-dive`.
-- [x] Implement mock `POST /api/diagnose`.
-- [x] Implement mock `POST /api/obsidian`.
-- [x] Implement mock `POST /api/collision`.
-- [x] Add frontend API helper functions with `USE_BACKEND_MOCK = false`.
+- [x] Implement structured fallback for `POST /api/analyze`.
+- [x] Implement structured fallback for `POST /api/deep-dive`.
+- [x] Implement structured fallback for `POST /api/diagnose`.
+- [x] Implement structured fallback for `POST /api/obsidian`.
+- [x] Implement structured fallback for `POST /api/collision`.
+- [x] Add frontend API helper functions for backend learning endpoints.
 - [x] Add unified `ok/data` success responses and `VALIDATION_ERROR` failures.
 - [x] Verify the frontend does not expose API keys.
-- [x] Add top-bar switch between `本地 Mock` and `后端 Mock`.
-- [x] Keep local mock as the default source.
+- [x] Add early top-bar source switching during prototype development.
+- [x] Keep a deterministic structured fallback for provider failures.
 - [x] Add frontend response parser for `{ ok, data, error }` envelopes.
-- [x] Route backend mock analysis, deep dive, diagnosis, Obsidian, and collision calls through `client/src/shared/api`.
-- [x] Add loading and recoverable error states for backend mock requests.
+- [x] Route backend analysis, deep dive, diagnosis, Obsidian, and collision calls through `client/src/shared/api`.
+- [x] Add loading and recoverable error states for backend learning requests.
 - [x] Add lightweight API client verification script.
 - [x] Add opt-in `真实 API` frontend source.
 - [x] Add mode-specific prompt builders for all five learning modes.
 - [x] Add real API service path with structured fallback when key is missing or provider calls fail.
-- [x] Keep `本地 Mock` as the default and preserve `后端 Mock`.
+- [x] Replace prototype source switching with browser AI configuration.
 
 ## Day 4: Complete Five Learning Modes
 
-- [x] Add Context Stacking mock output structure.
-- [x] Add after-class deep review mock output structure.
-- [x] Add examiner perspective mock output structure.
-- [x] Add Feynman explanation mock output structure.
-- [x] Add multi-source collision mock output structure.
+- [x] Add Context Stacking structured output.
+- [x] Add after-class deep review structured output.
+- [x] Add examiner perspective structured output.
+- [x] Add Feynman explanation structured output.
+- [x] Add multi-source collision structured output.
 - [x] Verify each mode has distinct inputs and output structure.
 - [x] Add lightweight automated verification for all modes.
 
@@ -73,15 +73,19 @@ Status: frontend mock MVP, backend mock API boundaries, controlled local/backend
 
 - [x] Implement Obsidian Markdown copy.
 - [x] Implement learning record save/delete/review through localStorage.
-- [ ] Run the final demo path from the PRD.
-- [ ] Capture screenshots for delivery.
-- [ ] Update README with actual run commands.
-- [ ] Update CHANGELOG and `memory/MEMORY.md`.
-- [ ] Confirm `.env` is not tracked.
+- [x] Add backend lightweight record storage and profile summary.
+- [x] Add TXT/Markdown/PDF material extraction.
+- [x] Add lightweight PPTX parsing.
+- [x] Add AI provider configuration and self-check.
+- [x] Replace local/backend demo source switch with browser AI settings panel.
+- [x] Run the course-project browser acceptance path.
+- [x] Update README with actual run commands.
+- [x] Update CHANGELOG and `memory/MEMORY.md`.
+- [x] Confirm `.env` is not tracked.
 
 ## Next Development Task
 
-Manually test the full `真实 API` browser path with both dev servers running, then add stricter request/response schema checks around provider output.
+Prepare presentation materials: a short demo script, screenshots if required by the course, and an explanation of the browser AI configuration plus learning loop architecture.
 
 ## Scope Guardrails
 
@@ -90,5 +94,5 @@ Manually test the full `真实 API` browser path with both dev servers running, 
 - Do not remove any of the five learning modes.
 - Do not remove the question history sidebar.
 - Do not expose or commit API keys.
-- Do not replace localStorage with a database for MVP.
-- Do not implement full PPT parsing, OCR, vector search, or cloud sync in MVP.
+- Do not replace lightweight localStorage/backend JSON storage with a production database for the course project.
+- Do not implement full visual PPT parsing, OCR, vector search, or cloud sync in the course-project scope.

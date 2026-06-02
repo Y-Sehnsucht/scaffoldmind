@@ -12,11 +12,12 @@ The system must not become a generic chat shell. It must preserve the PRD's core
 
 - Frontend: React + Vite + Tailwind CSS
 - Backend: Node.js + Express
-- MVP storage: browser localStorage
-- AI access: text generation API called only from the Express backend
+- MVP storage: browser localStorage plus backend lightweight JSON record storage
+- Material parsing: TXT/Markdown/PDF extraction and lightweight PPTX text/image-placeholder parsing
+- AI access: browser-configured OpenAI-compatible provider proxied through the Express backend
 - Environment variables: backend `.env` locally, `.env.example` in GitHub
 
-The frontend must never contain API keys or call the AI provider directly.
+The frontend may save API keys in browser localStorage for local single-user use, but must never hard-code or commit them. The browser still never calls the AI provider directly; Express proxies provider requests.
 
 ## 3. Application Shape
 
@@ -68,6 +69,7 @@ Key frontend responsibilities:
 - Show structured AI results instead of long unstructured prose.
 - Support page-number links that open the PPT original page drawer.
 - Support copying Obsidian-friendly Markdown.
+- Save local AI provider settings in browser localStorage for this single-user course project.
 
 ## 5. Backend Architecture
 
@@ -77,44 +79,57 @@ Recommended structure after project initialization:
 server/
   index.js
   routes/
+    ai.js
     analyze.js
     deepDive.js
     diagnose.js
     obsidian.js
     collision.js
+    materials.js
+    parsePpt.js
+    profile.js
+    records.js
   services/
     aiService.js
+    materialService.js
     promptBuilder.js
+    recordStore.js
   config/
     env.js
 ```
 
 Key backend responsibilities:
 
-- Read `TEXT_GENERATION_API_KEY` and `PORT` from local `.env`.
+- Accept request-level AI config from the browser and fall back to local backend `.env`.
 - Expose JSON API endpoints for the frontend.
 - Build prompts from subject, mode, preferences, material input, page context, previous questions, and user attempts.
 - Call the AI provider through `aiService`.
 - Normalize AI responses into structured JSON where possible.
-- Return safe fallback errors when AI calls fail or output is malformed.
+- Return structured fallback data when AI calls fail or output is malformed.
+- Extract TXT/Markdown/PDF text and lightweight PPTX slide text.
+- Persist lightweight learning records and build learner profile summaries.
 
-The backend must not implement user login, teacher dashboards, cloud sync, databases, vector search, OCR, or automatic PPT parsing in the MVP.
+The backend must not implement user login, teacher dashboards, cloud sync, vector search, OCR, or full visual PPT parsing in the MVP.
 
 ## 6. MVP Data Flow
 
 1. User chooses subject, learning mode, and learning preferences.
 2. User enters material in the mode-specific fields.
-3. Frontend sends a JSON request to the Express backend.
-4. Backend builds the mode-specific prompt and calls the AI provider.
-5. Backend returns structured learning output.
+3. Frontend sends the learning request and browser AI config to the Express backend.
+4. Backend builds a mode-specific prompt and calls the browser-configured provider.
+5. Backend returns structured learning output or structured fallback data.
 6. Frontend renders analysis, guided questions, user task, page links, and Obsidian output.
 7. User selects a guided question or submits an answer.
 8. Frontend calls `/api/deep-dive` or `/api/diagnose`.
-9. Question history, diagnosis, reinforcement tasks, and saved learning records are persisted in localStorage.
+9. Question history, diagnosis, reinforcement tasks, and saved learning records are persisted in localStorage and, when backend is available, the lightweight record store.
 
 ## 7. Storage Model
 
-MVP storage is localStorage only.
+MVP storage is intentionally lightweight:
+
+- Browser localStorage keeps local question history and fallback learning records.
+- Browser localStorage keeps local AI provider settings for this single-user course project.
+- Backend JSON storage under `server/data` keeps saved learning records for refresh/recovery demos.
 
 Session memory:
 
@@ -150,7 +165,7 @@ Learner profile memory:
 - common question types
 - recent learning topics
 
-No database is required for the MVP.
+No account system, cloud database, or sync layer is required for the MVP.
 
 ## 8. AI Strategy
 
@@ -168,11 +183,12 @@ Different modes must produce visibly different output structures.
 
 ## 9. Security Boundaries
 
-- Do not write API keys into frontend code.
+- Do not hard-code API keys into frontend code.
 - Do not write API keys into README or docs.
 - Do not commit `.env`.
 - Commit only `.env.example` with empty placeholders.
 - Keep AI provider access behind Express routes.
+- Treat browser-saved API keys as local-only; do not use this model for public multi-user deployment.
 
 ## 10. Explicit Non-Goals For MVP
 

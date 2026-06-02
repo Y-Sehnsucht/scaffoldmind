@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { generateObsidian } from '../services/aiService.js';
-import { buildMockObsidian } from '../services/mockLearningService.js';
 import { ok, sendValidationError } from '../utils/responses.js';
 import { requireFields } from '../utils/validation.js';
 
@@ -14,7 +13,7 @@ obsidianRouter.post('/', async (req, res, next) => {
   }
 
   try {
-    const data = req.body.aiSource === 'real_api' ? await generateObsidian(req.body) : buildMockObsidian(req.body);
+    const data = await generateObsidian(req.body);
     return res.json(ok(data));
   } catch (error) {
     return next(error);

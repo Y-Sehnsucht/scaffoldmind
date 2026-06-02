@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import { aiRouter } from './routes/ai.js';
 import { analyzeRouter } from './routes/analyze.js';
 import { collisionRouter } from './routes/collision.js';
 import { deepDiveRouter } from './routes/deepDive.js';
@@ -9,7 +10,6 @@ import { obsidianRouter } from './routes/obsidian.js';
 import { parsePptRouter } from './routes/parsePpt.js';
 import { profileRouter } from './routes/profile.js';
 import { recordsRouter } from './routes/records.js';
-import { getAiRuntimeStatus } from './services/aiService.js';
 
 export function createApp() {
   const app = express();
@@ -25,10 +25,7 @@ export function createApp() {
     });
   });
 
-  app.get('/api/ai/status', (_req, res) => {
-    res.json({ ok: true, data: getAiRuntimeStatus(), error: null });
-  });
-
+  app.use('/api/ai', aiRouter);
   app.use('/api/analyze', analyzeRouter);
   app.use('/api/deep-dive', deepDiveRouter);
   app.use('/api/diagnose', diagnoseRouter);

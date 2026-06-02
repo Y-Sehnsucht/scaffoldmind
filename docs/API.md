@@ -4,23 +4,23 @@ This document is an initial API draft based on `docs/PRD.md`. The API is impleme
 
 ## Security
 
-- API keys are read only from the backend local `.env`.
+- API keys can be supplied from the browser AI settings panel for local single-user use.
 - `.env` must not be committed.
 - `.env.example` contains empty placeholders only.
 - Frontend code, README, docs, tests, and screenshots must not include real API keys.
-- The current implementation supports local mock, backend mock, and an opt-in real API path.
-- The real API path reads the key only from backend `server/.env` through `server/config/env.js`.
+- The backend proxies OpenAI-compatible provider calls and never exposes API keys in response bodies.
+- `server/.env` remains a fallback configuration path, but the main UI saves provider/model/API URL/API Key in browser localStorage.
+- Browser-saved keys are suitable for this local course project, not for public multi-user deployment.
 
-## Frontend Mock Source Switch
+## Frontend AI Settings
 
-The React app defaults to local mock data for stable demos. A top-bar switch can manually select:
+The React app exposes a top-bar AI settings panel:
 
-- `本地 Mock`: run the full learning loop inside the frontend using local mock builders.
-- `后端 Mock`: call the Express mock routes while preserving the same UI, question history, PPT side drawer, localStorage records, and Obsidian output.
-
-The third source option is `真实 API`. It calls the same Express routes with `aiSource: "real_api"`, and the backend calls the text generation provider only in this mode.
-
-The default remains local mock. The frontend helper also exports `USE_BACKEND_MOCK = false` as the stable default configuration flag.
+- provider: `openai`, `deepseek`, `glm`, or `custom`
+- model
+- OpenAI-compatible chat completions URL
+- API Key
+- JSON response format mode
 
 ## Frontend Response Validation
 
@@ -30,7 +30,7 @@ The frontend validates backend envelopes before using data:
 - `{ "ok": false, "error": { "code": "...", "message": "..." } }` throws a recoverable API error.
 - Unknown response shapes throw `INVALID_RESPONSE`.
 
-When a backend mock request fails, the page shows a friendly error message and keeps the user's current input.
+When a request fails, the page shows a friendly error message and keeps the user's current input.
 
 ## AI 输出语言规范
 
@@ -38,7 +38,7 @@ When a backend mock request fails, the page shows a friendly error message and k
 - 专业词汇第一次出现时使用“中文 + 英文括注”，例如：缓存未命中（cache miss）、缓存行（cache line）、局部性（locality）、栈帧（stack frame）、指针（pointer）、时间复杂度（time complexity）。
 - 输出必须是结构化 JSON，不能返回长篇散文。
 - Obsidian Markdown 也以中文为主，英文术语只作备注。
-- 本地 Mock、后端 Mock 和真实 API prompt 都必须遵守同一语言规范。
+- AI prompt 和结构化降级结果都必须遵守同一语言规范。
 
 ## Common Types
 
@@ -76,6 +76,13 @@ Allowed values:
   "preferences": ["framework_first", "why_chain", "exam_focus"],
   "pageNumber": 12,
   "materialText": "PPT page text or study material",
+  "aiConfig": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
+    "apiUrl": "https://api.deepseek.com/chat/completions",
+    "apiKey": "browser-saved key",
+    "jsonResponseFormat": "json_object"
+  },
   "previousQuestions": []
 }
 ```
@@ -120,7 +127,7 @@ Validation failures use HTTP `400` with `error.code` set to `VALIDATION_ERROR`.
 
 ## GET /api/health
 
-Check that the Express backend is running in mock mode.
+Check that the Express backend is running.
 
 ### Response
 
@@ -129,8 +136,54 @@ Check that the Express backend is running in mock mode.
   "ok": true,
   "data": {
     "service": "scaffoldmind-server",
-    "mode": "mock"
+    "mode": "ready"
   }
+}
+```
+
+## GET /api/ai/status
+
+Return backend AI runtime metadata without exposing API keys.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "provider": "openai",
+    "providerLabel": "OpenAI",
+    "model": "gpt-4o-mini",
+    "hasApiKey": false,
+    "apiMode": "openai_compatible_chat_completions",
+    "jsonResponseFormat": "json_object"
+  },
+  "error": null
+}
+```
+
+## POST /api/ai/preflight
+
+Run a tiny real-provider self-check from the backend. This endpoint never returns the API key. If the key is missing or the provider response is not structured, it returns `ok: true` with `data.ready = false` and a recoverable reason instead of breaking the UI.
+
+### Response
+
+```json
+{
+  "ok": true,
+  "data": {
+    "provider": "glm",
+    "providerLabel": "GLM",
+    "model": "glm-5.1",
+    "hasApiKey": true,
+    "ready": true,
+    "providerStatus": "real_api",
+    "fallbackReason": null,
+    "validationErrors": [],
+    "message": "真实 AI 调用成功，结构化 JSON 已通过校验。",
+    "checkedAt": "2026-06-02T00:00:00.000Z"
+  },
+  "error": null
 }
 ```
 
@@ -419,7 +472,7 @@ limit=20
       "subject": "CSAPP",
       "mode": "after_class_review",
       "modeLabel": "课后深度复习",
-      "mockSource": "real_api",
+      "source": "ai_platform",
       "input": "缓存未命中（cache miss）与局部性（locality）材料",
       "analysis": {},
       "deepDive": null,
@@ -445,7 +498,7 @@ Save a complete learning loop record to backend local lightweight storage.
   "subject": "CSAPP",
   "mode": "after_class_review",
   "modeLabel": "课后深度复习",
-  "mockSource": "real_api",
+  "source": "ai_platform",
   "input": "缓存未命中（cache miss）与局部性（locality）材料",
   "analysis": {},
   "deepDive": null,
@@ -560,21 +613,23 @@ Unsupported file types return:
 }
 ```
 
-When `aiSource` is `real_api`:
+When the frontend sends `aiConfig`:
 
-- If `TEXT_GENERATION_API_KEY` is missing, the backend returns structured mock fallback data.
+- Browser configuration takes priority over `server/.env` fallback values.
+- The backend calls the configured OpenAI-compatible provider from Express; the browser never calls provider URLs directly.
+- If the browser API key is missing, the backend returns structured fallback data.
 - When `AI_JSON_RESPONSE_FORMAT=json_object`, the backend asks OpenAI-compatible providers to return JSON object responses.
 - If a custom provider rejects `response_format`, set `AI_JSON_RESPONSE_FORMAT=none`; schema validation still runs after the response.
-- If the provider call fails, the backend returns structured mock fallback data.
+- If the provider call fails, the backend returns structured fallback data.
 - If the provider returns malformed JSON or a response that fails the task schema, the backend returns structured fallback data.
 - Fallback responses include `providerStatus: "fallback"` and `fallbackReason`.
 - Schema fallback responses may include `validationErrors` with a short list of failed fields.
-- Successful real provider responses include `providerStatus: "real_api"`.
+- Successful provider responses include `providerStatus: "real_api"`.
 - If the provider returns plain text instead of JSON, the backend treats it as `AI_RESPONSE_INVALID` and returns structured fallback data.
 
 ## Current Backend Notes
 
-The backend returns deterministic mock JSON unless the frontend explicitly sends `aiSource: "real_api"`. Required-field validation is active for:
+The current frontend always uses the AI platform path. Learning endpoints call the configured provider first, then fall back to deterministic structured results when the provider is not ready or returns an invalid response. Required-field validation is active for:
 
 - `subject` and `mode` on learning endpoints
 - `materialText` on `/api/analyze`
@@ -583,7 +638,7 @@ The backend returns deterministic mock JSON unless the frontend explicitly sends
 - `analysis` on `/api/obsidian`
 - `sourceA`, `sourceB`, and `sourceC` on `/api/collision`
 
-Frontend helper support exists through `client/src/shared/api/client.js`, but `USE_BACKEND_MOCK` is `false` by default, so the page still uses local mock data.
+Frontend helper support exists through `client/src/shared/api/client.js`; request-level `aiConfig` is forwarded to the backend for analysis, deep dive, diagnosis, Obsidian export, and AI preflight.
 
 ## Future API Notes
 

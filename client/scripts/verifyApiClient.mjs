@@ -23,7 +23,7 @@ global.fetch = async (url, options = {}) => {
   return {
     ok: true,
     async json() {
-      return { ok: true, data: { topic: 'Backend Demo Analysis' } };
+      return { ok: true, data: { topic: 'AI Platform Analysis' } };
     },
   };
 };
@@ -34,7 +34,7 @@ const response = await mockBackendApi.analyze({
   materialText: 'cache material',
 });
 
-assert.equal(response.topic, 'Backend Demo Analysis', 'backend helper should return parsed data');
+assert.equal(response.topic, 'AI Platform Analysis', 'backend helper should return parsed data');
 assert.equal(calls[0].url, 'http://localhost:3001/api/analyze', 'backend helper should call analyze endpoint');
 assert.equal(calls[0].options.method, 'POST', 'backend helper should construct POST request');
 assert.equal(JSON.parse(calls[0].options.body).mode, 'after_class_review', 'backend helper should send payload');
@@ -48,25 +48,39 @@ await mockBackendApi.parsePpt({
 assert.equal(calls[1].url, 'http://localhost:3001/api/parse-ppt', 'parsePpt helper should call parse-ppt endpoint');
 assert.equal(JSON.parse(calls[1].options.body).fileName, 'demo.pptx', 'parsePpt helper should send fileName');
 
+await mockBackendApi.aiPreflight({
+  aiConfig: {
+    provider: 'deepseek',
+    providerLabel: 'DeepSeek',
+    model: 'deepseek-v4-pro',
+    apiUrl: 'https://api.deepseek.com/chat/completions',
+    apiKey: 'browser_saved_test_key',
+    jsonResponseFormat: 'json_object',
+  },
+});
+assert.equal(calls[2].url, 'http://localhost:3001/api/ai/preflight', 'aiPreflight helper should call preflight endpoint');
+assert.equal(calls[2].options.method, 'POST', 'aiPreflight helper should use POST');
+assert.equal(JSON.parse(calls[2].options.body).aiConfig.provider, 'deepseek', 'aiPreflight should send browser AI config');
+
 await mockBackendApi.extractMaterial(new Blob(['# Cache\nLocality material'], { type: 'text/markdown' }));
-assert.equal(calls[2].url, 'http://localhost:3001/api/materials/extract', 'material helper should call extract endpoint');
-assert.equal(calls[2].options.method, 'POST', 'material helper should use POST');
-assert.ok(calls[2].options.body instanceof FormData, 'material helper should send multipart form data');
-assert.equal(calls[2].options.headers, undefined, 'material helper should not force JSON headers');
+assert.equal(calls[3].url, 'http://localhost:3001/api/materials/extract', 'material helper should call extract endpoint');
+assert.equal(calls[3].options.method, 'POST', 'material helper should use POST');
+assert.ok(calls[3].options.body instanceof FormData, 'material helper should send multipart form data');
+assert.equal(calls[3].options.headers, undefined, 'material helper should not force JSON headers');
 
 await mockBackendApi.saveRecord({ analysis: { topic: 'Cache Miss' } });
-assert.equal(calls[3].url, 'http://localhost:3001/api/records', 'save record helper should call records endpoint');
-assert.equal(calls[3].options.method, 'POST', 'save record helper should use POST');
+assert.equal(calls[4].url, 'http://localhost:3001/api/records', 'save record helper should call records endpoint');
+assert.equal(calls[4].options.method, 'POST', 'save record helper should use POST');
 
 await mockBackendApi.listRecords(10);
-assert.equal(calls[4].url, 'http://localhost:3001/api/records?limit=10', 'list records helper should include limit');
+assert.equal(calls[5].url, 'http://localhost:3001/api/records?limit=10', 'list records helper should include limit');
 
 await mockBackendApi.profileSummary();
-assert.equal(calls[5].url, 'http://localhost:3001/api/profile/summary', 'profile helper should call profile endpoint');
+assert.equal(calls[6].url, 'http://localhost:3001/api/profile/summary', 'profile helper should call profile endpoint');
 
 await mockBackendApi.clearRecords();
-assert.equal(calls[6].url, 'http://localhost:3001/api/records', 'clear records helper should call records endpoint');
-assert.equal(calls[6].options.method, 'DELETE', 'clear records helper should use DELETE');
+assert.equal(calls[7].url, 'http://localhost:3001/api/records', 'clear records helper should call records endpoint');
+assert.equal(calls[7].options.method, 'DELETE', 'clear records helper should use DELETE');
 
 global.fetch = async () => {
   throw new TypeError('fetch failed');

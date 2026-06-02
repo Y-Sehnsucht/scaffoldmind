@@ -13,3 +13,7 @@ coverage
 .vscode
 *.log
 server/data
+
+# Conversation logs / personal notes
+Present(1).md
+memory/

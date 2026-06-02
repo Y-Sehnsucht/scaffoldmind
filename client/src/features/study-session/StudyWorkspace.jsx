@@ -11,16 +11,15 @@ import {
   saveLearningRecords,
   saveQuestionHistory,
 } from '../../shared/storage/learningStorage.js';
-import { buildMockAnalysis, buildMockDeepDive, buildMockDiagnosis, buildObsidianMarkdown } from '../../utils/mockLearning.js';
+import { getProviderDefaults, loadAiConfig, saveAiConfig } from '../../shared/storage/aiConfigStorage.js';
 import { validateMaterialInput, validateUserAttempt } from '../../utils/inputValidation.js';
 import { formatRecoverableError } from '../../utils/errorMessages.js';
 import { buildQuestionHistoryFromRecords, buildQuestionTypeStats } from '../../utils/profileInsights.js';
 import { buildReviewPlanMarkdown } from '../../utils/reviewPlan.js';
 import { AnalysisPanel } from './AnalysisPanel.jsx';
 import {
-  MOCK_SOURCES,
   combineMaterialText,
-  requestAiStatus,
+  requestAiPreflight,
   requestBackendAnalysis,
   requestBackendDeepDive,
   requestBackendDiagnosis,
@@ -31,16 +30,18 @@ import {
   requestPptParsing,
   requestProfileSummary,
   requestSaveLearningRecord,
+  requestStreamAnalysis,
 } from './backendMockLearning.js';
 import { InputPanel } from './InputPanel.jsx';
 import { MaterialComposer } from './MaterialComposer.jsx';
+import { SettingsModal } from './SettingsModal.jsx';
 import { TopBar } from './TopBar.jsx';
 
 export function StudyWorkspace() {
   const [subject, setSubject] = useState(SUBJECTS[0].id);
   const [mode, setMode] = useState('after_class_review');
-  const [status, setStatus] = useState('本地演示就绪');
-  const [mockSource, setMockSource] = useState(MOCK_SOURCES.local);
+  const [status, setStatus] = useState('AI 平台就绪，请配置或自检模型');
+  const [aiConfig, setAiConfig] = useState(() => loadAiConfig());
   const [loadingAction, setLoadingAction] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
@@ -65,12 +66,20 @@ export function StudyWorkspace() {
   const [copied, setCopied] = useState(false);
   const [copyFallbackVisible, setCopyFallbackVisible] = useState(false);
   const [backendObsidianMarkdown, setBackendObsidianMarkdown] = useState('');
-  const [aiStatus, setAiStatus] = useState(null);
+  const [aiStatus, setAiStatus] = useState(() => ({
+    provider: aiConfig.provider,
+    providerLabel: aiConfig.providerLabel,
+    model: aiConfig.model,
+    hasApiKey: Boolean(aiConfig.apiKey),
+    apiMode: 'browser_configured_openai_compatible',
+    jsonResponseFormat: aiConfig.jsonResponseFormat,
+  }));
+  const [aiPreflight, setAiPreflight] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [streamText, setStreamText] = useState('');
 
   const currentMode = useMemo(() => LEARNING_MODES.find((item) => item.id === mode) || LEARNING_MODES[0], [mode]);
-  const localObsidianMarkdown = useMemo(() => buildObsidianMarkdown(analysis, diagnosis), [analysis, diagnosis]);
-  const usesBackendPath = mockSource !== MOCK_SOURCES.local;
-  const obsidianMarkdown = usesBackendPath ? backendObsidianMarkdown : localObsidianMarkdown;
+  const obsidianMarkdown = backendObsidianMarkdown;
   const questionTypeStats = useMemo(() => {
     const localStats = buildQuestionTypeStats(questionHistory);
     return localStats.length ? localStats : profileSummary?.commonQuestionTypes || [];
@@ -89,14 +98,12 @@ export function StudyWorkspace() {
 
     async function loadBackendState() {
       try {
-        const [nextStatus, records, profile] = await Promise.all([
-          requestAiStatus(),
+        const [records, profile] = await Promise.all([
           requestLearningRecords(20),
           requestProfileSummary(),
         ]);
 
         if (!cancelled) {
-          setAiStatus(nextStatus);
           setLearningRecords((current) => (records.length ? records : current));
           setQuestionHistory((current) => (current.length ? current : buildQuestionHistoryFromRecords(records)));
           setProfileSummary(profile);
@@ -125,7 +132,7 @@ export function StudyWorkspace() {
       subject,
       mode,
       modeLabel: currentMode.label,
-      mockSource,
+      source: 'ai_platform',
       materialText,
       sourceFile,
       deepDive,
@@ -146,7 +153,7 @@ export function StudyWorkspace() {
     deepDive,
     diagnosis,
     materialText,
-    mockSource,
+    aiConfig.providerLabel,
     mode,
     obsidianMarkdown,
     questionHistory,
@@ -168,10 +175,61 @@ export function StudyWorkspace() {
     }));
   }
 
-  function handleMockSourceChange(nextSource) {
-    setMockSource(nextSource);
+  function handleAiConfigChange(field, value) {
+    setAiConfig((current) => {
+      if (field !== 'provider') {
+        return { ...current, [field]: value };
+      }
+
+      const defaults = getProviderDefaults(value);
+      return {
+        ...current,
+        provider: defaults.id,
+        providerLabel: defaults.label,
+        model: defaults.defaultModel,
+        apiUrl: defaults.defaultApiUrl,
+      };
+    });
+  }
+
+  function handleAiConfigSave() {
+    const saved = saveAiConfig(aiConfig);
+    setAiConfig(saved);
+    setAiStatus({
+      provider: saved.provider,
+      providerLabel: saved.providerLabel,
+      model: saved.model,
+      hasApiKey: Boolean(saved.apiKey),
+      apiMode: 'browser_configured_openai_compatible',
+      jsonResponseFormat: saved.jsonResponseFormat,
+    });
+    setStatus(`AI 配置已保存：${saved.providerLabel} / ${saved.model}`);
+  }
+
+  async function handleAiPreflight() {
+    setLoadingAction('ai-preflight');
     setErrorMessage('');
-    setStatus(getSourceStatus(nextSource, aiStatus));
+    setStatus('正在自检真实 AI 配置...');
+
+    try {
+      const result = await requestAiPreflight(aiConfig);
+      setAiPreflight(result);
+      setAiStatus((current) => ({
+        ...(current || {}),
+        provider: result.provider,
+        providerLabel: result.providerLabel,
+        model: result.model,
+        hasApiKey: result.hasApiKey,
+        apiMode: result.apiMode,
+        jsonResponseFormat: result.jsonResponseFormat,
+      }));
+      setStatus(result.ready ? `AI 自检通过：${result.providerLabel} / ${result.model}` : `AI 自检未通过：${result.message}`);
+    } catch (error) {
+      setErrorMessage(formatRecoverableError(error, 'real_api'));
+      setStatus('AI 自检失败');
+    } finally {
+      setLoadingAction('');
+    }
   }
 
   async function handleFileSelect(file) {
@@ -273,33 +331,82 @@ export function StudyWorkspace() {
 
     setLoadingAction('generate');
     setErrorMessage('');
-    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}分析材料...` : '正在生成本地演示解析...');
+    setStreamText('');
+    setStatus(`正在调用 ${aiConfig.providerLabel} 分析材料...`);
 
     try {
-      const combinedMaterial = combineMaterialText(materialText, materialFields);
-      const result =
-        usesBackendPath
-          ? await requestBackendAnalysis({
-              subject,
-              mode,
-              preferences: selectedPreferences,
-              pageNumber,
-              materialText,
-              materialFields,
-              mockSource,
-            })
-          : {
-              analysis: buildMockAnalysis({
-                subject,
-                mode,
-                preferences: selectedPreferences,
-                pageNumber,
-                materialText: combinedMaterial,
-              }),
-              obsidianMarkdown: '',
-            };
+      const nextRecordId = `record_${Date.now()}`;
 
-      const nextRecordId = result.analysis?.id || `record_${Date.now()}`;
+      // Try streaming first
+      let streamResolved = false;
+
+      const streamResult = await new Promise((resolve) => {
+        requestStreamAnalysis(
+          { subject, mode, preferences: selectedPreferences, pageNumber, materialText, materialFields, aiConfig },
+          {
+            onStatus(message) {
+              setStatus(message);
+            },
+            onDelta(text) {
+              streamResolved = true;
+              setStreamText((current) => current + text);
+            },
+            onResult(data) {
+              setAnalysis(data);
+              setActiveRecordId(nextRecordId);
+              setDeepDive(null);
+              setDiagnosis(null);
+              setUserAnswer('');
+              setCopied(false);
+              setCopyFallbackVisible(false);
+              appendGeneratedQuestions(data);
+              setStatus(`${getSourceLabel(analysisSource(data, aiConfig))}解析已生成并自动保存`);
+              setStreamText('');
+              resolve({ type: 'stream', data });
+            },
+            onFallback(data) {
+              setAnalysis(data);
+              setActiveRecordId(nextRecordId);
+              setDeepDive(null);
+              setDiagnosis(null);
+              setUserAnswer('');
+              setCopied(false);
+              setCopyFallbackVisible(false);
+              appendGeneratedQuestions(data);
+              setStatus(`${getSourceLabel(analysisSource(data, aiConfig))}解析已生成（结构化降级）`);
+              setStreamText('');
+              resolve({ type: 'stream', data });
+            },
+            onError(error) {
+              resolve({ type: 'error', error });
+            },
+          },
+        );
+      });
+
+      if (streamResult?.type === 'stream') {
+        // Also generate Obsidian markdown in background
+        if (streamResult.data) {
+          requestBackendObsidian(streamResult.data, aiConfig).then((md) => {
+            setBackendObsidianMarkdown(md);
+          }).catch(() => {});
+        }
+        return;
+      }
+
+      // Fallback: non-streaming path
+      setStreamText('');
+      setStatus(`正在调用 ${aiConfig.providerLabel} 分析材料（非流式）...`);
+
+      const result = await requestBackendAnalysis({
+        subject,
+        mode,
+        preferences: selectedPreferences,
+        pageNumber,
+        materialText,
+        materialFields,
+        aiConfig,
+      });
 
       setAnalysis(result.analysis);
       setActiveRecordId(nextRecordId);
@@ -310,31 +417,29 @@ export function StudyWorkspace() {
       setCopied(false);
       setCopyFallbackVisible(false);
       appendGeneratedQuestions(result.analysis);
-      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}解析已生成并自动保存` : '本地演示解析已生成并自动保存');
+      setStatus(`${getSourceLabel(analysisSource(result.analysis, aiConfig))}解析已生成并自动保存`);
     } catch (error) {
-      setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
+      setErrorMessage(formatRecoverableError(error, 'real_api'));
       setStatus('生成请求失败');
     } finally {
       setLoadingAction('');
+      setStreamText('');
     }
   }
 
   async function handleDeepDive(question) {
     setLoadingAction(`deep-dive:${question.id}`);
     setErrorMessage('');
-    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}回答追问...` : '正在生成本地演示追问...');
+    setStatus(`正在调用 ${aiConfig.providerLabel} 回答追问...`);
 
     try {
-      const nextDeepDive =
-        usesBackendPath
-          ? await requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question, mockSource })
-          : buildMockDeepDive(question);
+      const nextDeepDive = await requestBackendDeepDive({ subject, mode, pageNumber, materialText, materialFields, question, aiConfig });
 
       setDeepDive(nextDeepDive);
       markQuestionAnswered(question);
       setStatus('追问已回答并自动保存');
     } catch (error) {
-      setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
+      setErrorMessage(formatRecoverableError(error, 'real_api'));
       setStatus('追问请求失败');
     } finally {
       setLoadingAction('');
@@ -351,19 +456,16 @@ export function StudyWorkspace() {
 
     setLoadingAction('diagnose');
     setErrorMessage('');
-    setStatus(usesBackendPath ? `正在调用${getSourceLabel(mockSource)}诊断回答...` : '正在生成本地演示诊断...');
+    setStatus(`正在调用 ${aiConfig.providerLabel} 诊断回答...`);
 
     try {
-      const nextDiagnosis =
-        usesBackendPath
-          ? await requestBackendDiagnosis({ subject, mode, question: analysis?.userTask, userAttempt: userAnswer, mockSource })
-          : buildMockDiagnosis(userAnswer);
+      const nextDiagnosis = await requestBackendDiagnosis({ subject, mode, question: analysis?.userTask, userAttempt: userAnswer, aiConfig });
 
       setDiagnosis(nextDiagnosis);
       markQuestionsReinforced();
-      setStatus(usesBackendPath ? `${getSourceLabel(mockSource)}诊断已生成并自动保存` : '本地演示诊断已生成并自动保存');
+      setStatus(`${getSourceLabel(analysisSource(nextDiagnosis, aiConfig))}诊断已生成并自动保存`);
     } catch (error) {
-      setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
+      setErrorMessage(formatRecoverableError(error, 'real_api'));
       setStatus('诊断请求失败');
     } finally {
       setLoadingAction('');
@@ -380,7 +482,7 @@ export function StudyWorkspace() {
       subject,
       mode,
       modeLabel: currentMode.label,
-      mockSource,
+      source: 'ai_platform',
       materialText,
       sourceFile,
       deepDive,
@@ -451,7 +553,6 @@ export function StudyWorkspace() {
     setActiveRecordId(record.id);
     setSubject(record.subject || SUBJECTS[0].id);
     setMode(record.mode || 'after_class_review');
-    setMockSource(record.mockSource || MOCK_SOURCES.local);
     setMaterialText(record.input || '');
     setSourceFile(record.sourceFile || null);
     setAnalysis(record.analysis);
@@ -474,8 +575,8 @@ export function StudyWorkspace() {
     let markdownToCopy = obsidianMarkdown;
 
     try {
-      if (usesBackendPath && analysis && !markdownToCopy) {
-        markdownToCopy = await requestBackendObsidian(analysis, mockSource);
+      if (analysis && !markdownToCopy) {
+        markdownToCopy = await requestBackendObsidian(analysis, aiConfig);
         setBackendObsidianMarkdown(markdownToCopy);
       }
 
@@ -488,7 +589,7 @@ export function StudyWorkspace() {
       setStatus('Obsidian 笔记已复制');
     } catch (error) {
       if (error.name === 'ApiResponseError') {
-        setErrorMessage(formatRecoverableError(error, mockSource === MOCK_SOURCES.realApi ? 'real_api' : 'backend'));
+        setErrorMessage(formatRecoverableError(error, 'real_api'));
       }
 
       setCopyFallbackVisible(true);
@@ -540,7 +641,7 @@ export function StudyWorkspace() {
   }
 
   function markQuestionAnswered(question) {
-    const statusLabel = usesBackendPath ? `${getSourceLabel(mockSource)}已回答` : '本地演示已回答';
+    const statusLabel = `${aiConfig.providerLabel}已回答`;
     setQuestionHistory((current) => {
       let updated = false;
       const nextItems = current.map((item) => {
@@ -595,22 +696,14 @@ export function StudyWorkspace() {
         mode={mode}
         modes={LEARNING_MODES}
         status={status}
-        mockSource={mockSource}
-        aiStatus={aiStatus}
-        onSubjectChange={setSubject}
-        onModeChange={setMode}
-        onMockSourceChange={handleMockSourceChange}
+        aiConfig={aiConfig}
+        aiPreflight={aiPreflight}
+        loadingAction={loadingAction}
+        errorMessage={errorMessage}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
-      {errorMessage ? (
-        <div className="mx-auto mt-4 px-4">
-          <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm leading-6 text-rose-100">
-            {errorMessage}
-          </div>
-        </div>
-      ) : null}
-
-      <section className="grid h-[calc(100vh-84px)] w-full gap-4 px-4 py-4 xl:grid-cols-[25vw_minmax(0,1fr)_25vw]">
+      <section className="grid h-[calc(100vh-120px)] w-full gap-4 px-4 py-4 xl:grid-cols-[25vw_minmax(0,1fr)_25vw]">
         <InputPanel
           currentMode={currentMode}
           pageNumber={pageNumber}
@@ -630,10 +723,10 @@ export function StudyWorkspace() {
         <div className="min-h-0 overflow-y-auto rounded-[22px] border border-white/10 bg-[#1d2229] shadow-2xl shadow-black/20">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#1d2229]/95 px-5 py-4 backdrop-blur">
             <div>
-              <h2 className="text-base font-semibold text-white">对话</h2>
-              <p className="mt-1 text-xs text-slate-400">中间输入、结构化解析、追问、诊断与笔记输出</p>
+              <h2 className="text-base font-semibold text-white">💬 学习工作台</h2>
+              <p className="mt-1 text-xs text-slate-400">输入材料 → 生成解析 → 追问 → 尝试 → 诊断</p>
             </div>
-            <span className="rounded-full border border-white/10 px-2 py-1 text-xs text-slate-400">{currentMode.label}</span>
+            <span className="rounded-full bg-teal-400/15 px-2.5 py-1 text-[11px] font-semibold text-teal-300">{currentMode.label}</span>
           </div>
           <div className="space-y-4 p-5">
             <MaterialComposer
@@ -647,8 +740,8 @@ export function StudyWorkspace() {
               canSave={Boolean(analysis)}
               isLoading={loadingAction === 'generate'}
               isSaving={loadingAction === 'save-record'}
-              loadingMessage={mockSource === MOCK_SOURCES.realApi ? '正在分析材料，真实 AI 可能需要稍等...' : '正在分析材料...'}
-              mockSource={mockSource}
+              loadingMessage="正在分析材料，AI 可能需要稍等..."
+              streamText={streamText}
             />
             <AnalysisPanel
               analysis={analysis}
@@ -660,7 +753,7 @@ export function StudyWorkspace() {
               onDeepDive={handleDeepDive}
               onDiagnose={handleDiagnose}
               loadingAction={loadingAction}
-              sourceLabel={getSourceLabel(mockSource)}
+              sourceLabel={getSourceLabel(analysisSource(analysis, aiConfig))}
             />
             <ObsidianExport
               markdown={obsidianMarkdown}
@@ -685,6 +778,24 @@ export function StudyWorkspace() {
       </section>
 
       <PageDrawer open={drawerOpen} analysis={analysis} fileName={sourceFile?.name || ''} onClose={() => setDrawerOpen(false)} />
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        subject={subject}
+        subjects={SUBJECTS}
+        mode={mode}
+        modes={LEARNING_MODES}
+        aiConfig={aiConfig}
+        aiPreflight={aiPreflight}
+        isAiPreflightLoading={loadingAction === 'ai-preflight'}
+        status={status}
+        onSubjectChange={setSubject}
+        onModeChange={setMode}
+        onAiConfigChange={handleAiConfigChange}
+        onAiConfigSave={handleAiConfigSave}
+        onAiPreflight={handleAiPreflight}
+      />
     </main>
   );
 }
@@ -696,7 +807,7 @@ function buildLearningRecord(id, data) {
     subject: data.subject,
     mode: data.mode,
     modeLabel: data.modeLabel,
-    mockSource: data.mockSource,
+    source: 'ai_platform',
     input: data.materialText,
     sourceFile: data.sourceFile,
     analysis: data.analysis,
@@ -710,26 +821,28 @@ function buildLearningRecord(id, data) {
   };
 }
 
-function getSourceLabel(source) {
-  const labels = {
-    [MOCK_SOURCES.local]: '本地演示',
-    [MOCK_SOURCES.backend]: '后端演示',
-    [MOCK_SOURCES.realApi]: '真实 AI',
-  };
+function analysisSource(result, aiConfig) {
+  if (!result) {
+    return { providerStatus: 'pending', providerLabel: aiConfig.providerLabel, model: aiConfig.model };
+  }
 
-  return labels[source] || '本地演示';
+  return {
+    providerStatus: result.providerStatus,
+    providerLabel: result.providerLabel || aiConfig.providerLabel,
+    model: result.model || aiConfig.model,
+  };
 }
 
-function getSourceStatus(source, aiStatus) {
-  const statuses = {
-    [MOCK_SOURCES.local]: '已选择本地演示',
-    [MOCK_SOURCES.backend]: '已选择后端演示，请确认 Express 后端已启动',
-    [MOCK_SOURCES.realApi]: aiStatus?.hasApiKey
-      ? `已选择真实 AI：${aiStatus.providerLabel} / ${aiStatus.model}`
-      : `已选择真实 AI：${aiStatus?.providerLabel || 'provider'} 未配置 API Key`,
-  };
+function getSourceLabel(source) {
+  if (source.providerStatus === 'real_api') {
+    return `${source.providerLabel} AI`;
+  }
 
-  return statuses[source] || '已选择本地演示';
+  if (source.providerStatus === 'fallback') {
+    return `${source.providerLabel} 结构化降级`;
+  }
+
+  return `${source.providerLabel} AI`;
 }
 
 function inferFileType(fileName) {

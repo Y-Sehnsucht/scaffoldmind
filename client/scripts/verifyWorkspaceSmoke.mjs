@@ -41,7 +41,7 @@ const deepDive = buildMockDeepDive(selectedQuestion);
 assert.ok(deepDive.answer, 'deep dive should produce an answer');
 
 const answeredHistory = questionHistory.map((item) =>
-  item.questionId === selectedQuestion.id ? { ...item, status: '本地演示已回答' } : item,
+  item.questionId === selectedQuestion.id ? { ...item, status: 'AI 平台已回答' } : item,
 );
 
 const userAnswer = '我认为缓存未命中就是缓存太小，只要把缓存容量变大就能解决。';
@@ -64,7 +64,7 @@ const record = {
   subject: 'CSAPP',
   mode: mode.id,
   modeLabel: mode.label,
-  mockSource: 'local',
+  source: 'ai_platform',
   input: materialText,
   analysis,
   deepDive,

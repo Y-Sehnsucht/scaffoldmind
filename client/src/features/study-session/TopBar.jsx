@@ -1,97 +1,97 @@
-import { MOCK_SOURCES } from './backendMockLearning.js';
-
 export function TopBar({
   subject,
   subjects,
   mode,
   modes,
   status,
-  mockSource,
-  aiStatus,
-  onSubjectChange,
-  onModeChange,
-  onMockSourceChange,
+  aiConfig,
+  aiPreflight,
+  loadingAction,
+  errorMessage,
+  onOpenSettings,
 }) {
+  const subjectLabel = subjects.find((s) => s.id === subject)?.label || subject;
+  const modeLabel = modes.find((m) => m.id === mode)?.label || mode;
+  const statusDot = aiPreflight?.ready
+    ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50'
+    : aiConfig.apiKey
+      ? 'bg-amber-400'
+      : 'bg-slate-600';
+
+  const isLoading = Boolean(loadingAction);
+
   return (
-    <header className="border-b border-white/10 bg-[#171b21]/95 px-5 py-4 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="mx-auto flex max-w-[1800px] flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-lg font-black text-[#111418] shadow-sm">
-            S
+    <header className="border-b border-white/[0.06] bg-[#14171e]/95 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-4 px-5 py-3">
+        {/* Brand */}
+        <div className="flex items-center gap-3.5">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 text-sm font-black text-[#0a0e14] shadow-sm shadow-teal-500/20">
+            明
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-300">ScaffoldMind</p>
-            <h1 className="text-2xl font-semibold text-white">ScaffoldMind 明序</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              材料输入 · 结构化解析 · 主动追问 · 尝试表达 · 诊断强化
-            </p>
+          <div className="hidden sm:block">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-400/80">ScaffoldMind</p>
+            <h1 className="text-base font-semibold text-white leading-tight">明序</h1>
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[150px_minmax(240px,420px)_300px_220px] md:items-end">
-          <label className="text-xs font-medium text-slate-400">
-            学科
-            <select
-              className="mt-1 w-full rounded-full border border-white/10 bg-[#22272f] px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20"
-              value={subject}
-              onChange={(event) => onSubjectChange(event.target.value)}
-            >
-              {subjects.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        {/* Status summary pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300">
+            <span className="text-[10px]">📚</span>
+            {subjectLabel}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300">
+            <span className="text-[10px]">🧠</span>
+            {modeLabel}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-400">
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${statusDot}`} />
+            {aiConfig.providerLabel} / {aiConfig.model}
+          </span>
+        </div>
 
-          <label className="text-xs font-medium text-slate-400">
-            学习模式
-            <select
-              className="mt-1 w-full rounded-full border border-white/10 bg-[#22272f] px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20"
-              value={mode}
-              onChange={(event) => onModeChange(event.target.value)}
-            >
-              {modes.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        {/* Settings button */}
+        <button
+          className="group flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-teal-400/30 hover:bg-teal-400/[0.06] hover:text-white active:scale-[0.97]"
+          type="button"
+          onClick={onOpenSettings}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-slate-400 transition group-hover:text-teal-300">
+            <path d="M6.5 1.5a1.5 1.5 0 013 0v.35a5.48 5.48 0 011.77 1.02l.3-.17a1.5 1.5 0 011.5 2.6l-.3.17a5.5 5.5 0 010 2.06l.3.17a1.5 1.5 0 01-1.5 2.6l-.3-.17A5.48 5.48 0 019.5 11.15v.35a1.5 1.5 0 01-3 0v-.35a5.48 5.48 0 01-1.77-1.02l-.3.17a1.5 1.5 0 01-1.5-2.6l.3-.17a5.5 5.5 0 010-2.06l-.3-.17a1.5 1.5 0 011.5-2.6l.3.17A5.48 5.48 0 016.5 1.85V1.5z" stroke="currentColor" strokeWidth="1.2" />
+            <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.2" />
+          </svg>
+          设置
+        </button>
+      </div>
 
-          <div className="text-xs font-medium text-slate-400">
-            数据源
-            <div className="mt-1 grid grid-cols-3 rounded-full border border-white/10 bg-[#22272f] p-1">
-              <button className={sourceButtonClass(mockSource === MOCK_SOURCES.local)} type="button" onClick={() => onMockSourceChange(MOCK_SOURCES.local)}>
-                本地演示
-              </button>
-              <button className={sourceButtonClass(mockSource === MOCK_SOURCES.backend)} type="button" onClick={() => onMockSourceChange(MOCK_SOURCES.backend)}>
-                后端演示
-              </button>
-              <button className={sourceButtonClass(mockSource === MOCK_SOURCES.realApi)} type="button" onClick={() => onMockSourceChange(MOCK_SOURCES.realApi)}>
-                真实 AI
-              </button>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-teal-400/20 bg-teal-400/10 px-3 py-2 text-sm text-teal-50">
-            <span className="block text-xs font-medium text-teal-300">当前状态</span>
-            {status}
-            {aiStatus ? (
-              <span className="mt-1 block text-xs text-teal-100/80">
-                {aiStatus.providerLabel} / {aiStatus.model} / {aiStatus.hasApiKey ? '已配置' : '未配置'}
-              </span>
-            ) : null}
-          </div>
+      {/* Global status bar — always visible */}
+      <div className={`border-t px-5 py-2.5 text-sm transition-colors ${
+        errorMessage
+          ? 'border-rose-400/20 bg-rose-400/10 text-rose-100'
+          : isLoading
+            ? 'border-teal-400/20 bg-teal-400/[0.07] text-teal-100'
+            : 'border-white/[0.03] bg-white/[0.01] text-slate-400'
+      }`}>
+        <div className="mx-auto flex max-w-[1800px] items-center gap-3">
+          {isLoading && (
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-300 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-teal-300" />
+            </span>
+          )}
+          {errorMessage && (
+            <span className="text-rose-300">⚠</span>
+          )}
+          <span className={errorMessage ? 'font-medium text-rose-100' : isLoading ? 'font-medium text-teal-100' : ''}>
+            {errorMessage || status}
+          </span>
+          {!errorMessage && !isLoading && !aiConfig.apiKey && (
+            <span className="ml-auto text-xs text-amber-300">
+              请先点击「设置」配置 AI Key
+            </span>
+          )}
         </div>
       </div>
     </header>
   );
-}
-
-function sourceButtonClass(active) {
-  return [
-    'rounded-full px-3 py-1.5 text-sm font-semibold transition',
-    active ? 'bg-white text-[#111418] shadow-sm' : 'text-slate-300 hover:bg-white/10 hover:text-white',
-  ].join(' ');
 }

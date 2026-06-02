@@ -171,4 +171,4 @@ assert.equal(
 assert.equal(validateUserAttempt('   ').valid, false, 'empty user attempt should be rejected');
 assert.equal(validateUserAttempt('缓存未命中（cache miss）说明请求数据不在缓存中。').valid, true, 'non-empty user attempt should pass');
 
-console.log('Mock MVP verification passed.');
+console.log('Frontend structured learning verification passed.');

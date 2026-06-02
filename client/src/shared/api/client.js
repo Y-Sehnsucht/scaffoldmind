@@ -1,7 +1,5 @@
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001';
 
-export const USE_BACKEND_MOCK = false;
-
 export class ApiResponseError extends Error {
   constructor(message, code = 'REQUEST_ERROR', response = null) {
     super(message);
@@ -99,6 +97,62 @@ export async function postFormData(path, formData) {
   return parseApiResponse(data);
 }
 
+export async function postSSE(path, body, { onDelta, onStatus, onResult, onFallback, onError }) {
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    if (onError) onError(new ApiResponseError('Express 后端不可用，请确认服务已启动。', 'BACKEND_UNAVAILABLE', { cause: error?.message || String(error) }));
+    return;
+  }
+
+  if (!response.ok) {
+    if (onError) onError(new ApiResponseError(`HTTP ${response.status}`, 'REQUEST_ERROR', null));
+    return;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+
+        if (data === '[DONE]') continue;
+
+        try {
+          const event = JSON.parse(data);
+
+          if (event.type === 'delta' && onDelta) onDelta(event.text);
+          else if (event.type === 'status' && onStatus) onStatus(event.message);
+          else if (event.type === 'result' && onResult) onResult(event.data);
+          else if (event.type === 'fallback' && onFallback) onFallback(event.data);
+        } catch {
+          // Skip malformed SSE data
+        }
+      }
+    }
+  } catch (error) {
+    if (onError) onError(error);
+  }
+}
+
 async function parseJsonBody(response) {
   try {
     return await response.json();
@@ -110,6 +164,9 @@ async function parseJsonBody(response) {
 export const mockBackendApi = {
   aiStatus() {
     return requestJson('/api/ai/status');
+  },
+  aiPreflight(payload = {}) {
+    return postJson('/api/ai/preflight', payload);
   },
   extractMaterial(file) {
     const formData = new FormData();

@@ -10,7 +10,7 @@ ScaffoldMind 明序是一个面向 CSAPP 和数据结构学习的 AI 学习助�
 - 支持轻量 PPTX 全页解析：提取每页文字块、图片占位和页码预览。
 - 右侧提问记录快速浏览回顾侧边栏，区分待追问、已回答、已强化。
 - PPT 原页侧拉面板，用于查看页码、提取文字和相关概念。
-- 本地 Mock、后端 Mock、真实 API 三种数据源可控切换，默认使用本地 Mock。
+- 顶部提供 AI 配置区，可在浏览器里选择 OpenAI、DeepSeek、GLM 或自定义 OpenAI-compatible provider，并保存模型、API URL 和 API Key。
 - 学习记录自动保存，localStorage 保留本地回顾数据；后端提供轻量记录接口。
 - Obsidian Markdown 输出，包含 wikilink、callout 和 PPT 页码来源。
 
@@ -20,7 +20,7 @@ ScaffoldMind 明序是一个面向 CSAPP 和数据结构学习的 AI 学习助�
 - 后端：Node.js + Express
 - 本地存储：localStorage
 - 后端记录：轻量 JSON 文件存储
-- AI 调用：只能通过 Express 后端，前端不读取、不展示、不保存 API Key
+- AI 调用：前端保存本地单用户配置，Express 后端负责调用 OpenAI-compatible provider
 
 ## 运行方式
 
@@ -51,13 +51,20 @@ npm run dev
 start-dev.cmd
 ```
 
-## 环境变量说明
+## AI 配置说明
 
-真实 API Key 只能放在本地 `server/.env`，不要提交到 Git。项目不会创建或修改 `server/.env`。
+当前版本面向本地单用户学习场景，可以直接在浏览器顶部的 **AI 配置** 区填写并保存 provider、model、API URL 和 API Key。
 
-`.env.example` 只保留空占位。真实 API 模式由后端读取环境变量，前端只请求 Express API。
+保存后可以点击 **AI 自检**，确认 provider 能返回结构化 JSON。
 
-示例变量名：
+安全说明：
+
+- 浏览器保存方式适合本机课程项目和个人学习，不适合公网多人平台。
+- 不要把真实 API Key 写进代码、README、文档、截图或提交到 Git。
+- `.env`、`server/.env`、`client/.env` 仍然必须被 `.gitignore` 忽略。
+- 后端仍兼容 `server/.env` 作为备用配置，但默认推荐在页面里配置。
+
+`server/.env` 备用变量示例：
 
 ```text
 PORT=3001
@@ -68,26 +75,13 @@ OPENAI_MODEL=
 OPENAI_API_URL=
 ```
 
-API Key 安全要求：
-
-- 不要把真实 API Key 写进代码、README、文档或前端。
-- 前端不得读取 `TEXT_GENERATION_API_KEY` 或任何 provider key。
-- `.env`、`server/.env`、`client/.env` 必须被 `.gitignore` 忽略。
-- 验证脚本只允许输出是否配置 key，不允许输出 key 内容。
-
-## 三种数据源
-
-- 本地 Mock：默认模式，不依赖后端，适合稳定演示。
-- 后端 Mock：通过 Express mock API 返回结构化 JSON，适合验证前后端接口。
-- 真实 API：只有用户手动切换后才调用后端真实 provider；缺少 key 或调用失败时使用结构化 fallback，页面不崩溃。
-
 ## 演示路径
 
 1. 启动前端和后端。
-2. 在顶部选择数据源，默认保持“本地 Mock”。
+2. 在顶部 AI 配置区填写 provider、model、API URL 和 API Key，并点击“保存”。
 3. 左侧上传 TXT、Markdown、PDF 或 PPTX，也可以直接在中间输入材料。
 4. 选择学科、学习模式和学习便签。
-5. 点击“生成解析”。
+5. 点击“AI 自检”，通过后点击“生成 AI 解析”。
 6. 点击主动追问，右侧会自动记录问题。
 7. 在用户尝试区提交回答，查看错误诊断和强化题。
 8. 复制 Obsidian Markdown，或保存本次学习记录。
@@ -99,8 +93,9 @@ API Key 安全要求：
 - React + Vite + Tailwind 前端骨架。
 - Express 后端骨架和统一 API 响应格式。
 - 三栏现代学习工作台。
-- 五种学习模式的本地 mock 输出。
-- 后端 mock API 和真实 API 可控入口。
+- 五种学习模式的 AI prompt 和结构化输出。
+- 浏览器 AI 配置保存和后端 provider 调用。
+- AI 状态展示、自检和结构化降级结果。
 - PPTX 轻量解析。
 - TXT、Markdown、PDF 文字提取。
 - 提问记录、学习记录、学习画像、Obsidian 输出。
@@ -122,7 +117,7 @@ API Key 安全要求：
 
 ```bash
 cd client
-npm run test:mock
+npm run test:acceptance
 npm run build
 ```
 
@@ -130,7 +125,7 @@ npm run build
 
 ```bash
 cd server
-npm run test:mock
+npm run test:acceptance
 ```
 
 真实 provider 验证脚本不会打印完整回答或 API Key：
@@ -142,7 +137,6 @@ npm run test:real
 
 ## 后续迭代方向
 
-- 在浏览器中补充三种数据源的端到端手动验收。
-- 为真实 API 输出增加更严格的结构化 schema 修复。
-- 增加轻量 UI smoke test。
-- 如果产品范围允许，再设计专门的 PDF/OCR/幻灯片视觉结构解析服务。
+- 准备课程展示脚本和截图。
+- 如果要公网部署，需要把浏览器保存 key 改回服务端密钥托管或账号级安全存储。
+- 如果产品范围继续扩大，再单独设计 OCR、幻灯片视觉结构解析、向量检索和云同步。

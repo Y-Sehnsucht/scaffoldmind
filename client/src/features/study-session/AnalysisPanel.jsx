@@ -10,7 +10,7 @@ export function AnalysisPanel({
   onDeepDive,
   onDiagnose,
   loadingAction = '',
-  sourceLabel = '本地演示',
+  sourceLabel = 'AI 平台',
 }) {
   if (!analysis) {
     return (
@@ -19,15 +19,26 @@ export function AnalysisPanel({
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-teal-300/15 text-lg font-semibold text-teal-200">
             明序
           </div>
-          <h2 className="mt-6 text-3xl font-semibold text-white">从一份课程材料开始搭建理解框架</h2>
+          <h2 className="mt-6 text-2xl font-semibold text-white">第三步：查看 AI 解析结果</h2>
           <p className="mt-4 text-sm leading-7 text-slate-400">
-            上传 TXT、Markdown、PDF 或 PPTX，或直接粘贴材料。系统会按“解析 - 追问 - 尝试 - 诊断 - 强化”的顺序沉淀学习记录。
+            完成材料输入后，点击「🚀 生成 AI 解析」，系统会按以下流程帮你学习：
           </p>
 
-          <div className="mt-8 grid gap-3 text-left md:grid-cols-3">
-            <GuideCard step="1" title="添加材料" text="上传文本材料或粘贴课堂笔记，保留来源和页码。" />
-            <GuideCard step="2" title="生成解析" text="得到核心概念、本质解释、考点、工程应用和易错点。" />
-            <GuideCard step="3" title="追问与诊断" text="点击主动追问，写下自己的解释，再让系统指出理解偏差。" />
+          <div className="mt-8 grid gap-3 text-left md:grid-cols-4">
+            <GuideCard step="1" title="结构化解析" text="核心概念、本质解释、前后关联、考点与易错点" icon="🔍" />
+            <GuideCard step="2" title="主动追问" text="AI 生成针对性问题，点击即可深入追问" icon="❓" />
+            <GuideCard step="3" title="尝试表达" text="用自己的话解释概念，暴露理解偏差" icon="✏️" />
+            <GuideCard step="4" title="诊断强化" text="AI 指出错误类型和修改建议，出强化题" icon="💪" />
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-4 text-left">
+            <p className="text-xs font-semibold text-slate-300">💡 使用提示</p>
+            <ul className="mt-2 space-y-1.5 text-xs leading-5 text-slate-500">
+              <li>• 左侧「📂 来源」面板可上传 TXT / Markdown / PDF / PPTX 文件</li>
+              <li>• 也可以直接在上方输入框粘贴课程材料</li>
+              <li>• 点击右上角「设置」配置 AI Provider 和 API Key</li>
+              <li>• 解析完成后，右侧会自动记录追问历史</li>
+            </ul>
           </div>
         </div>
       </section>
@@ -57,10 +68,11 @@ export function AnalysisPanel({
         </div>
       </article>
 
-      <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
-        <SectionHeader title="核心概念" subtitle="先抓住这一页最重要的概念，再看它们之间的关系。" />
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {(analysis.coreConcepts || []).map((concept) => (
+      {(analysis.coreConcepts || []).length > 0 && (
+        <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
+          <SectionHeader title="核心概念" subtitle="先抓住这一页最重要的概念，再看它们之间的关系。" />
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {(analysis.coreConcepts || []).map((concept) => (
             <div key={concept.name} className="rounded-2xl border border-white/10 bg-[#171b21] p-4">
               <h3 className="font-semibold text-white">{concept.name}</h3>
               <p className="mt-2 text-sm leading-6 text-slate-400">{concept.simpleExplanation}</p>
@@ -78,10 +90,12 @@ export function AnalysisPanel({
           ))}
         </div>
       </article>
+      )}
 
       <ModeSpecificSection section={analysis.modeSpecific} />
       <InfoGrid analysis={analysis} />
 
+      {(analysis.guidedQuestions || []).length > 0 && (
       <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
         <SectionHeader title="主动追问" subtitle="问题会自动进入右侧记录；点击后生成深入回答。" />
         <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -105,6 +119,7 @@ export function AnalysisPanel({
           ))}
         </div>
       </article>
+      )}
 
       {deepDive ? (
         <article className="rounded-[22px] border border-teal-300/20 bg-teal-300/10 p-5">
@@ -165,10 +180,13 @@ export function AnalysisPanel({
   );
 }
 
-function GuideCard({ step, title, text }) {
+function GuideCard({ step, title, text, icon }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-[#171b21] p-4">
-      <span className="rounded-full bg-teal-300/15 px-2.5 py-1 text-xs font-semibold text-teal-200">{step}</span>
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-300/15 px-2.5 py-1 text-xs font-semibold text-teal-200">
+        {icon && <span>{icon}</span>}
+        {step}
+      </span>
       <h3 className="mt-3 text-sm font-semibold text-white">{title}</h3>
       <p className="mt-2 text-xs leading-5 text-slate-400">{text}</p>
     </div>
@@ -209,7 +227,7 @@ function getSourceMeta(result, sourceLabel) {
 }
 
 function ModeSpecificSection({ section }) {
-  if (!section) {
+  if (!section || !section.type) {
     return null;
   }
 
@@ -221,10 +239,13 @@ function ModeSpecificSection({ section }) {
     multi_source_collision: <CollisionSection section={section} />,
   };
 
+  const renderer = renderers[section.type];
+  if (!renderer) return null;
+
   return (
     <article className="rounded-[22px] border border-white/10 bg-[#20262e] p-5">
-      <SectionHeader title={section.title} subtitle="当前学习模式的专属输出结构。" />
-      <div className="mt-4">{renderers[section.type]}</div>
+      <SectionHeader title={section.title || '模式专属输出'} subtitle="当前学习模式的专属输出结构。" />
+      <div className="mt-4">{renderer}</div>
     </article>
   );
 }
@@ -316,12 +337,14 @@ function TextBlock({ title, text, className = '' }) {
 function InfoGrid({ analysis }) {
   const items = [
     { title: '为什么讲这个知识点', content: analysis.whyThisMatters },
-    { title: '前后关联', content: `${analysis.contextRelation?.previous || ''} / ${analysis.contextRelation?.next || ''}` },
+    { title: '前后关联', content: [analysis.contextRelation?.previous, analysis.contextRelation?.current, analysis.contextRelation?.next].filter(Boolean).join(' → ') },
     { title: '考试常考点', content: (analysis.examFocus || []).join('；') },
     { title: '工程应用', content: (analysis.engineeringUse || []).join('；') },
     { title: '易错点', content: (analysis.pitfalls || []).join('；') },
     { title: '学科侧重', content: analysis.subjectFocus },
-  ];
+  ].filter((item) => item.content && item.content.trim && item.content.trim() !== '');
+
+  if (items.length === 0) return null;
 
   return (
     <article className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

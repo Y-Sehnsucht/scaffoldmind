@@ -14,8 +14,8 @@ export function QuestionHistoryPanel({
       <section className="min-h-0 flex-1 overflow-y-auto">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-[#1d2229]/95 px-5 py-4 backdrop-blur">
           <div>
-            <h2 className="text-base font-semibold text-white">提问记录</h2>
-            <p className="mt-1 text-xs text-slate-400">快速回顾思考轨迹</p>
+            <h2 className="text-base font-semibold text-white">📋 提问记录</h2>
+            <p className="mt-1 text-xs text-slate-400">追问历史自动记录在这里</p>
           </div>
           <button className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/10" type="button" onClick={onClearQuestions}>
             清空
@@ -25,7 +25,7 @@ export function QuestionHistoryPanel({
         <div className="space-y-3 p-5">
           {items.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-white/10 p-4 text-sm leading-6 text-slate-500">
-              生成解析后，主动追问会自动进入这里。点击追问后，状态会从“待追问”变为“已回答”，完成诊断后会标记为“已强化”。
+              生成 AI 解析后，主动追问会自动进入这里。点击追问后，状态会从「待追问」变为「已回答」，完成诊断后会标记为「已强化」。
             </p>
           ) : (
             items.map((item, index) => (
@@ -45,8 +45,8 @@ export function QuestionHistoryPanel({
       <section className="border-t border-white/10 p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-white">最近学习记录</h2>
-            <p className="mt-1 text-xs text-slate-400">保存完整学习闭环</p>
+            <h2 className="text-base font-semibold text-white">📚 最近学习记录</h2>
+            <p className="mt-1 text-xs text-slate-400">保存完整学习闭环，可随时恢复</p>
           </div>
           <button className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/10" type="button" onClick={onClearRecords}>
             清空
@@ -89,8 +89,8 @@ export function QuestionHistoryPanel({
       <section className="border-t border-white/10 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-white">学习画像</h2>
-            <p className="mt-1 text-xs text-slate-400">基于已保存记录生成</p>
+            <h2 className="text-base font-semibold text-white">🎯 学习画像</h2>
+            <p className="mt-1 text-xs text-slate-400">基于已保存记录生成薄弱点分析</p>
           </div>
           <button
             className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"

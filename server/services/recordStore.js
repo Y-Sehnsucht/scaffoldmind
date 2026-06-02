@@ -10,7 +10,7 @@ let cachedRecords = null;
 
 export function createLearningRecord(input) {
   const record = normalizeRecord(input);
-  const records = loadRecords();
+  const records = [...loadRecords()];
   const existingIndex = records.findIndex((item) => item.id === record.id);
 
   if (existingIndex >= 0) {
@@ -103,8 +103,8 @@ function loadRecords() {
 
 function saveRecords(records) {
   mkdirSync(dataDirectory, { recursive: true });
-  cachedRecords = records;
   writeFileSync(defaultStorePath, `${JSON.stringify(records, null, 2)}\n`, 'utf8');
+  cachedRecords = records;
 }
 
 function normalizeRecord(input = {}) {
@@ -117,7 +117,7 @@ function normalizeRecord(input = {}) {
     subject: input.subject || 'CSAPP',
     mode: input.mode || 'after_class_review',
     modeLabel: input.modeLabel || input.mode || '课后深度复习',
-    mockSource: input.mockSource || input.source || 'local',
+    source: input.source || 'ai_platform',
     input: input.input || '',
     analysis: input.analysis || null,
     deepDive: input.deepDive || null,

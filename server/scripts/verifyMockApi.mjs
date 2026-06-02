@@ -44,7 +44,7 @@ try {
   });
   assert.equal(validAnalyze.status, 200, 'analyze should return 200 for valid input');
   assert.equal(validAnalyze.body.ok, true, 'analyze should use ok/data shape');
-  assert.ok(validAnalyze.body.data.topic, 'analyze should return mock analysis topic');
+  assert.ok(validAnalyze.body.data.topic, 'analyze should return structured analysis topic');
   assert.equal(validateAiOutput('analysis', validAnalyze.body.data).valid, true, 'analyze output should match AI schema');
 
   const invalidAnalyze = await postJson(`${baseUrl}/api/analyze`, {
@@ -100,7 +100,7 @@ try {
     subject: 'CSAPP',
     mode: 'after_class_review',
     modeLabel: '课后深度复习',
-    mockSource: 'backend',
+    source: 'ai_platform',
     input: 'cache material',
     analysis: validAnalyze.body.data,
     diagnosis: validDiagnose.body.data,
@@ -151,7 +151,7 @@ try {
   assert.match(validPptParse.body.data.slides[1].textBlocks[0].text, /Second slide/, 'parse-ppt should include second slide text');
   assert.equal(validPptParse.body.data.images.length, 1, 'parse-ppt should detect image placeholders');
 
-  console.log('Mock API verification passed.');
+  console.log('API acceptance verification passed.');
 } finally {
   await deleteJson(`http://127.0.0.1:${server.address()?.port}/api/records`).catch(() => {});
   await new Promise((resolve) => server.close(resolve));

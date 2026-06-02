@@ -52,13 +52,6 @@ export const aiSchemas = {
       'topic',
       'summary',
       'coreConcepts',
-      'whyThisMatters',
-      'contextRelation',
-      'examFocus',
-      'engineeringUse',
-      'pitfalls',
-      'guidedQuestions',
-      'userTask',
     ],
     properties: {
       pageNumber: { type: 'number' },
@@ -69,10 +62,9 @@ export const aiSchemas = {
         minItems: 1,
         items: coreConcept,
       },
-      whyThisMatters: { type: 'string', minLength: 1 },
+      whyThisMatters: { type: 'string' },
       contextRelation: {
         type: 'object',
-        required: ['previous', 'current', 'next'],
         properties: {
           previous: { type: 'string' },
           current: { type: 'string' },
@@ -85,16 +77,18 @@ export const aiSchemas = {
       pitfalls: stringArray,
       guidedQuestions: {
         type: 'array',
-        minItems: 1,
         items: guidedQuestion,
       },
       userTask: {
         type: 'object',
-        required: ['question', 'expectedKeyPoints'],
         properties: {
-          question: { type: 'string', minLength: 1 },
+          question: { type: 'string' },
           expectedKeyPoints: stringArray,
         },
+        additionalProperties: true,
+      },
+      modeSpecific: {
+        type: 'object',
         additionalProperties: true,
       },
     },

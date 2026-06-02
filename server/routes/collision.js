@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { generateCollision } from '../services/aiService.js';
-import { buildMockCollision } from '../services/mockLearningService.js';
 import { ok, sendValidationError } from '../utils/responses.js';
 import { requireCommonLearningFields, requireFields } from '../utils/validation.js';
 
@@ -14,7 +13,7 @@ collisionRouter.post('/', async (req, res, next) => {
   }
 
   try {
-    const data = req.body.aiSource === 'real_api' ? await generateCollision(req.body) : buildMockCollision(req.body);
+    const data = await generateCollision(req.body);
     return res.json(ok(data));
   } catch (error) {
     return next(error);

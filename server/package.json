@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "node index.js",
-    "test:mock": "node scripts/verifyMockApi.mjs && node scripts/verifyStructuredAi.mjs && node scripts/verifyLearningLoop.mjs && node scripts/verifyRecordStore.mjs",
+    "test:acceptance": "node scripts/verifyMockApi.mjs && node scripts/verifyStructuredAi.mjs && node scripts/verifyLearningLoop.mjs && node scripts/verifyRecordStore.mjs && node scripts/verifyRecordApiErrors.mjs",
+    "test:mock": "npm run test:acceptance",
     "test:loop": "node scripts/verifyLearningLoop.mjs",
-    "test:records": "node scripts/verifyRecordStore.mjs",
+    "test:records": "node scripts/verifyRecordStore.mjs && node scripts/verifyRecordApiErrors.mjs",
     "test:real": "node scripts/verifyRealProvider.mjs"
   },
   "dependencies": {

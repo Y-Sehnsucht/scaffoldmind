@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:mock": "node scripts/verifyMockMvp.mjs && node scripts/verifyApiClient.mjs && node scripts/verifyWorkspaceSmoke.mjs",
+    "test:acceptance": "node scripts/verifyMockMvp.mjs && node scripts/verifyApiClient.mjs && node scripts/verifyWorkspaceSmoke.mjs",
+    "test:mock": "npm run test:acceptance",
     "test:workspace": "node scripts/verifyWorkspaceSmoke.mjs"
   },
   "dependencies": {

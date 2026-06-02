@@ -5,7 +5,7 @@ const fallbackReasonLabels = {
   AI_EMPTY_RESPONSE: '服务商返回空内容',
 };
 
-export function getProviderSourceMeta(result, sourceLabel = '本地演示') {
+export function getProviderSourceMeta(result, sourceLabel = 'AI 平台') {
   if (result?.providerStatus === 'real_api') {
     return {
       label: `真实 AI · ${result.providerLabel || result.provider || 'Provider'} / ${result.model || 'model'}`,
@@ -40,7 +40,7 @@ export function formatFallbackReason(reason = '') {
   }
 
   if (reason.endsWith('_missing_api_key')) {
-    return '后端没有配置当前 provider 的 API Key，已自动使用结构化 fallback';
+    return '没有配置当前 provider 的 API Key，已自动使用结构化降级结果';
   }
 
   return fallbackReasonLabels[reason] || reason;

@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { generateDiagnosis } from '../services/aiService.js';
-import { buildMockDiagnosis } from '../services/mockLearningService.js';
 import { ok, sendValidationError } from '../utils/responses.js';
 import { requireCommonLearningFields, requireFields } from '../utils/validation.js';
 
@@ -14,7 +13,7 @@ diagnoseRouter.post('/', async (req, res, next) => {
   }
 
   try {
-    const data = req.body.aiSource === 'real_api' ? await generateDiagnosis(req.body) : buildMockDiagnosis(req.body);
+    const data = await generateDiagnosis(req.body);
     return res.json(ok(data));
   } catch (error) {
     return next(error);

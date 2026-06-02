@@ -14,8 +14,8 @@ Input material -> AI explanation -> guided questions -> user attempt -> error di
 
 - Frontend: React + Vite + Tailwind CSS
 - Backend: Node.js + Express
-- MVP storage: localStorage
-- AI: text generation API through the Express backend only
+- MVP storage: localStorage plus backend lightweight JSON record store
+- AI: browser-configured OpenAI-compatible provider, proxied through the Express backend
 
 ## Required MVP Features
 
@@ -36,13 +36,14 @@ Input material -> AI explanation -> guided questions -> user attempt -> error di
 - User attempt and targeted error diagnosis.
 - Reinforcement task generation.
 - Obsidian Markdown output.
-- Learning records saved with localStorage.
+- Learning records saved with localStorage fallback and backend lightweight JSON records.
+- Browser AI settings panel for provider, model, API URL, and API Key.
 
 ## Forbidden Changes
 
 - Do not implement login or registration unless explicitly requested.
 - Do not add a teacher dashboard.
-- Do not expose API keys in frontend code.
+- Do not hard-code API keys in frontend code.
 - Do not write API keys into README, docs, examples, tests, or screenshots.
 - Do not commit `.env`; only `.env.example` belongs in GitHub.
 - Do not place all components in `App.jsx`.
@@ -70,7 +71,10 @@ Backend:
 - Prompt construction lives in `server/services/promptBuilder.js`.
 - AI provider calls live in `server/services/aiService.js`.
 - Environment loading lives in `server/config/env.js`.
-- API keys are read from backend `.env` only.
+- Material parsing lives in `server/services/materialService.js`.
+- Learning records live in `server/services/recordStore.js`.
+- API keys can be saved in browser localStorage for local single-user use; backend `.env` remains a fallback.
+- Do not present browser-saved keys as safe for public multi-user deployment.
 
 ## Testing Requirements
 
@@ -80,6 +84,13 @@ After each implementation task, run the strongest available verification:
 - `npm run lint` where configured.
 - Relevant unit or integration tests where configured.
 - Manual checks for the PRD's key learning path.
+
+Current course-project acceptance checks:
+
+- `cd server && npm run test:acceptance`
+- `cd client && npm run test:acceptance`
+- `cd client && npm run build`
+- Browser path: AI config panel visible, no old source selector, missing-key AI self-check, refresh persistence.
 
 For documentation-only tasks, verify scope, security, and PRD alignment.
 
@@ -101,7 +112,7 @@ Before finalizing changes, check:
 - The work follows `docs/PRD.md`.
 - The five learning modes still exist.
 - The question history sidebar still exists.
-- API keys are not exposed.
+- API keys are not committed, logged, or shown in responses.
 - `.env` is ignored.
 - MVP scope has not expanded into login, teacher dashboard, OCR, vector DB, or cloud sync.
 - Loading, error, and empty states are considered for user-facing features.

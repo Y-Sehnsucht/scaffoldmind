@@ -17,8 +17,8 @@ This is the initial MVP test plan based on `docs/PRD.md`.
 Run after the React app exists.
 
 - App loads without crashing.
-- Top-bar mock source defaults to `本地 Mock`.
-- Switching to `后端 Mock` is visible and reversible.
+- Top-bar AI settings panel is visible.
+- Provider/model/API URL/API Key fields can be edited and saved locally.
 - Single-page three-column layout is visible.
 - Subject selector switches between CSAPP and Data Structures.
 - All five learning modes can be selected:
@@ -31,12 +31,12 @@ Run after the React app exists.
 - Learning preference chips toggle on and off.
 - Empty required input shows a helpful prompt.
 - Failed generation does not erase user input.
-- With `后端 Mock` selected and the backend stopped, requests show a friendly error and the page does not crash.
-- With `后端 Mock` selected and the backend running, generate analysis calls `/api/analyze`.
-- With `后端 Mock` selected, selecting a guided question calls `/api/deep-dive`.
-- With `后端 Mock` selected, submitting a user attempt calls `/api/diagnose`.
-- With `后端 Mock` selected, Obsidian output is produced through `/api/obsidian`.
-- With multi-source collision selected under `后端 Mock`, the app can call `/api/collision`.
+- With the backend stopped, requests show a friendly error and the page does not crash.
+- With the backend running, generate analysis calls `/api/analyze`.
+- Selecting a guided question calls `/api/deep-dive`.
+- Submitting a user attempt calls `/api/diagnose`.
+- Obsidian output is produced through `/api/obsidian`.
+- With multi-source collision selected, the app can call `/api/collision`.
 - Structured analysis appears in the center area.
 - At least three guided questions appear after analysis.
 - Selecting a guided question adds it to the right-side question history.
@@ -53,7 +53,7 @@ Run after the React app exists.
 Run after the Express backend exists.
 
 - Server starts on default port without requiring `.env`.
-- `GET /api/health` returns `ok: true` and mock service metadata.
+- `GET /api/health` returns `ok: true` and service metadata.
 - `POST /api/analyze` accepts JSON and returns `{ "ok": true, "data": ... }`.
 - `POST /api/deep-dive` accepts a selected guided question and returns `{ "ok": true, "data": ... }`.
 - `POST /api/diagnose` quotes the user's answer and returns `{ "ok": true, "data": ... }`.
@@ -93,31 +93,31 @@ Unit tests:
 
 - `promptBuilder` builds different prompts for all five modes.
 - `promptBuilder` includes subject and learning preferences.
-- localStorage helpers save, load, and delete records safely. Covered by `cd client && npm run test:mock`.
-- Obsidian export includes callouts, wikilinks, and source page. Covered by `cd client && npm run test:mock`.
-- mock learning output is non-empty and exposes mode-specific fields for all five learning modes. Covered by `cd client && npm run test:mock`.
-- frontend API response parser accepts `{ ok: true, data }`. Covered by `cd client && npm run test:mock`.
-- frontend API response parser rejects `{ ok: false, error }` with a typed recoverable error. Covered by `cd client && npm run test:mock`.
-- frontend backend mock helper constructs the expected `POST /api/analyze` request. Covered by `cd client && npm run test:mock`.
+- localStorage helpers save, load, and delete records safely. Covered by `cd client && npm run test:acceptance`.
+- Obsidian export includes callouts, wikilinks, and source page. Covered by `cd client && npm run test:acceptance`.
+- structured learning output is non-empty and exposes mode-specific fields for all five learning modes. Covered by `cd client && npm run test:acceptance`.
+- frontend API response parser accepts `{ ok: true, data }`. Covered by `cd client && npm run test:acceptance`.
+- frontend API response parser rejects `{ ok: false, error }` with a typed recoverable error. Covered by `cd client && npm run test:acceptance`.
+- frontend API helper constructs the expected `POST /api/analyze` request. Covered by `cd client && npm run test:acceptance`.
 
 Integration tests:
 
 - `POST /api/analyze` validates required fields.
 - `POST /api/diagnose` validates `userAttempt`.
 - API routes return structured errors.
-- `GET /api/health`, valid `/api/analyze`, invalid `/api/analyze`, and valid `/api/diagnose` are covered by `cd server && npm run test:mock`.
-- Lightweight `.pptx` text extraction and image placeholder detection are covered by `cd server && npm run test:mock`.
-- Multi-slide `.pptx` response coverage is included in `cd server && npm run test:mock`.
-- Complete backend learning loop `materials/extract -> analyze -> deep-dive -> diagnose -> obsidian -> records -> profile` is covered by `cd server && npm run test:loop` and included in `cd server && npm run test:mock`.
-- Backend learning record store recovery from corrupted JSON is covered by `cd server && npm run test:records` and included in `cd server && npm run test:mock`.
+- `GET /api/health`, valid `/api/analyze`, invalid `/api/analyze`, and valid `/api/diagnose` are covered by `cd server && npm run test:acceptance`.
+- Lightweight `.pptx` text extraction and image placeholder detection are covered by `cd server && npm run test:acceptance`.
+- Multi-slide `.pptx` response coverage is included in `cd server && npm run test:acceptance`.
+- Complete backend learning loop `materials/extract -> analyze -> deep-dive -> diagnose -> obsidian -> records -> profile` is covered by `cd server && npm run test:loop` and included in `cd server && npm run test:acceptance`.
+- Backend learning record store recovery from corrupted JSON and record API write-failure response shape are covered by `cd server && npm run test:records` and included in `cd server && npm run test:acceptance`.
 
 E2E tests:
 
-- Complete mock learning loop without a real AI provider.
+- Complete structured learning loop without a real AI provider.
 - Question history persists after refresh.
 - Side drawer opens and closes.
 - API failure shows error state and keeps user input.
-- Lightweight frontend workspace smoke flow `material -> analysis -> question history -> deep dive -> diagnosis -> record -> restored questions -> review plan` is covered by `cd client && npm run test:workspace` and included in `cd client && npm run test:mock`.
+- Lightweight frontend workspace smoke flow `material -> analysis -> question history -> deep dive -> diagnosis -> record -> restored questions -> review plan` is covered by `cd client && npm run test:workspace` and included in `cd client && npm run test:acceptance`.
 
 ## 6. Build And Security Checks
 
@@ -131,44 +131,51 @@ Before delivery:
 
 ## 6.1 Real API Mode Checks
 
-- The top-bar source selector includes `本地 Mock`, `后端 Mock`, and `真实 API`.
-- `本地 Mock` remains the default source.
-- `真实 API` sends `aiSource: "real_api"` to Express routes and never calls a provider directly from the frontend.
-- Without `TEXT_GENERATION_API_KEY`, `真实 API` mode returns structured fallback data and does not crash.
-- With a valid local backend key, `真实 API` mode can generate structured analysis through Express.
+- The top-bar no longer exposes local/backend demo source switching.
+- Requests send `aiSource: "real_api"` plus browser `aiConfig` to Express routes.
+- Without an API Key, AI requests return structured fallback data and do not crash.
+- With a valid browser-saved key, AI requests can generate structured analysis through Express.
+- `POST /api/ai/preflight` reports missing key, provider failure, malformed output, or structured real API success without exposing any key.
 - Provider failure returns structured fallback data or a structured error, while preserving user input and existing results.
-- Structured provider JSON is accepted as `providerStatus: "real_api"` and covered by `cd server && npm run test:mock`.
-- Plain-text provider output is rejected as unstructured and converted to fallback data, covered by `cd server && npm run test:mock`.
+- Structured provider JSON is accepted as `providerStatus: "real_api"` and covered by `cd server && npm run test:acceptance`.
+- Real-provider preflight success with a fake OpenAI-compatible provider is covered by `cd server && npm run test:acceptance`.
+- Plain-text provider output is rejected as unstructured and converted to fallback data, covered by `cd server && npm run test:acceptance`.
 - API keys never appear in response bodies, browser-visible code, docs, tests, or logs.
 
 ## 7. Current Status
 
+Course-project acceptance on 2026-06-02:
+
+- Browser AI platform UI check passed: AI settings visible, old source selector removed, generate button says `生成 AI 解析`.
+- Browser AI self-check without a key showed a recoverable missing-key state and did not crash.
+- Automated backend fallback checks still cover the complete learning loop without a real key.
+- Real provider browser path remains optional and requires a valid browser-saved key.
+
 ## AI Output Language Checks
 
-- 本地 Mock 输出应以中文为主。
-- 后端 Mock 输出应以中文为主。
-- 真实 API prompt 必须明确要求中文输出。
+- AI prompt 和结构化降级输出应以中文为主。
 - 专业词汇第一次出现时应带英文备注，例如缓存未命中（cache miss）、缓存行（cache line）、局部性（locality）。
 - Obsidian Markdown 输出应以中文为主，并保留 wikilink 和 callout。
 - 输出应保持结构化 JSON，不应退化成大段散文。
 
-The frontend mock MVP is implemented. Current executable checks:
+The AI-platform acceptance flow is implemented. Current executable checks:
 
-- `cd client && npm run test:mock`
+- `cd client && npm run test:acceptance`
 - `cd client && npm run test:workspace`
 - `cd client && npm run build`
-- `cd server && npm run test:mock`
+- `cd server && npm run test:acceptance`
 - `cd server && npm run test:loop`
 - `cd server && npm run test:records`
 
-The mock verification covers:
+The automated verification covers:
 
 - question history localStorage round trip and clear
 - learning records localStorage round trip and clear
 - Obsidian Markdown callouts, wikilinks, and PPT page source
-- all five learning modes exposing distinct mode-specific mock fields
-- frontend backend mock response parser and request construction
-- backend health check, validation failure, analyze mock response, and diagnose mock response
+- all five learning modes exposing distinct mode-specific fallback fields
+- frontend API response parser and request construction
+- backend health check, validation failure, analyze fallback response, and diagnose fallback response
 - backend complete learning loop, saved record, question history persistence, and learner profile summary
 - frontend workspace smoke flow, restored question history, question type stats, and review plan output
 - backend record-store corruption recovery and profile rebuilding after recovery
+- backend record API write-failure response shape and cache rollback after failed save

@@ -27,7 +27,7 @@ try {
     subject: 'CSAPP',
     mode: 'after_class_review',
     modeLabel: '课后深度复习',
-    mockSource: 'backend',
+    source: 'ai_platform',
     input: '缓存未命中（cache miss）与局部性（locality）',
     analysis: {
       topic: '缓存未命中（cache miss）恢复测试',

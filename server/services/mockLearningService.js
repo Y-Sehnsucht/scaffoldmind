@@ -1,134 +1,360 @@
-const guidedQuestions = [
-  {
-    id: 'mock_q_exam',
-    type: 'exam',
-    typeLabel: '考试常考型',
-    question: '老师会如何通过缓存未命中（cache miss）区分背定义和真理解？',
-    reason: '要求学生能根据访问序列解释命中和未命中。',
-    pageNumber: 12,
-    concept: '缓存未命中（cache miss）',
-  },
-  {
-    id: 'mock_q_engineering',
-    type: 'engineering',
-    typeLabel: '工程应用型',
-    question: '如果要优化矩阵遍历，这个知识点会如何落到代码上？',
-    reason: '把课程概念连接到真实性能问题。',
-    pageNumber: 12,
-    concept: '局部性（locality）',
-  },
-  {
-    id: 'mock_q_context',
-    type: 'context',
-    typeLabel: '上下文补全型',
-    question: '为什么局部性（locality）会自然引出缓存（cache）设计？',
-    reason: '补齐前后知识点之间的链条。',
-    pageNumber: 12,
-    concept: '局部性（locality）',
-  },
-  {
-    id: 'mock_q_logic',
-    type: 'bottom_logic',
-    typeLabel: '底层逻辑型',
-    question: '为什么缓存行（cache line）不是越大越好？',
-    reason: '逼近设计取舍背后的根本原因。',
-    pageNumber: 12,
-    concept: '缓存行（cache line）',
-  },
-];
+/**
+ * Mock / Fallback Learning Service
+ *
+ * Generates structured learning data based on the user's ACTUAL input material.
+ * Used when no AI API key is configured, or when the AI call fails.
+ *
+ * Key principle: NEVER return hardcoded topic-specific content.
+ * Always extract and reflect the user's actual material.
+ */
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Extract a short topic from the material text.
+ * Takes the first meaningful line or phrase.
+ */
+function extractTopic(materialText, materialFields) {
+  // If materialFields has a title, use it
+  if (materialFields?.title?.trim()) {
+    return materialFields.title.trim();
+  }
+
+  const text = String(materialText || '').trim();
+  if (!text) return '未命名主题';
+
+  // Take first line, truncate to 30 chars for a concise topic
+  const firstLine = text.split(/[\n\r]+/).find((l) => l.trim().length > 0) || text;
+  const cleaned = firstLine.trim().replace(/^#+\s*/, ''); // strip markdown headings
+  const maxLen = 30;
+  if (cleaned.length <= maxLen) return cleaned;
+  // Try to cut at a natural boundary
+  const cut = cleaned.lastIndexOf(' ', maxLen);
+  if (cut > maxLen * 0.5) return cleaned.slice(0, cut) + '…';
+  return cleaned.slice(0, maxLen) + '…';
+}
+
+/**
+ * Detect if text is primarily English (Latin characters dominant).
+ */
+function isPrimarilyEnglish(text) {
+  const latin = (text.match(/[a-zA-Z]/g) || []).length;
+  const cjk = (text.match(/[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]/g) || []).length;
+  return latin > cjk * 2;
+}
+
+/**
+ * Extract key terms from material text.
+ * Handles both Chinese and English text differently.
+ */
+function extractKeyTerms(materialText) {
+  const text = String(materialText || '');
+  const terms = new Set();
+
+  // Extract terms in Chinese/English parentheses: 缓存（cache）→ 缓存, cache
+  // Pattern 1: Chinese term + (English term) — most common in Chinese academic text
+  // e.g. 缓存未命中（cache miss）→ "缓存未命中", "cache miss"
+  // The Chinese part must start with a CJK character and not contain sentence-ending punctuation
+  const parenMatches = text.matchAll(/([\u4e00-\u9fff][\u4e00-\u9fff\w]*?)[（(]([A-Za-z0-9\s\-_.+/]+)[)）]/g);
+  for (const m of parenMatches) {
+    const before = m[1].trim();
+    const inside = m[2].trim();
+    // Skip if the "Chinese" part contains sentence-ending punctuation (。！？)
+    if (before.match(/[。！？；;]/)) continue;
+    // Skip if the Chinese part is too long (likely not a term)
+    if (before.length > 15) continue;
+    if (before.length >= 2) terms.add(before);
+    if (inside.length >= 2 && inside.length <= 30) terms.add(inside);
+  }
+
+  // Pattern 2: English term + (Chinese explanation) — less common but possible
+  // Strict: English part must be a single word or hyphenated term (no spaces with punctuation)
+  const enCnMatches = text.matchAll(/([A-Za-z][A-Za-z0-9\-+_]{1,20})[（(]([\u4e00-\u9fff]{2,10})[)）]/g);
+  for (const m of enCnMatches) {
+    const before = m[1].trim();
+    const inside = m[2].trim();
+    if (before.length >= 2) terms.add(before);
+    if (inside.length >= 2) terms.add(inside);
+  }
+
+  // Extract quoted terms: "xxx" or 「xxx」
+  const quoteMatches = text.matchAll(/[""「]([^""」]+)[""」]/g);
+  for (const m of quoteMatches) {
+    if (m[1].trim().length > 1 && m[1].trim().length < 30) {
+      terms.add(m[1].trim());
+    }
+  }
+
+  // Extract terms after bullet markers: - xxx / • xxx / 1. xxx
+  const bulletMatches = text.matchAll(/[-•*]\s+([^\n]{2,30})/g);
+  for (const m of bulletMatches) {
+    const t = m[1].trim().replace(/[：:，,。.；;！!？?]+$/, '');
+    if (t.length > 1 && t.length < 30) terms.add(t);
+  }
+
+  // If we already have terms from parentheses/quotes/bullets, return them
+  if (terms.size > 0) {
+    return [...terms].slice(0, 6);
+  }
+
+  // No structured terms found — use language-aware extraction
+  if (isPrimarilyEnglish(text)) {
+    // English: extract capitalized phrases and noun chunks
+    // 1. Capitalized multi-word phrases (e.g. "Cache Miss", "Memory Hierarchy")
+    const capPhrases = text.matchAll(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/g);
+    for (const m of capPhrases) {
+      if (m[1].length > 2 && m[1].length < 30) terms.add(m[1]);
+    }
+
+    // 2. Important single words (longer than 4 chars, not common words)
+    const stopWords = new Set(['about', 'above', 'after', 'again', 'also', 'because', 'before', 'between', 'both', 'could', 'every', 'first', 'from', 'have', 'here', 'into', 'just', 'like', 'more', 'much', 'must', 'never', 'only', 'other', 'over', 'same', 'should', 'some', 'such', 'than', 'that', 'their', 'there', 'these', 'this', 'those', 'through', 'under', 'very', 'what', 'when', 'where', 'which', 'while', 'will', 'with', 'would', 'your']);
+    const words = text.matchAll(/\b([a-zA-Z]{4,})\b/g);
+    const wordFreq = {};
+    for (const m of words) {
+      const w = m[1].toLowerCase();
+      if (!stopWords.has(w)) {
+        wordFreq[w] = (wordFreq[w] || 0) + 1;
+      }
+    }
+    // Take most frequent meaningful words
+    const frequentWords = Object.entries(wordFreq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([w]) => w);
+    for (const w of frequentWords) {
+      // Skip if a case-variant already exists (e.g. skip "cache" if "Cache" exists)
+      const alreadyExists = [...terms].some((t) => t.toLowerCase() === w.toLowerCase());
+      if (!alreadyExists) terms.add(w);
+    }
+  } else {
+    // Chinese: split by sentences and take first few key phrases
+    const sentences = text.split(/[。\n\r！？；]+/).filter((s) => s.trim().length > 2);
+    for (const s of sentences.slice(0, 3)) {
+      const short = s.trim().slice(0, 20);
+      if (short.length > 1) terms.add(short);
+    }
+  }
+
+  return [...terms].slice(0, 6);
+}
+
+/**
+ * Extract a short summary from the material.
+ */
+function extractSummary(materialText, subject) {
+  const text = String(materialText || '').trim();
+  if (!text) return `结构化降级解析：已基于 ${subject || '未知科目'} 生成学习框架。`;
+
+  // Take first 2 sentences or 80 chars
+  const sentences = text.split(/[。\n\r!?！？]+/).filter((s) => s.trim().length > 0);
+  const firstTwo = sentences.slice(0, 2).join('。');
+  if (firstTwo.length > 80) return firstTwo.slice(0, 80) + '…';
+  return firstTwo || text.slice(0, 80);
+}
+
+/**
+ * Build guided questions based on actual material content.
+ */
+function buildDynamicGuidedQuestions(materialText, keyTerms, pageNumber, mode) {
+  const text = String(materialText || '').trim();
+  const topic = keyTerms[0] || extractTopic(text, {});
+  const secondTerm = keyTerms[1] || '相关概念';
+
+  const questionTemplates = {
+    exam: {
+      type: 'exam',
+      typeLabel: '考试常考型',
+      question: `考试中会如何考察「${topic}」的定义和原理？`,
+      reason: '检验对核心概念的准确理解。',
+    },
+    engineering: {
+      type: 'engineering',
+      typeLabel: '工程应用型',
+      question: `「${topic}」在实际工程或代码中如何体现？`,
+      reason: '把课程概念连接到真实应用场景。',
+    },
+    context: {
+      type: 'context',
+      typeLabel: '上下文补全型',
+      question: `「${topic}」和「${secondTerm}」之间有什么内在联系？`,
+      reason: '补齐前后知识点之间的链条。',
+    },
+    logic: {
+      type: 'bottom_logic',
+      typeLabel: '底层逻辑型',
+      question: `「${topic}」背后的根本原因或设计取舍是什么？`,
+      reason: '逼近概念背后的根本原因。',
+    },
+  };
+
+  return Object.entries(questionTemplates).map(([key, tmpl], i) => ({
+    id: `mock_q_${key}`,
+    type: tmpl.type,
+    typeLabel: tmpl.typeLabel,
+    question: tmpl.question,
+    reason: tmpl.reason,
+    pageNumber,
+    concept: keyTerms[i] || topic,
+  }));
+}
+
+// ─── Main Exports ────────────────────────────────────────────────────────────
 
 export function buildMockAnalysis(body) {
-  const pageNumber = Number(body.pageNumber || 12);
+  const materialText = String(body.materialText || '').trim();
+  const materialFields = body.materialFields || {};
+  const pageNumber = Number(body.pageNumber || 1);
+  const mode = body.mode || 'after_class_review';
+  const subject = body.subject || '未知科目';
+  const preferences = body.preferences || [];
+
+  const topic = extractTopic(materialText, materialFields);
+  const keyTerms = extractKeyTerms(materialText);
+  const summary = extractSummary(materialText, subject);
+  const guidedQuestions = buildDynamicGuidedQuestions(materialText, keyTerms, pageNumber, mode);
+
+  // Build core concepts from extracted terms
+  const coreConcepts = keyTerms.length > 0
+    ? keyTerms.slice(0, 3).map((term) => ({
+        name: term,
+        simpleExplanation: `材料中提到的核心概念：${term}。`,
+        essence: `「${term}」是理解本节内容的关键。`,
+        relatedConcepts: keyTerms.filter((t) => t !== term).slice(0, 3),
+      }))
+    : [
+        {
+          name: topic,
+          simpleExplanation: `本节材料的核心主题。`,
+          essence: `理解「${topic}」是掌握本节内容的基础。`,
+          relatedConcepts: [],
+        },
+      ];
+
+  // Ensure guidedQuestions always has valid concept references
+  const questionConcepts = keyTerms.length > 0 ? keyTerms : [topic];
+
+  // Build context relation from material
+  const contextRelation = {
+    previous: keyTerms[1] ? `承接「${keyTerms[1]}」。` : '承接前节内容。',
+    current: `理解「${topic}」的核心机制。`,
+    next: keyTerms[2] ? `引出「${keyTerms[2]}」。` : '引出后续应用。',
+  };
+
+  // Build exam focus from key terms
+  const examFocus = keyTerms.length > 0
+    ? keyTerms.slice(0, 3).map((t) => `理解「${t}」的定义和原理`)
+    : [`理解「${topic}」的核心要点`];
+
+  // Build engineering use
+  const engineeringUse = keyTerms.length > 0
+    ? [`${keyTerms[0]}在实际工程中的应用`, '将概念转化为可操作的实践']
+    : [`将「${topic}」应用到实际场景`];
+
+  // Build pitfalls
+  const pitfalls = [
+    `只背「${topic}」的定义但不会推理`,
+    keyTerms.length > 1 ? `混淆「${keyTerms[0]}」和「${keyTerms[1]}」` : '混淆相关概念',
+  ];
+
+  // Build user task
+  const userTask = {
+    question: `请用自己的话解释「${topic}」的核心原理。`,
+    expectedKeyPoints: keyTerms.length > 0
+      ? keyTerms.slice(0, 3)
+      : [topic, '核心原理', '应用场景'],
+  };
 
   return {
     pageNumber,
-    mode: body.mode || 'after_class_review',
-    topic: body.mode === 'multi_source_collision' ? '多资料中的缓存（cache）观点对撞' : '缓存未命中（cache miss）深度理解',
-    summary: `后端演示：已基于 ${body.subject} / ${body.mode} 生成中文结构化解析。`,
-    coreConcepts: [
-      {
-        name: '缓存未命中（cache miss）',
-        simpleExplanation: 'CPU 想访问的数据不在当前缓存（cache）层中。',
-        essence: '本质是程序访问模式和存储层级（memory hierarchy）速度差之间的冲突。',
-        relatedConcepts: ['局部性（locality）', '缓存行（cache line）', '存储层级（memory hierarchy）'],
-      },
-    ],
-    whyThisMatters: '它解释了为什么访问顺序会显著影响程序性能。',
-    contextRelation: {
-      previous: '承接局部性（locality）。',
-      current: '解释缓存未命中（cache miss）的机制。',
-      next: '引出缓存优化和数据布局。',
-    },
-    examFocus: ['判断未命中类型', '分析访问序列', '区分缓存行（cache line）和缓存容量（cache size）'],
-    engineeringUse: ['优化矩阵遍历顺序', '减少随机访存'],
-    pitfalls: ['混淆缓存行（cache line）和缓存容量（cache size）', '只背定义但不会推理'],
+    mode,
+    topic,
+    summary: `结构化降级解析：${summary}`,
+    coreConcepts,
+    whyThisMatters: `理解「${topic}」有助于建立完整的知识体系。`,
+    contextRelation,
+    examFocus,
+    engineeringUse,
+    pitfalls,
     guidedQuestions,
-    userTask: {
-      question: '请用自己的话解释缓存未命中（cache miss）为什么影响性能。',
-      expectedKeyPoints: ['数据不在缓存（cache）中', '访问更慢存储层级', '访问模式影响命中率'],
-    },
-    pageText: body.materialText,
-    modeSpecific: buildModeSpecific(body.mode || 'after_class_review', pageNumber),
+    userTask,
+    pageText: materialText,
+    modeSpecific: buildModeSpecific(mode, pageNumber, topic, keyTerms, preferences),
   };
 }
 
 export function buildMockDeepDive(body) {
   const question = body.question || {};
+  const materialText = String(body.materialText || '').trim();
+  const keyTerms = extractKeyTerms(materialText);
+  const topic = keyTerms[0] || question.concept || '本节内容';
 
   return {
     questionId: question.id || 'mock_q_selected',
-    answer: `后端演示深入回答：${question.question} 需要从概念定义推进到访问模式、映射规则和性能代价。`,
-    keyPoints: ['定位知识点', '说明底层原因', '连接考试或工程场景'],
+    answer: `关于「${question.question || topic}」：需要从概念定义出发，逐步推进到原理机制和应用场景。材料中提到的「${topic}」是理解这个问题的关键线索。`,
+    keyPoints: ['定位核心概念', '说明底层原理', '连接考试或工程场景'],
     followUpQuestions: [
       {
         id: 'mock_follow_up',
         type: 'bottom_logic',
-        question: '这个问题背后的设计取舍是什么？',
+        question: `「${topic}」背后的设计取舍或根本原因是什么？`,
       },
     ],
     historyItem: {
       id: `qh_${Date.now()}`,
       question: question.question,
-      pageNumber: question.pageNumber || body.pageNumber || 12,
-      concept: question.concept || '缓存未命中（cache miss）',
+      pageNumber: question.pageNumber || body.pageNumber || 1,
+      concept: question.concept || topic,
       status: 'answered',
     },
   };
 }
 
 export function buildMockDiagnosis(body) {
+  const materialText = String(body.materialText || '').trim();
+  const keyTerms = extractKeyTerms(materialText);
+  const topic = keyTerms[0] || '本节内容';
+  const userAttempt = String(body.userAttempt || '').trim();
+
   return {
-    errorType: '概念混淆',
-    quotedIssue: body.userAttempt,
-    whatIsCorrect: '你已经意识到缓存未命中（cache miss）和性能有关。',
-    mainProblem: '回答还没有讲清为什么会慢，以及访问模式如何影响命中率。',
-    whyItMatters: '如果缺少因果链，遇到访问序列题或代码优化题时就无法迁移。',
-    suggestion: '先说明数据不在缓存（cache），再说明必须访问更慢层级，最后补上局部性（locality）和访问模式。',
-    reinforcementTask: '比较连续访问数组和跳跃访问数组的缓存未命中（cache miss）差异。',
+    errorType: '理解不完整',
+    quotedIssue: userAttempt || '（未提供回答）',
+    whatIsCorrect: `你已经尝试用自己的话解释「${topic}」。`,
+    mainProblem: userAttempt
+      ? `回答还没有讲清「${topic}」的核心原理和因果链。`
+      : `还没有提供对「${topic}」的理解。`,
+    whyItMatters: '如果缺少因果链，遇到变形题或应用题时就无法迁移。',
+    suggestion: `先说明「${topic}」是什么，再解释为什么，最后补上应用场景。`,
+    reinforcementTask: `尝试用类比或举例的方式重新解释「${topic}」。`,
   };
 }
 
 export function buildMockObsidian(body) {
   const analysis = body.analysis || {};
-  const topic = analysis.topic || '缓存未命中（cache miss）';
-  const pageNumber = analysis.pageNumber || body.pageNumber || 12;
+  const topic = analysis.topic || '未命名主题';
+  const pageNumber = analysis.pageNumber || body.pageNumber || 1;
+  const keyTerms = analysis.coreConcepts?.map((c) => c.name) || [topic];
+
+  const conceptLinks = keyTerms.map((t) => `- [[${t}]]`).join('\n');
+  const examItems = (analysis.examFocus || ['核心概念']).slice(0, 3).map((e) => `- ${e}`).join('\n');
+  const pitfallItems = (analysis.pitfalls || ['只背定义']).slice(0, 2).map((p) => `- ${p}`).join('\n');
 
   return {
     obsidianMarkdown: `# [[${topic}]]
 
 > [!summary] 核心本质
-> 缓存未命中（cache miss）的本质是 CPU 想访问的数据不在当前缓存（cache）层中。
+> ${analysis.coreConcepts?.[0]?.essence || `理解「${topic}」是掌握本节内容的关键。`}
 
 > [!question] 主动追问
-> 为什么缓存行（cache line）不是越大越好？
+> ${analysis.guidedQuestions?.[2]?.question || `「${topic}」和相关概念之间有什么联系？`}
 
 > [!warning] 易错点
-> 不要混淆缓存容量（cache size）和块大小（block size）。
+${pitfallItems}
 
 ## 相关概念
-- [[局部性（locality）]]
-- [[缓存行（cache line）]]
-- [[存储层级（memory hierarchy）]]
+${conceptLinks}
+
+## 考试重点
+${examItems}
 
 ## 来源
 - PPT 第 ${pageNumber} 页`,
@@ -136,78 +362,96 @@ export function buildMockObsidian(body) {
 }
 
 export function buildMockCollision(body) {
+  const sourceA = String(body.sourceA || '').trim();
+  const sourceB = String(body.sourceB || '').trim();
+  const sourceC = String(body.sourceC || '').trim();
+
+  const hasA = sourceA.length > 0;
+  const hasB = sourceB.length > 0;
+
   return {
     sourceSummaries: [
-      { source: 'A', coreView: body.sourceA || '课程材料强调概念定义和考试计算。' },
-      { source: 'B', coreView: body.sourceB || '工程材料强调访问模式和性能优化。' },
-      { source: 'C', coreView: body.sourceC || '反面观点提醒缓存优化存在边界。' },
+      { source: 'A', coreView: hasA ? sourceA.slice(0, 60) : '资料 A 的核心观点。' },
+      { source: 'B', coreView: hasB ? sourceB.slice(0, 60) : '资料 B 的核心观点。' },
+      { source: 'C', coreView: sourceC.length > 0 ? sourceC.slice(0, 60) : '补充视角或反面观点。' },
     ],
-    conflicts: ['课程定义关注边界，工程文章关注优化策略。'],
-    evidenceComparison: ['课程材料对考试范围最强，工程材料对性能直觉最强。'],
-    adoptableConclusions: ['先按课程定义建立概念边界，再用工程例子理解访问模式。'],
-    openDoubts: ['没有硬件参数时，不绝对判断某个缓存配置一定更优。'],
-    learningValue: '帮助区分课程考点、工程经验和需要保留怀疑的结论。',
+    conflicts: hasA && hasB ? ['不同资料对同一概念的侧重点不同。'] : ['需要更多资料才能发现观点冲突。'],
+    evidenceComparison: ['不同来源的论证强度和适用范围不同。'],
+    adoptableConclusions: ['综合多资料建立更完整的理解。'],
+    openDoubts: ['缺少更多证据时，保留判断。'],
+    learningValue: '帮助区分不同来源的观点、证据强度和适用范围。',
   };
 }
 
-function buildModeSpecific(mode, pageNumber) {
+// ─── Mode-Specific Builder ───────────────────────────────────────────────────
+
+function buildModeSpecific(mode, pageNumber, topic, keyTerms, preferences) {
   const common = {
     type: mode,
-    title: '后端演示模式输出',
+    title: '结构化降级输出',
   };
+
+  const prefLabel = preferences?.length > 0
+    ? `（偏好：${preferences.join('、')}）`
+    : '';
 
   if (mode === 'context_stacking') {
     return {
       ...common,
-      weeklyCoreConcepts: ['存储层级（memory hierarchy）', '局部性（locality）', '缓存未命中（cache miss）'],
-      connectionToLastWeek: ['从程序执行模型连接到存储层级。'],
-      classroomValidationChecklist: ['观察老师是否强调访问模式。'],
-      gapChecklist: ['补齐缓存映射规则。'],
-      examinerDistinction: ['能否解释访问序列带来的性能差异。'],
+      weeklyCoreConcepts: keyTerms.slice(0, 3),
+      connectionToLastWeek: [`从「${topic}」连接到本周内容。`],
+      classroomValidationChecklist: ['观察老师是否强调核心概念之间的联系。'],
+      gapChecklist: [`补齐「${topic}」的前置知识。`],
+      examinerDistinction: [`能否解释「${topic}」的因果链。`],
     };
   }
 
   if (mode === 'examiner_perspective') {
     return {
       ...common,
-      testedPoints: ['访问序列分析', '缓存未命中原因'],
-      examinerIntent: '区分背定义和能解释因果链。',
-      surfaceTraps: ['只说缓存越大越好。'],
-      underlyingLogic: '访问模式影响命中率，命中率影响性能。',
-      transferQuestions: ['比较按行和按列访问二维数组。'],
+      testedPoints: keyTerms.slice(0, 3).map((t) => `「${t}」的定义和原理`),
+      examinerIntent: `区分背定义和能解释「${topic}」因果链的学生。`,
+      surfaceTraps: [`只说「${topic}」的定义但不解释原因。`],
+      underlyingLogic: `理解「${topic}」的核心机制和适用条件。`,
+      transferQuestions: [`将「${topic}」应用到新场景。`],
     };
   }
 
   if (mode === 'feynman') {
     return {
       ...common,
-      accurateParts: ['知道数据不在缓存中。'],
-      biggestDeviation: '没有解释为什么慢。',
-      whyDeviationMatters: '缺少迁移能力。',
-      twelveYearOldExplanation: '缓存像桌面，主存像书架，东西不在桌面就要去书架拿。',
-      checkingQuestion: '你能解释连续访问为什么更快吗？',
+      accurateParts: [`知道「${topic}」的基本含义。`],
+      biggestDeviation: '可能缺少深层原理的解释。',
+      whyDeviationMatters: '缺少迁移能力，遇到变形题无法应对。',
+      twelveYearOldExplanation: `用生活中的例子解释「${topic}」。`,
+      checkingQuestion: `你能用自己的话解释「${topic}」为什么重要吗？`,
     };
   }
 
   if (mode === 'multi_source_collision') {
     return {
       ...common,
-      sourceViews: [{ source: '资料 A', view: '关注定义。' }],
-      conflicts: ['定义视角和工程视角不同。'],
-      evidenceStrength: ['课程材料适合考试，工程材料适合理解性能。'],
-      adoptableConclusions: ['先定义，再工程化。'],
-      doubtsToKeep: ['需要硬件参数才能下最终判断。'],
+      sourceViews: [{ source: '资料 A', view: `关注「${topic}」的某一方面。` }],
+      conflicts: ['不同资料对同一概念的侧重点不同。'],
+      evidenceStrength: ['需要对比不同来源的论证。'],
+      adoptableConclusions: ['综合多资料建立更完整的理解。'],
+      doubtsToKeep: ['缺少更多证据时保留判断。'],
     };
   }
 
+  // Default: after_class_review
   return {
     ...common,
     pageNumber,
-    coreConcepts: [{ name: '缓存未命中（cache miss）' }],
-    essenceExplanation: ['缓存未命中反映访问模式和存储层级速度差。'],
-    contextRelation: { previous: '局部性', current: '缓存未命中', next: '缓存优化' },
-    examFocus: ['命中率分析'],
-    pitfalls: ['只背定义'],
-    guidedQuestions,
+    coreConcepts: keyTerms.slice(0, 3).map((t) => ({ name: t })),
+    essenceExplanation: [`「${topic}」是本节的核心${prefLabel}。`],
+    contextRelation: {
+      previous: keyTerms[1] || '前节内容',
+      current: topic,
+      next: keyTerms[2] || '后续应用',
+    },
+    examFocus: keyTerms.slice(0, 2).map((t) => `「${t}」的定义和原理`),
+    pitfalls: [`只背「${topic}」定义`],
+    guidedQuestions: buildDynamicGuidedQuestions('', keyTerms, pageNumber, mode),
   };
 }
