@@ -38,4 +38,28 @@ assert.equal(calls[0].url, 'http://localhost:3001/api/analyze', 'mock backend he
 assert.equal(calls[0].options.method, 'POST', 'mock backend helper should construct POST request');
 assert.equal(JSON.parse(calls[0].options.body).mode, 'after_class_review', 'mock backend helper should send payload');
 
+const material = await mockBackendApi.extractMaterial(
+  new Blob(['# Cache\nLocality material'], { type: 'text/markdown' }),
+);
+
+assert.equal(material.topic, 'Backend Mock Analysis', 'material helper should return parsed envelope data from fetch');
+assert.equal(calls[1].url, 'http://localhost:3001/api/materials/extract', 'material helper should call extract endpoint');
+assert.equal(calls[1].options.method, 'POST', 'material helper should use POST');
+assert.ok(calls[1].options.body instanceof FormData, 'material helper should send multipart form data');
+assert.equal(calls[1].options.headers, undefined, 'material helper should not force JSON headers');
+
+await mockBackendApi.saveRecord({ analysis: { topic: 'Cache Miss' } });
+assert.equal(calls[2].url, 'http://localhost:3001/api/records', 'save record helper should call records endpoint');
+assert.equal(calls[2].options.method, 'POST', 'save record helper should use POST');
+
+await mockBackendApi.listRecords(10);
+assert.equal(calls[3].url, 'http://localhost:3001/api/records?limit=10', 'list records helper should include limit');
+
+await mockBackendApi.profileSummary();
+assert.equal(calls[4].url, 'http://localhost:3001/api/profile/summary', 'profile helper should call profile endpoint');
+
+await mockBackendApi.clearRecords();
+assert.equal(calls[5].url, 'http://localhost:3001/api/records', 'clear records helper should call records endpoint');
+assert.equal(calls[5].options.method, 'DELETE', 'clear records helper should use DELETE');
+
 console.log('API client verification passed.');

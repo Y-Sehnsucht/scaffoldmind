@@ -7,6 +7,7 @@ export function TopBar({
   modes,
   status,
   mockSource,
+  aiStatus,
   onSubjectChange,
   onModeChange,
   onMockSourceChange,
@@ -61,21 +62,21 @@ export function TopBar({
                 type="button"
                 onClick={() => onMockSourceChange(MOCK_SOURCES.local)}
               >
-                本地 Mock
+                本地演示
               </button>
               <button
                 className={sourceButtonClass(mockSource === MOCK_SOURCES.backend)}
                 type="button"
                 onClick={() => onMockSourceChange(MOCK_SOURCES.backend)}
               >
-                后端 Mock
+                后端演示
               </button>
               <button
                 className={sourceButtonClass(mockSource === MOCK_SOURCES.realApi)}
                 type="button"
                 onClick={() => onMockSourceChange(MOCK_SOURCES.realApi)}
               >
-                真实 API
+                真实 AI
               </button>
             </div>
           </div>
@@ -83,6 +84,11 @@ export function TopBar({
           <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
             <span className="block text-xs font-medium text-emerald-700">当前状态</span>
             {status}
+            {aiStatus ? (
+              <span className="mt-1 block text-xs text-emerald-700">
+                {aiStatus.providerLabel} / {aiStatus.model} / {aiStatus.hasApiKey ? '已配置' : '未配置'}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>

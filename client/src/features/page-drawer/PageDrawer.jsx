@@ -22,12 +22,12 @@ export function PageDrawer({ open, analysis, fileName, onClose }) {
 
         <div className="mt-5 rounded-md border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
           <div className="mx-auto flex h-48 max-w-sm items-center justify-center rounded bg-white text-sm text-slate-500 shadow-inner">
-            {fileName ? `图片占位：${fileName}` : 'PPT 截图占位（MVP 不做 OCR / 自动解析）'}
+            {fileName ? `材料来源：${fileName}` : '当前页面暂无上传材料来源'}
           </div>
         </div>
 
         <section className="mt-5 rounded-md border border-slate-200 p-4">
-          <h3 className="text-sm font-semibold text-slate-950">提取文字占位</h3>
+          <h3 className="text-sm font-semibold text-slate-950">提取文字</h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">{analysis.pageText}</p>
         </section>
 
