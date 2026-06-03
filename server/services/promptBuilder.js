@@ -317,6 +317,65 @@ export function buildAgentEvaluationPrompt(input = {}) {
   };
 }
 
+export function buildPracticeGeneratePrompt(input = {}) {
+  const concept = String(input.concept || '补码溢出').trim();
+  const difficulty = input.difficulty || 'medium';
+
+  return {
+    systemPrompt: [
+      '你是 ScaffoldMind 明序的刷题教练，面向 CSAPP 和数据结构学习场景。',
+      '请使用中文回答，专业术语第一次出现时给出英文括注，例如补码溢出（two\'s complement overflow）。',
+      '只返回 JSON，不要使用 Markdown，不要输出额外说明。',
+      '题目来源必须是你根据知识点生成的常考题，不要声称来自外部题库。',
+    ].join('\n'),
+    userPrompt: [
+      `学科：${input.subject || 'CSAPP'}`,
+      `知识点：${concept}`,
+      `难度：${difficulty}`,
+      `学习画像：${JSON.stringify(input.learnerProfile || {})}`,
+      `最近错题：${JSON.stringify(input.recentMistakes || [])}`,
+      '请返回：{"id":"...","question":"...","answerType":"short_answer","choices":[],"knowledgePoint":"...","difficulty":"medium","expectedKeyPoints":["..."],"hint":"..."}',
+    ].join('\n\n'),
+  };
+}
+
+export function buildPracticeEvaluatePrompt(input = {}) {
+  return {
+    systemPrompt: [
+      '你是 ScaffoldMind 明序的答题评价教练。',
+      '请使用中文回答，专业术语第一次出现时给出英文括注。',
+      '只返回 JSON，不要使用 Markdown，不要输出额外说明。',
+      '评价要引用用户答案中的具体内容，并指出最关键的改进方向。',
+    ].join('\n'),
+    userPrompt: [
+      `学科：${input.subject || 'CSAPP'}`,
+      `知识点：${input.knowledgePoint || ''}`,
+      `题目：${input.question || ''}`,
+      `用户答案：${input.userAnswer || ''}`,
+      `期望要点：${JSON.stringify(input.expectedKeyPoints || [])}`,
+      '请返回：{"correct":true,"score":80,"feedback":"...","mainIssue":"...","correctKeyPoints":["..."],"missedKeyPoints":["..."],"nextAction":"same_concept"}',
+    ].join('\n\n'),
+  };
+}
+
+export function buildReviewPlanPrompt(input = {}) {
+  return {
+    systemPrompt: [
+      '你是 ScaffoldMind 明序的复习计划助手。',
+      '请使用中文回答，专业术语第一次出现时给出英文括注。',
+      '只返回 JSON，不要使用 Markdown，不要输出额外说明。',
+      '计划要适合前端卡片展示，步骤短、清楚、可行动。',
+    ].join('\n'),
+    userPrompt: [
+      `学习画像：${JSON.stringify(input.learnerProfile || {})}`,
+      `最近对话：${JSON.stringify(input.recentConversations || [])}`,
+      `刷题统计：${JSON.stringify(input.practiceStats || {})}`,
+      `薄弱概念：${JSON.stringify(input.weakConcepts || [])}`,
+      '请返回：{"priorityConcepts":["..."],"reviewPlan":[{"id":"...","title":"...","reason":"...","suggestedAction":"chat","estimatedMinutes":15}],"recommendedPractice":[{"knowledgePoint":"...","reason":"..."}],"nextActions":["..."]}',
+    ].join('\n\n'),
+  };
+}
+
 function normalizeAgentMode(mode) {
   const value = String(mode || '').trim();
   if (['default', 'context_stacking', 'feynman'].includes(value)) {

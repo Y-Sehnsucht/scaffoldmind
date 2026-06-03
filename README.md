@@ -1,28 +1,34 @@
 # ScaffoldMind 明序
 
-ScaffoldMind 明序是一个面向 CSAPP 和数据结构学习的 AI 学习智能体。当前主入口已经切换为中间主导式 Agent Chat：用户在中间输入材料或问题，系统以流式方式输出总结、框架、核心概念和可继续选择的学习路径。
+ScaffoldMind 明序是一个面向 CSAPP 和数据结构学习的 AI 学习助手。当前项目采用多页面前端结构，主学习路径是 `/chat` 的 Agent Chat：用户在中间输入材料或问题，系统通过 Express 后端流式输出结构化学习内容，并保留本地学习记忆。
 
-旧版 `StudyWorkspace`、结构化学习闭环、旧 `/api/analyze` 和轻量 `/api/parse-ppt` 仍保留在代码中，但不再作为页面主入口。
+## 页面结构
+
+- `/landing`：产品视觉入口。
+- `/home`：学习仪表盘，展示任务、倒数日、日历和最近学习。
+- `/chat`：现有 AI 学习主路径，保留流式输出、交互选项、附件 metadata chip、模式选择、复制/点赞/点踩、对话历史恢复和 localStorage 记忆。
+- `/history`：本地学习历史和反馈记录浏览。
+- `/profile`：本地学习画像、薄弱概念和知识图谱。
+- `/practice`：刷题页，支持按知识点生成常考题、提交答案评价、错题同知识点强化。
+- `/review`：复习计划页，根据本地画像、历史、刷题统计和错题生成复习顺序。
+- `/settings`：本地设置页，支持主题切换、导出本地学习数据、清空本地历史、清空任务/倒数日/刷题记录。
 
 ## 核心功能
 
-- 中间主导式聊天界面，类似 ChatGPT / Gemini / NotebookLM 的主输入输出体验。
-- 三种 Agent Chat 模式：默认知识解析、Context Stacking 超前学习、费曼反讲。
-- 首次知识回答固定包含 `## 总结`、`## 框架`、`## 5 个核心概念`、`## 你可以继续选择`。
-- 支持点击回答下方的交互选项，继续下一轮学习。
-- 中间输入框旁提供加号按钮，可添加附件 chip。
-- 附件只保存 metadata：`name`、`size`、`type`、`selectedAt`。
-- PPTX 和图片当前版本只作为附件标记，不解析内容，不调用 OCR，不渲染幻灯片。
-- 后端提供 `/api/agent/chat/stream` SSE 流式接口。
-- 无 API Key、provider 失败或后端异常时，页面显示友好 fallback，不白屏。
+- `/chat` 继承现有 Agent Chat 主学习路径，不直接解析 PPT 或图片内容。
+- PPT、图片和其他附件在当前主路径中只作为 metadata 展示，包括文件名、大小、类型和选择时间。
+- `/practice` 新增刷题生成、答案评价、错题记录和同知识点强化入口。
+- `/review` 新增复习计划生成，支持跳转到 `/chat?concept=...` 和 `/practice?concept=...`。
+- `/settings` 管理本地数据和主题，不提供任何前端 API Key、Provider、Model 或 API URL 配置入口。
+- localStorage 保存任务、倒数日、历史、画像、提问/互动记忆、刷题统计、错题和复习相关本地状态。
 
 ## 技术栈
 
 - 前端：React + Vite + Tailwind CSS
 - 后端：Node.js + Express
 - 流式输出：Server-Sent Events（SSE）
-- 本地配置：localStorage
-- AI 调用：Express 后端代理 OpenAI-compatible provider
+- 本地存储：localStorage
+- AI 调用：前端只调用 Express 后端；后端通过本地 `.env` 配置 DeepSeek 或兼容 Chat Completions 的 provider
 
 ## 运行方式
 
@@ -53,57 +59,26 @@ npm run dev
 start-dev.cmd
 ```
 
-## AI 配置和安全
+## 环境变量与 API Key 安全
 
-当前课程项目仍支持在页面左侧 AI 配置区填写 provider、model、API URL 和 API Key，并保存到本机浏览器 localStorage。浏览器不会直接请求 AI provider，真实调用由 Express 后端代理。
+- 真实 API Key 只能放在本地 `server/.env`。
+- GitHub 只提交 `.env.example`，不能提交 `.env`、`server/.env` 或 `client/.env`。
+- 前端不读取、不展示、不保存 `TEXT_GENERATION_API_KEY`。
+- 前端没有 API Key、Provider、Model、API URL 配置入口。
+- Express 后端读取本地环境变量并代理 DeepSeek 调用；前端不直接请求 DeepSeek 或任何文本生成 provider。
+- 文档、README、代码、测试、截图中都不能写入真实 API Key。
 
-安全约束：
+`.env.example` 只保留占位变量，不包含真实值。
 
-- 不要把真实 API Key 写进代码、README、文档、截图或提交到 Git。
-- 不要读取、打印或提交 `.env`、`server/.env`、`client/.env`。
-- `.gitignore` 必须忽略 `.env`、`server/.env`、`client/.env`。
-- `server/.env` 仅作为本地备用配置；缺 key 时系统会使用 fallback。
-- 浏览器保存 key 只适合本机单用户课程项目，不适合公网多人平台。
+## 新增 API
 
-## 演示路径
-
-1. 启动前端和后端。
-2. 打开页面，确认主视觉是中间聊天区。
-3. 在左侧选择学科和模式。
-4. 在中间底部输入 CSAPP 或数据结构材料。
-5. 可点击加号添加 PPTX 或图片，页面只显示附件 chip。
-6. 发送后观察流式输出。
-7. 确认回答包含总结、框架、5 个核心概念和可继续选择。
-8. 点击一个交互选项，继续下一轮回答。
-9. 切换默认知识解析、Context Stacking、费曼反讲，确认输出侧重点不同。
-10. 停止后端或不配置 key 时，确认页面显示友好 fallback，不白屏。
-
-## 当前 MVP 状态
-
-已完成：
-
-- React + Vite + Tailwind 前端。
-- Express 后端。
-- 新主路径 `AgentWorkspace`。
-- Agent Chat SSE 接口 `/api/agent/chat/stream`。
-- 附件 metadata chip。
-- 流式回答、错误兜底和交互选项。
-- 旧 `StudyWorkspace`、旧结构化学习 API 和旧 PPTX 轻量解析 API 保留。
-- client/server acceptance 测试覆盖 Agent Chat 主路径。
-
-暂不包含：
-
-- 登录注册。
-- 教师后台。
-- OCR。
-- 完整 PPT 自动解析。
-- 旧版 `.ppt` parser。
-- RAG 或向量数据库。
-- 云同步。
+- `POST /api/practice/generate`：按知识点生成常考题，缺 key 或 provider 失败时返回 fallback。
+- `POST /api/practice/evaluate`：评价用户答案，答错时建议同知识点强化。
+- `POST /api/review/plan`：根据本地画像、历史、刷题统计和错题生成复习计划，失败时 fallback。
 
 ## 测试
 
-客户端：
+前端：
 
 ```bash
 cd client
@@ -111,23 +86,37 @@ npm run build
 npm run test:acceptance
 ```
 
-服务端：
+后端：
 
 ```bash
 cd server
 npm run test:acceptance
 ```
 
-真实 provider 验证脚本不会打印完整回答或 API Key：
+## 当前 MVP 状态
 
-```bash
-cd server
-npm run test:real
-```
+已完成：
+
+- 多页面应用骨架。
+- `/chat` Agent Chat 主学习路径。
+- `/home`、`/history`、`/profile` 前端视觉重做。
+- `/practice` 刷题页和 practice API。
+- `/review` 复习计划页和 review API。
+- `/settings` 本地设置页。
+- 本地数据保存、导出和清理。
+- 后端 fallback，保证缺 key/provider 失败时不白屏。
+
+暂不包含：
+
+- 登录注册。
+- 教师后台。
+- OCR。
+- RAG 或向量数据库。
+- 云同步。
+- 完整 PPT 自动解析或图片结构识别。
 
 ## 后续迭代方向
 
-- 手动浏览器验收 80%、100%、125%、150% 缩放下的布局表现。
-- 准备课程展示脚本和截图。
-- 如果后续要公网部署，需要重新设计密钥托管和账号级安全存储。
-- OCR、完整 PPT 视觉解析、RAG、向量检索和云同步必须作为单独阶段评估。
+- 手动浏览器验收 `/practice`、`/review`、`/settings` 的视觉和交互。
+- 将错题薄弱点更深地接入 `/profile` 画像展示。
+- 若后续要公网部署，需要重新设计账号、密钥托管和服务端安全策略。

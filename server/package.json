@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch index.js",
     "start": "node index.js",
-    "test:acceptance": "node scripts/verifyMockApi.mjs && node scripts/verifyStructuredAi.mjs && node scripts/verifyLearningLoop.mjs && node scripts/verifyRecordStore.mjs && node scripts/verifyRecordApiErrors.mjs && node scripts/verifyAgentChat.mjs",
+    "test:acceptance": "node scripts/verifyMockApi.mjs && node scripts/verifyStructuredAi.mjs && node scripts/verifyLearningLoop.mjs && node scripts/verifyRecordStore.mjs && node scripts/verifyRecordApiErrors.mjs && node scripts/verifyAgentChat.mjs && node scripts/verifyPracticeReview.mjs",
     "test:mock": "npm run test:acceptance",
     "test:loop": "node scripts/verifyLearningLoop.mjs",
     "test:records": "node scripts/verifyRecordStore.mjs && node scripts/verifyRecordApiErrors.mjs",

@@ -1,7 +1,8 @@
 import { loadJson, removeJson, saveJson } from './localStorage.js';
+import { LEARNING_STORAGE_KEYS } from './learningStorageKeys.js';
 
-const QUESTION_HISTORY_KEY = 'scaffoldmind.questionHistory';
-const LEARNING_RECORDS_KEY = 'scaffoldmind.learningRecords';
+const QUESTION_HISTORY_KEY = LEARNING_STORAGE_KEYS.questionHistory;
+const LEARNING_RECORDS_KEY = LEARNING_STORAGE_KEYS.learningRecords;
 
 export function loadQuestionHistory() {
   return loadJson(QUESTION_HISTORY_KEY, []);

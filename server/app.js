@@ -9,8 +9,10 @@ import { diagnoseRouter } from './routes/diagnose.js';
 import { materialsRouter } from './routes/materials.js';
 import { obsidianRouter } from './routes/obsidian.js';
 import { parsePptRouter } from './routes/parsePpt.js';
+import { practiceRouter } from './routes/practice.js';
 import { profileRouter } from './routes/profile.js';
 import { recordsRouter } from './routes/records.js';
+import { reviewRouter } from './routes/review.js';
 
 export function createApp() {
   const app = express();
@@ -35,8 +37,10 @@ export function createApp() {
   app.use('/api/collision', collisionRouter);
   app.use('/api/materials', materialsRouter);
   app.use('/api/parse-ppt', parsePptRouter);
+  app.use('/api/practice', practiceRouter);
   app.use('/api/records', recordsRouter);
   app.use('/api/profile', profileRouter);
+  app.use('/api/review', reviewRouter);
 
   app.use((err, _req, res, _next) => {
     res.status(err.status || 500).json({
