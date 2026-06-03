@@ -31,6 +31,12 @@ export function clearConversations() {
   saveJson(AGENT_MEMORY_KEYS.conversations, []);
 }
 
+export function deleteConversation(conversationId) {
+  const nextConversations = loadConversations().filter((item) => item.id !== conversationId);
+  saveJson(AGENT_MEMORY_KEYS.conversations, nextConversations);
+  return nextConversations;
+}
+
 export function saveFeedbackEvent(event) {
   const events = loadFeedbackEvents();
   const nextEvent = normalizeFeedbackEvent(event);

@@ -6,7 +6,7 @@ const MODE_LABELS = {
 
 export function ConversationHistory({ conversations = [], activeConversationId, learnerProfile, onSelect, onClear }) {
   return (
-    <aside className="hidden min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--panel)] shadow-2xl shadow-black/15 lg:flex">
+    <aside className="flex min-h-0 w-full flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--panel)] shadow-2xl shadow-black/15">
       <div className="border-b border-[var(--border)] px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>

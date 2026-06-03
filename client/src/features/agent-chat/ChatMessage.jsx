@@ -17,10 +17,10 @@ export function ChatMessage({
   return (
     <article className={`flex min-w-0 ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`min-w-0 max-w-[820px] rounded-[24px] border px-5 py-4 shadow-lg ${
+        className={`min-w-0 px-5 py-4 ${
           isUser
-            ? 'border-teal-300/25 bg-[var(--user-bg)] text-[var(--text)]'
-            : 'border-[var(--border)] bg-[var(--assistant-bg)] text-[var(--text)] shadow-black/10'
+            ? 'max-w-[85%] rounded-[24px] border border-teal-300/25 bg-[var(--user-bg)] text-[var(--text)] shadow-lg shadow-black/10'
+            : 'w-full border-l-2 border-neutral-300 bg-transparent pl-6 text-[var(--text)] shadow-none dark:border-neutral-700'
         }`}
       >
         <div className="mb-2 flex items-center justify-between gap-3 text-[0.8125rem] text-[var(--subtle)]">

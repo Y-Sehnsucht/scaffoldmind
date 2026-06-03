@@ -24,7 +24,7 @@ export function ChatShell({
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--panel)] shadow-2xl shadow-black/15">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] px-6 py-4">
         <div className="min-w-0">
           <h1 className="truncate text-xl font-semibold text-[var(--text)]">ScaffoldMind 明序</h1>
           <p className="mt-1 text-[0.8125rem] text-[var(--subtle)]">中间主导式 AI 学习智能体</p>
@@ -34,8 +34,8 @@ export function ChatShell({
         </span>
       </header>
 
-      <section className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
-        <div className="mx-auto flex w-full max-w-[920px] flex-col gap-5">
+      <section className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex w-full min-w-0 flex-col gap-5">
           {messages.length === 0 ? (
             <EmptyState />
           ) : (
@@ -75,14 +75,13 @@ export function ChatShell({
 
 function EmptyState() {
   return (
-    <div className="mx-auto flex min-h-[52vh] max-w-2xl flex-col justify-center text-center">
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] text-2xl">明</div>
-      <h2 className="mt-5 text-2xl font-semibold text-[var(--text)]">把材料放进来，我先帮你搭框架</h2>
-      <p className="mt-3 text-base leading-[1.65] text-[var(--muted)]">
-        粘贴 CSAPP 或数据结构材料后，我会先输出总结、框架、5 个核心概念和可继续选择的学习路径。PPTX 和图片可以作为附件标记，但当前版本不解析内容。
+    <div className="mx-auto flex min-h-[52vh] w-full max-w-5xl flex-col justify-center text-center">
+      <p className="font-serif-display text-5xl italic text-[var(--text)] md:text-6xl">What shall we structure today?</p>
+      <p className="mx-auto mt-4 max-w-3xl text-base leading-[1.65] text-[var(--muted)]">
+        粘贴 CSAPP 或数据结构材料，明序会先搭框架，再通过追问、反馈和本地记忆形成学习闭环。PPTX 和图片只作为附件 metadata，不解析内容。
       </p>
-      <div className="mt-6 grid gap-3 text-left sm:grid-cols-3">
-        {['长文本先总结', '先框架后细节', '可连续追问'].map((item) => (
+      <div className="mt-7 grid gap-3 text-left sm:grid-cols-3">
+        {['默认知识解析', 'Context Stacking', '费曼反讲'].map((item) => (
           <div key={item} className="rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] p-4 text-sm text-[var(--muted)]">
             {item}
           </div>

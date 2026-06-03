@@ -36,12 +36,12 @@ export function ChatComposer({
   }
 
   return (
-    <form className="border-t border-[var(--border)] bg-[var(--panel)]/95 px-4 py-4 backdrop-blur" onSubmit={handleSubmit}>
-      <div className="mx-auto w-full max-w-[920px]">
+    <form className="border-t border-[var(--border)] bg-[var(--panel)]/95 px-6 py-4 backdrop-blur" onSubmit={handleSubmit}>
+      <div className="mx-auto w-full max-w-6xl">
         {attachments.length > 0 && (
           <div className="mb-3">
             <AttachmentChips attachments={attachments} onRemove={onRemoveAttachment} />
-            <p className="mt-2 text-xs text-slate-500">PPTX 和图片已附加，当前版本暂不解析内容。</p>
+            <p className="mt-2 text-xs text-slate-500">PPTX 和图片已附加，当前版本只保存 metadata，不解析内容。</p>
           </div>
         )}
 
@@ -63,10 +63,10 @@ export function ChatComposer({
           </div>
         )}
 
-        <div className="flex min-w-0 items-end gap-3 rounded-[26px] border border-[var(--border)] bg-[var(--panel-strong)] p-2 shadow-2xl shadow-black/10 focus-within:border-teal-300/50">
+        <div className="flex min-w-0 items-end gap-3 rounded-[28px] border border-[var(--border)] bg-[var(--panel-strong)] p-2 shadow-2xl shadow-black/10 focus-within:border-teal-300/50">
           <input ref={fileInputRef} className="hidden" type="file" multiple accept={ACCEPTED_ATTACHMENTS} onChange={handleFiles} />
           <button
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 text-xl text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/10 text-xl text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
             type="button"
             onClick={() => fileInputRef.current?.click()}
             aria-label="添加附件"
@@ -76,15 +76,15 @@ export function ChatComposer({
             +
           </button>
           <textarea
-            className="max-h-48 min-h-[52px] flex-1 resize-none bg-transparent px-1 py-3 text-base leading-[1.55] text-[var(--text)] outline-none placeholder:text-[var(--subtle)]"
+            className="max-h-56 min-h-[58px] flex-1 resize-none bg-transparent px-1 py-3.5 text-base leading-[1.55] text-[var(--text)] outline-none placeholder:text-[var(--subtle)]"
             value={value}
             onChange={(event) => onChange(event.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={pendingInteraction ? '请在这里写下你的回答，我会进行评价和指正...' : '粘贴课程材料、代码片段，或直接提问...'}
+            placeholder={pendingInteraction ? '在这里写下你的回答，我会进行评价和纠偏...' : '粘贴课程材料、代码片段，或直接提问...'}
             disabled={disabled}
           />
           <button
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-lg font-semibold text-[#111418] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-lg font-semibold text-[#111418] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
             type="submit"
             disabled={disabled}
             aria-label="发送"
@@ -108,7 +108,7 @@ function getInteractionLabel(interaction) {
     return '费曼反讲纠错';
   }
   if (interaction.mode === 'context_stacking') {
-    return 'Context Stacking 预习校正';
+    return 'Context Stacking 预习生成';
   }
   return '互动自测';
 }

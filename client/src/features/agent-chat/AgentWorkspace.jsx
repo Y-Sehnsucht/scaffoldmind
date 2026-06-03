@@ -33,11 +33,12 @@ const MODES = [
 ];
 
 export function AgentWorkspace() {
+  const initialConversation = useMemo(() => findInitialConversation(), []);
   const [conversations, setConversations] = useState(() => loadConversations());
-  const [activeConversationId, setActiveConversationId] = useState(() => loadConversations()[0]?.id || createId('conversation'));
-  const [subject, setSubject] = useState('CSAPP');
-  const [mode, setMode] = useState('default');
-  const [messages, setMessages] = useState(() => loadConversations()[0]?.messages || []);
+  const [activeConversationId, setActiveConversationId] = useState(() => initialConversation?.id || createId('conversation'));
+  const [subject, setSubject] = useState(initialConversation?.subject || 'CSAPP');
+  const [mode, setMode] = useState(initialConversation?.mode || readInitialMode() || 'default');
+  const [messages, setMessages] = useState(() => initialConversation?.messages || []);
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -342,44 +343,90 @@ export function AgentWorkspace() {
   }
 
   return (
-    <div className="flex h-screen min-h-screen flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)]">
-      <div className="fixed right-5 top-5 z-30">
-        <AnimatedThemeToggle />
-      </div>
-      <div className="mx-auto grid min-h-0 w-full max-w-[1600px] flex-1 gap-4 p-4 lg:grid-cols-[clamp(220px,18vw,300px)_minmax(0,1fr)_clamp(220px,20vw,320px)]">
+    <div className="h-full w-full overflow-hidden bg-[var(--bg)] text-[var(--text)]">
+      <div className="flex h-full w-full gap-6 p-6">
+        <div className="hidden w-72 shrink-0 xl:flex">
+          <ConversationHistory
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            learnerProfile={buildLearnerProfileSummary(learnerProfile)}
+            onSelect={handleSelectConversation}
+            onClear={handleClearConversations}
+          />
+        </div>
+
+        <section className="flex min-w-0 flex-1 flex-col gap-4">
+          <ModeBar
+            subject={subject}
+            mode={mode}
+            isStreaming={isStreaming}
+            onSubjectChange={setSubject}
+            onModeChange={handleModeChange}
+          />
+          <ChatShell
+            messages={messages}
+            input={input}
+            attachments={attachments}
+            isStreaming={isStreaming}
+            status={status}
+            errorMessage={errorMessage}
+            pendingInteraction={pendingInteraction}
+            modeSwitchNotice={modeSwitchNotice}
+            feedbackByMessage={feedbackByMessage}
+            interactiveOptions={interactiveOptions}
+            onInputChange={setInput}
+            onAddAttachments={handleAddAttachments}
+            onRemoveAttachment={handleRemoveAttachment}
+            onSend={() => handleSend()}
+            onCopyMessage={handleCopyMessage}
+            onFeedback={handleFeedback}
+            onOptionSelect={handleOptionSelect}
+          />
+        </section>
+
         <SettingsSidebar
           subject={subject}
           mode={mode}
           onSubjectChange={setSubject}
           onModeChange={handleModeChange}
         />
-        <ChatShell
-          messages={messages}
-          input={input}
-          attachments={attachments}
-          isStreaming={isStreaming}
-          status={status}
-          errorMessage={errorMessage}
-          pendingInteraction={pendingInteraction}
-          modeSwitchNotice={modeSwitchNotice}
-          feedbackByMessage={feedbackByMessage}
-          interactiveOptions={interactiveOptions}
-          onInputChange={setInput}
-          onAddAttachments={handleAddAttachments}
-          onRemoveAttachment={handleRemoveAttachment}
-          onSend={() => handleSend()}
-          onCopyMessage={handleCopyMessage}
-          onFeedback={handleFeedback}
-          onOptionSelect={handleOptionSelect}
-        />
-        <ConversationHistory
-          conversations={conversations}
-          activeConversationId={activeConversationId}
-          learnerProfile={buildLearnerProfileSummary(learnerProfile)}
-          onSelect={handleSelectConversation}
-          onClear={handleClearConversations}
-        />
       </div>
+    </div>
+  );
+}
+
+function ModeBar({ subject, mode, isStreaming, onSubjectChange, onModeChange }) {
+  return (
+    <div className="mx-auto flex w-fit max-w-full shrink-0 items-center gap-2 overflow-x-auto rounded-full border border-[var(--border)] bg-[var(--panel)]/88 p-1 shadow-lg shadow-black/10 backdrop-blur">
+      <select
+        className="h-10 shrink-0 rounded-full border border-transparent bg-[var(--panel-soft)] px-3 text-sm text-[var(--text)] outline-none"
+        value={subject}
+        onChange={(event) => onSubjectChange(event.target.value)}
+        disabled={isStreaming}
+        aria-label="选择学科"
+      >
+        {SUBJECTS.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label}
+          </option>
+        ))}
+      </select>
+      {MODES.map((item) => (
+        <button
+          key={item.id}
+          className={`h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm transition ${
+            item.id === mode
+              ? 'bg-[var(--text)] text-[var(--bg)]'
+              : 'text-[var(--muted)] hover:bg-[var(--panel-soft)] hover:text-[var(--text)]'
+          }`}
+          type="button"
+          disabled={isStreaming}
+          onClick={() => onModeChange(item.id)}
+          title={item.hint}
+        >
+          {item.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -393,7 +440,7 @@ function SettingsSidebar({
   const currentMode = MODES.find((item) => item.id === mode) || MODES[0];
 
   return (
-    <aside className="hidden min-h-0 flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--panel)] shadow-2xl shadow-black/15 lg:flex">
+    <aside className="hidden min-h-0 w-80 shrink-0 flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--panel)] shadow-2xl shadow-black/15 2xl:flex">
       <div className="border-b border-[var(--border)] px-5 py-4">
         <h2 className="text-base font-semibold text-[var(--text)]">学习设置</h2>
         <p className="mt-1 text-[0.8125rem] text-[var(--subtle)]">左侧只保留轻量配置</p>
@@ -632,6 +679,21 @@ function createId(prefix) {
 function inferFileType(name) {
   const extension = String(name || '').split('.').pop()?.toLowerCase();
   return extension ? `file/${extension}` : 'unknown';
+}
+
+function findInitialConversation() {
+  const conversations = loadConversations();
+  const conversationId = typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('conversationId');
+  return conversations.find((conversation) => conversation.id === conversationId) || conversations[0] || null;
+}
+
+function readInitialMode() {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  return ['default', 'context_stacking', 'feynman'].includes(mode) ? mode : '';
 }
 
 function buildFeedbackMap(events) {

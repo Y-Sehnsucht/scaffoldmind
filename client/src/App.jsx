@@ -1,5 +1,5 @@
-import { AgentWorkspace } from './features/agent-chat/AgentWorkspace.jsx';
+import { AppRoutes } from './routes/AppRoutes.jsx';
 
 export default function App() {
-  return <AgentWorkspace />;
+  return <AppRoutes />;
 }

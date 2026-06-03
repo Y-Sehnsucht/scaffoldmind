@@ -380,7 +380,7 @@ function normalizeDiagnosis(value, input) {
 
   return {
     errorType: normalized.errorType || '理解不完整',
-    quotedIssue: normalized.quotedIssue || input.userAttempt || '',
+    quotedIssue: input.userAttempt || normalized.quotedIssue || '',
     whatIsCorrect: normalized.whatIsCorrect || '',
     mainProblem: normalized.mainProblem || '',
     whyItMatters: normalized.whyItMatters || '',

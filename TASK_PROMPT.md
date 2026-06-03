@@ -1,552 +1,353 @@
-你正在修改我本地的 scaffoldmind 项目工作区。当前项目已经有 AgentWorkspace 主路径：中间主导式 AI 学习智能体、附件 metadata、流式输出、交互选项、旧 StudyWorkspace 保留。现在请在此基础上继续添加一组新功能。
+你正在修改我本地的 scaffoldmind 项目工作区。当前项目已经有多页面第一轮实现，但 UI 不符合预期。现在只执行“前端止损重构阶段 A”，不要继续做 practice/review/settings 后端，不要做文档更新，不要新增复杂功能。
 
-请开启目标模式长期执行，但必须严格遵守本 prompt。不要擅自扩展需求，不要重写整个项目，不要引入大型依赖，不要删除旧 StudyWorkspace，不要破坏当前已通过的 build/test。
+【当前问题】
+
+1. /landing 落地页太粗糙，没有严格继承我提供的 RECREATION PROMPT 原生设计。
+2. /chat 主学习页被改窄，两边空隙过大，失去了原本 ChatGPT / Gemini / NotebookLM 式宽阔主输入输出体验。
+3. AppShell 侧边栏挤压主工作区。
+4. Home / History / Profile 当前可以暂时保留，但不要继续扩展功能。
+5. Codex 不要自行发挥审美，必须严格按 Gemini 最新前端蓝图落地。
 
 【最高优先级】
 
-本轮目标是：在 2 小时内高质量实现以下功能，并保证产品可执行、无报错、能正确讲解知识、主布局不被扰乱。
+本轮只做三件事：
 
-必须实现：
+1. 重构 AppShell：
+   - 左侧导航栏固定 64px 宽度。
+   - hover 时浮动展开到 256px。
+   - 展开时绝对定位或 fixed overlay，不得推挤右侧主内容。
+   - 主内容区始终 `pl-16 w-full h-full overflow-hidden`。
+   - 不允许 AppShell 导致 /chat 变窄。
 
-1. 每段 AI 输出后添加交互图标：
-   - 复制
-   - 点赞 thumbs up
-   - 点踩 thumbs down
-   - 鼠标 hover 复制图标显示 tooltip：“复制”
-   - 鼠标 hover 点赞图标显示 tooltip：“很棒”
-   - 鼠标 hover 点踩图标显示 tooltip：“欠佳”
-   - 点击复制图标复制该段 AI 输出内容
-   - 点击点赞 / 点踩后记录反馈，用于智能体自我优化
-   - 图标必须轻量、精致，不要破坏消息区域布局
+2. 重做 /landing：
+   - 严格继承 RECREATION PROMPT 原生视觉结构。
+   - 使用 bg-black、全屏 Hero、背景视频、liquid-glass、Instrument Serif、大标题、视频 section、哲学 section、服务卡片 section。
+   - 文案全部改成 ScaffoldMind 明序，不得照搬 Asme、Know it then all、About Us、Pricing、Login、Sign Up。
+   - 落地页可以强视觉，应用页不要被落地页黑色视频背景污染。
+   - 如果外链视频加载失败，必须有黑色/渐变 fallback，不白屏。
 
-2. 自我优化和迭代：
-   - 通过用户点击“很棒 / 欠佳”
-   - 用户输入中的显式评价语言
-   - 用户对同一问题反复追问次数
-   - 用户常选择的交互选项
-   - 用户常问的知识方向
-   来构建轻量用户画像，并优化后续回答方式。
-   不要做复杂推荐系统，不要做向量数据库，不要做 RAG。
-   但功能必须完整闭环：
-   用户行为 → 本地/后端记录 → 画像 summary → 下次 prompt 注入 → 回答风格优化。
+3. 修复 /chat：
+   - /chat 必须恢复宽阔主学习页。
+   - 不允许使用 `max-w-4xl`、`max-w-[920px]` 或类似限制导致主区变窄。
+   - AppShell 不得挤压 /chat。
+   - 大屏下主 workspace 接近满宽，只保留 24px-32px 舒适边距。
+   - 中间对话主通道使用 `flex-1 min-w-0`。
+   - 左侧历史栏只在 xl 及以上显示，宽度约 `w-72 shrink-0 hidden xl:flex`。
+   - 右侧状态栏只在 2xl 及以上显示，宽度约 `w-80 shrink-0 hidden 2xl:flex`。
+   - 125%、150% 缩放时左右栏应优先隐藏，保证中间对话区宽阔。
+   - 输入框使用 `w-full max-w-5xl mx-auto` 或更宽，但不能窄。
+   - 保留所有原功能。
 
-3. 记忆能力：
-   - 记住历史问题
-   - 记住上下文消息
-   - 记住用户反馈
-   - 记住用户画像
-   - 用户重新进入网站后，可以看到之前的学习记录 / 对话记录
-   - 不需要登录，不需要云同步
-   - 优先使用 localStorage + 后端 lightweight JSON storage
-   - 当前项目已有 records/profile 相关能力时优先复用，不要重写数据库层
+【必须保留的功能】
 
-4. 日间模式 / 夜间模式切换：
-   - 参考 Magic UI Animated Theme Toggler 的交互感觉
-   - 不安装 Magic UI 大依赖
-   - 自己实现轻量 AnimatedThemeToggle
-   - 图标置于页面右上方
-   - 支持 light / dark
-   - 使用 document.documentElement.classList 或 data-theme
-   - 保存到 localStorage
-   - 如果浏览器支持 View Transitions API，则用 document.startViewTransition 做动画
-   - 如果不支持，则正常切换，不报错
-   - 切换动画可以用 circle reveal 或简洁淡入淡出
-   - 不要破坏现有布局
+不得破坏：
 
-5. 消除前端 AI 配置界面：
-   - 前端不再展示 AI Provider / API Key / API URL / Model 配置入口
-   - 用户进入网站即可调用 DeepSeek API
-   - 但绝对不能把 API Key 写进前端代码
-   - 正确做法：后端从 server/.env 读取 DEEPSEEK_API_KEY 或 TEXT_GENERATION_API_KEY
-   - 前端只调用本地 Express API
-   - 如果后端缺 key，仍然 fallback，不白屏
-   - 不读取、不打印、不提交 .env
-   - 不修改 .env 内容
-   - 可以更新 .env.example，说明需要 DEEPSEEK_API_KEY，但不要写真实 key
+1. /chat 流式输出。
+2. /api/agent/chat/stream。
+3. 文本输入。
+4. 加号附件按钮。
+5. 附件 metadata chip。
+6. PPT/图片只展示 metadata，不解析。
+7. 模式选择。
+8. Context Stacking 正确行为：主动生成预习路线、前置连接、课堂验证清单、可能考法，不反问用户。
+9. 费曼反讲正确行为：用户先反讲/作答，AI 再评价纠错。
+10. 交互选项。
+11. 复制 / 点赞 / 点踩。
+12. localStorage 记忆。
+13. 用户画像。
+14. 对话历史恢复。
+15. 日夜主题切换。
+16. 前端不显示 API Key 配置入口。
 
-6. 页面字体整体放大和阅读体验优化：
-   - 正文 AI 回复：1rem，约 16px
-   - 用户输入框：1rem，约 16px
-   - 标题：1.25rem - 1.5rem
-   - 辅助文本：0.8125rem - 0.875rem
-   - 代码块：0.875rem
-   - 行高：1.55 - 1.65
-   - 段落间距：0.9rem - 1.1rem
-   - 支持 Markdown 层级：标题、列表、粗体、代码块、引用要清楚
-   - 避免纯黑正文，light 下用深灰，dark 下用柔和浅色
-   - 不要让字体变大后撑爆布局
-   - 输入框、消息区、按钮都要适配
+【严禁】
 
-【技术边界】
+1. 不要读取、打印、修改 .env。
+2. 不要写死 API Key。
+3. 不要恢复前端 AI 配置入口。
+4. 不要调用 /api/parse-ppt。
+5. 不要调用 requestPptParsing。
+6. 不要实现 OCR。
+7. 不要实现 RAG。
+8. 不要实现向量数据库。
+9. 不要实现登录/云同步。
+10. 不要重写后端。
+11. 不要删除旧 StudyWorkspace / InputPanel / AnalysisPanel / 旧 analyze API / 旧 parsePpt API。
+12. 不要继续开发 practice/review/settings 后端。
+13. 不要做文档更新。
 
-不要实现：
-- OCR
-- 完整 PPT 解析
-- 图片文字识别
-- RAG
-- 向量数据库
-- 登录注册
-- 云同步
-- 教师后台
-- 多用户权限
-- 大型推荐系统
-- 大型依赖库
+【需要先审查的文件】
 
-可以实现：
-- localStorage 记忆
-- server/data JSON 轻量存储
-- feedback event log
-- learner profile summary
-- prompt personalization context
-- theme localStorage
-- tooltip
-- clipboard copy
-- basic analytics / repeated-question detection
-
-【开始前必须审查】
-
-先阅读当前本地文件，不要凭记忆修改：
+开始修改前先阅读：
 
 - client/src/App.jsx
+- client/src/app/AppShell.jsx
+- client/src/app/SidebarNav.jsx
+- client/src/routes/AppRoutes.jsx
+- client/src/pages/LandingPage.jsx
+- client/src/pages/ChatPage.jsx
 - client/src/features/agent-chat/AgentWorkspace.jsx
 - client/src/features/agent-chat/ChatShell.jsx
-- client/src/features/agent-chat/ChatMessage.jsx
 - client/src/features/agent-chat/ChatComposer.jsx
-- client/src/features/agent-chat/InteractiveOptions.jsx
-- client/src/features/agent-chat/agentChatApi.js
+- client/src/features/agent-chat/ChatMessage.jsx
+- client/src/features/agent-chat/ConversationHistory.jsx
+- client/src/features/agent-chat/AnimatedThemeToggle.jsx
 - client/src/styles.css
-- client/src/shared/storage/*
-- client/src/shared/api/client.js
-- server/app.js
-- server/routes/agentChat.js
-- server/services/aiService.js
-- server/services/promptBuilder.js
-- server/services/recordStore.js
-- server/routes/records.js
-- server/routes/profile.js
-- server/package.json
 - client/package.json
 
-先确认当前状态：
-1. git status
-2. client build 是否当前通过
-3. server acceptance 是否当前通过
-4. 新 AgentWorkspace 主路径结构
-5. 当前是否存在 AI 配置入口
-6. 当前 messages / records / profile 是如何存储的
+如果实际文件路径略有不同，以本地项目为准。
 
-【推荐实现方案】
+【全局视觉 Token 要求】
 
-一、输出后交互图标
+在 `client/src/styles.css` 或现有全局 CSS 中确认/补齐：
 
-新增或修改：
+1. Instrument Serif 字体导入：
 
-client/src/features/agent-chat/MessageActions.jsx
-client/src/features/agent-chat/ChatMessage.jsx
-client/src/features/agent-chat/feedbackStore.js 或 client/src/shared/storage/feedbackStorage.js
-
-实现：
-- 每条 assistant message 底部显示 action row
-- action row 包含：
-  - Copy icon
-  - ThumbsUp icon
-  - ThumbsDown icon
-- hover tooltip：
-  - 复制
-  - 很棒
-  - 欠佳
-- 点击 copy：
-  - navigator.clipboard.writeText(message.content)
-  - 成功后 tooltip 或状态变为“已复制”
-  - 如果 Clipboard API 不可用，fallback 到 textarea select copy 或显示错误
-- 点击 thumbs up：
-  - 保存 feedback event：rating = "positive"
-  - UI 显示已选状态
-- 点击 thumbs down：
-  - 保存 feedback event：rating = "negative"
-  - UI 显示已选状态
-- 同一条消息允许切换反馈，但最终只保留最后一次 rating
-- feedback event 不要包含 API Key，不要包含敏感环境变量
-
-反馈结构建议：
-
-{
-  id: "feedback_xxx",
-  messageId: "...",
-  conversationId: "...",
-  rating: "positive" | "negative",
-  messageExcerpt: "前 300 字",
-  topic: "...",
-  mode: "default" | "context_stacking" | "feynman",
-  createdAt: "...",
-  reason: "",
-  source: "message_action"
+```css
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+.liquid-glass：
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
 }
 
-二、自我优化与用户画像
-
-新增或修改：
-
-client/src/features/agent-chat/learnerProfile.js
-client/src/shared/storage/learnerMemoryStorage.js
-server/services/agentMemoryStore.js
-server/routes/agentMemory.js 或复用 /api/profile
-
-轻量实现即可，但必须形成闭环。
-
-前端 localStorage 存：
-- conversations
-- messages
-- feedbackEvents
-- repeatedQuestionStats
-- selectedOptionStats
-- learnerProfile
-
-后端 JSON 存：
-server/data/agent-memory.json
-
-如果不想新增 route 太多，可以新增：
-- GET /api/agent/memory
-- POST /api/agent/memory/event
-- POST /api/agent/memory/conversation
-- GET /api/agent/memory/profile
-
-但如果 2 小时内风险太高，可以先以前端 localStorage 为主、后端轻量 route 为辅。必须保证 build/test 通过。
-
-用户画像字段建议：
-
-{
-  totalMessages: number,
-  totalConversations: number,
-  positiveFeedbackCount: number,
-  negativeFeedbackCount: number,
-  preferredModes: [{ mode, count }],
-  frequentTopics: [{ label, count }],
-  weakConceptHints: [{ label, count }],
-  repeatedQuestionPatterns: [{ normalizedQuestion, count }],
-  answerStylePreference: {
-    wantsConcise: boolean,
-    wantsExamples: boolean,
-    wantsExamFocus: boolean,
-    wantsStepByStep: boolean,
-    dislikesTooLong: boolean
-  },
-  lastUpdatedAt: string
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.4) 0%,
+    rgba(255,255,255,0.1) 20%,
+    rgba(255,255,255,0) 40%,
+    rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.1) 80%,
+    rgba(255,255,255,0.4) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
-
-行为来源：
-1. thumbs up/down
-2. 用户文本：
-   - “讲太多了 / 太啰嗦 / 简洁一点” → wantsConcise
-   - “举例 / 例子 / 代码” → wantsExamples
-   - “考试 / 考点 / 易错” → wantsExamFocus
-   - “一步步 / 详细 / 从头讲” → wantsStepByStep
-3. 反复问相似问题：
-   - 对用户 message 做简单 normalize：去标点、转小写、截断
-   - 同一 normalizedQuestion count >= 2，记录 repeatedQuestionPatterns
-4. 交互选项点击：
-   - 记录用户常点哪类选项
-
-   【Memory 实现决策】
-
-本轮记忆能力优先采用前端 localStorage 实现，后端记录作为轻量补充，不强制新增复杂后端 memory 系统。
-
-允许新增轻量后端接口：
-- GET /api/agent/memory
-- POST /api/agent/memory/event
-- POST /api/agent/memory/conversation
-- GET /api/agent/memory/profile
-
-但必须满足以下条件：
-1. 如果新增后端 memory API，必须是轻量 JSON storage，存储在 server/data/agent-memory.json。
-2. 不允许引入数据库、Redis、向量数据库、RAG、云同步或登录系统。
-3. 如果 2 小时内实现后端 memory API 风险较高，则优先完成 localStorage 闭环，后端 memory 只保留可扩展接口或暂不实现。
-4. 记忆功能的最低完成标准是：页面刷新后能从 localStorage 恢复最近对话、反馈记录、用户画像和学习记录。
-5. 后端 memory 是增强项，不得影响主路径可运行、无报错、流式输出和前端体验。
-6. 不允许因为后端 memory 未完成而破坏已有 records/profile API。
-
-三、把用户画像注入 Prompt
-
-修改：
-
-server/routes/agentChat.js
-server/services/promptBuilder.js
-
-请求 /api/agent/chat/stream 时，前端带上 memoryContext 或 learnerProfile summary。
-
-payload 可以增加：
-
-{
-  learnerProfile: {
-    answerStylePreference: {...},
-    frequentTopics: [...],
-    repeatedQuestionPatterns: [...],
-    recentFeedbackSummary: "用户倾向简洁、喜欢考试导向..."
-  }
+.frosted-glass：
+.frosted-glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
 }
+不要使用实体亮蓝、亮绿的大卡片背景。
+不要用传统后台管理系统风格。
+应用页使用克制、低噪、可阅读风格。
+Landing 可以强视觉。
 
-后端 buildAgentChatPrompt(input) 必须加入一段：
+【AppShell 重构要求】
 
-【用户学习画像】
-- 用户偏好：...
-- 最近薄弱点：...
-- 反馈倾向：...
-- 回答优化要求：...
+目标结构：
 
-注意：
-- 画像只能影响回答方式，不能编造用户没提供的事实。
-- 如果画像为空，不要输出画像痕迹。
-- 不要在回答里说“根据你的画像”，除非用户问。
-- 对负反馈的优化原则：
-  - 如果用户常点“欠佳”，回答更具体、更结构化、更少空话。
-  - 如果用户常要求简洁，减少篇幅。
-  - 如果用户常问考试，增加考点/易错提示。
-  - 如果用户反复问同一概念，优先用类比、例题和分步解释。
+<div className="flex h-screen w-screen overflow-hidden bg-[var(--bg)] text-[var(--text-primary)]">
+  <SidebarNav />
+  <main className="h-full w-full flex-1 overflow-hidden pl-16">
+    {children}
+  </main>
+</div>
 
-四、记忆能力
+SidebarNav：
 
-前端必须实现：
-- 保存 conversations 到 localStorage
-- 页面重新进入时加载最近 conversations
-- 左侧或右侧显示“最近学习记录 / 最近对话”
-- 点击历史记录可以恢复 conversation
-- 保持当前中间主布局，不要扰乱大格局
+fixed left-0 top-0 z-50
+h-full
+w-16
+hover:w-64
+transition-all duration-300 ease-in-out
+liquid-glass 或 dark 下深色 glass
+flex flex-col justify-between
+展开时显示文字标签
+收起时只显示图标
+展开时 overlay，不推挤 main
+不得导致 /chat 宽度变化
 
-建议新增：
-client/src/features/agent-chat/ConversationHistory.jsx
+导航项：
 
-功能：
-- 显示最近 10 条 conversation
-- 每条显示标题、模式、时间
-- 点击恢复 messages
-- 提供清空按钮，清空前 window.confirm
-- 标题生成：
-  - 优先第一条用户消息前 24 字
-  - 或 AI 总结标题
-- 每轮消息结束后自动保存
+Landing
+Home
+Chat
+History
+Profile
+Practice
+Review
+Settings
 
-localStorage key 建议：
-- scaffoldmind.agent.conversations
-- scaffoldmind.agent.feedback
-- scaffoldmind.agent.profile
-- scaffoldmind.agent.theme
+但本轮不实现 Practice/Review/Settings 功能，只保持路由入口或占位即可。
 
-五、主题切换
+【/landing 重做要求】
 
-新增：
+严格按以下 section 实现：
 
-client/src/features/agent-chat/AnimatedThemeToggle.jsx
-或 client/src/shared/components/AnimatedThemeToggle.jsx
+SECTION 1 -- HERO
 
-要求：
-- 图标在右上方
-- light/dark 两种
-- localStorage 保存
-- 初始化时：
-  - 优先读取 localStorage
-  - 没有则读取 prefers-color-scheme
-- 切换时：
-  - 如果 document.startViewTransition 存在，使用它
-  - 否则直接切换 class
-- html 或 body 加 .dark / .light / data-theme
-- CSS 用变量：
-  --bg
-  --panel
-  --panel-soft
-  --text
-  --muted
-  --border
-  --accent
-  --assistant-bg
-  --user-bg
-- 不要使用纯黑纯白刺眼配色
-- 不要引入 magicui 依赖
-- 不要破坏 Tailwind 现有样式
+full viewport：min-h-screen relative overflow-hidden flex flex-col bg-black
+背景视频：
+https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a.mp4
+视频属性：muted, autoPlay, playsInline, preload="auto"
+尽量实现淡入淡出；如果实现复杂，至少保证加载失败不白屏。
+顶部导航 liquid-glass pill：
+左侧 Globe icon + "ScaffoldMind"
+中间：Cognition / Scaffolding / Methodology
+右侧：进入系统 / 开始学习
+大标题：
+Know it then <em>all</em>.
+Instrument Serif
+text-7xl md:text-8xl lg:text-9xl
+white / neutral
+副标题：
+“明序：突破无序碎片的认知壁垒。将复杂的长篇材料与零散知识，重构为高度动态的个人思维脚手架。”
+胶囊输入：
+placeholder：“输入你当前正在攻克的复杂课题...”
+右侧白色圆形 ArrowRight 按钮
+点击后跳转 /chat，可把输入作为 initial prompt 或 localStorage draft；如果实现成本高，至少跳转 /chat。
+Manifesto button：
+“阅读明序认知宣言”
 
-六、删除前端 AI 配置界面
+SECTION 2 -- ABOUT
 
-当前前端如果还有 SettingsModal / AI 配置按钮 / provider 输入框：
-- 从新 AgentWorkspace 主路径隐藏或移除入口
-- 不删除旧 StudyWorkspace 里的 SettingsModal 文件
-- 新主路径不允许出现 API Key 输入框
-- 新主路径不允许要求用户配置 provider
-- agentChatApi 只调用后端 /api/agent/chat/stream
-- payload 不再从前端传 apiKey
-- 如果当前代码仍会读取 localStorage aiConfig，请从新主路径移除
-- 后端继续从 env 读取 DeepSeek API Key
-- .env.example 可更新：
-  DEEPSEEK_API_KEY=
-  AI_PROVIDER=deepseek
-  DEEPSEEK_MODEL=deepseek-v4-flash
-  DEEPSEEK_API_URL=https://api.deepseek.com/chat/completions
-- 不写真实 key
+bg-black
+顶部微弱径向渐变
+label：
+THE COGNITIVE SCAFFOLDING
+主标题：
+Pioneering structural frameworks for minds that dismantle, rebuild, and master.
+允许中英混排，但视觉要高级。
 
-【旧 AI 配置保留策略】
+SECTION 3 -- FEATURED VIDEO
 
-新主路径 AgentWorkspace 必须移除 AI 配置入口，不能出现 API Key 输入框、Provider 选择、API URL 输入框或 Model 输入框。
+视频：
+https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260402_054547_9875cfc5-155a-4229-8ec8-b7ba7125cbf8.mp4
+圆角 3xl aspect-video
+左下 liquid-glass 卡片：
+label：METHODOLOGY
+text：
+“我们坚信，被动输入不是学习。明序内置默认知识解析、Context Stacking 超前学习与费曼反讲三大范式，用主动高频交互逼近认知的本质。”
+右下按钮：
+“探索明序核心模式”
 
-但旧 StudyWorkspace 中已有的 SettingsModal、AI 配置组件、aiConfigStorage、旧 AI 配置逻辑可以保持原样，不需要删除。
+SECTION 4 -- PHILOSOPHY
 
-要求：
-1. 旧 StudyWorkspace / SettingsModal / aiConfigStorage 保留，避免破坏旧代码和旧测试。
-2. App.jsx 当前主入口应挂载 AgentWorkspace，因此旧 AI 配置不会作为主路径暴露。
-3. 新 AgentWorkspace 不允许导入或展示 SettingsModal。
-4. 新 AgentWorkspace 不允许从前端读取、保存或发送 apiKey。
-5. 新 AgentWorkspace 只调用后端 /api/agent/chat/stream。
-6. 后端从 server/.env 或环境变量读取 DeepSeek API Key。
-7. 不读取、不打印、不修改 .env。
-8. 不写死、不提交任何真实 API Key。
+标题：
+Evolution x Perspective.
+左侧视频：
+https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4
+右侧两个文本块：
+“每一次长文本的挂载，都是在对知识资产进行重组。明序在底层维护动态记忆流，确保 AI 的每一次追问都精确切中你的盲区。”
+“告别没有记忆的 Chat 机器人。系统根据你的点赞、点踩和作答表现，实时校准输出风格，生成只属于你的知识进化网络。”
 
-七、字号和 Markdown 阅读体验
+SECTION 5 -- SERVICES
 
-修改 client/src/styles.css 和相关组件 className。
+两张视频卡片：
 
-要求：
-- html { font-size: 16px; }
-- AI 正文：text-base / 1rem，line-height 1.6
-- 用户输入框：1rem，line-height 1.5
-- H1/H2：1.25rem - 1.5rem
-- 辅助文本：0.8125rem - 0.875rem
-- 代码块：0.875rem
-- 段落间距：0.9rem - 1.1rem
-- 列表有缩进和间距
-- strong 加粗明显
-- code/pre 有背景块
-- light/dark 下对比度都舒适
-- 不要让按钮、chip、侧栏因为字号变大而挤爆
-- 窄屏输入框字体不低于 16px，避免移动端自动缩放
+Card 1：
 
-八、测试与验收
+video：
+https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4
+tag：CONTEXT STACKING
+title：前置认知连接
+desc：
+“输入未学课程，AI 主动为你生成预习路线图、课堂验证清单与可能考法，实现超前理解。”
 
-必须更新或新增测试，不允许删除旧测试逃避失败。
+Card 2：
 
-前端测试建议：
-client/scripts/verifyAgentChatClient.mjs 增加检查：
-- MessageActions 存在
-- copy/positive/negative feedback storage helper 存在
-- AnimatedThemeToggle 存在
-- ConversationHistory 存在
-- 新 AgentWorkspace 不出现 AI Key 配置入口
-- 新 AgentWorkspace 不调用 parsePpt/requestPptParsing
-- 交互选项仍存在
-- memory/profile helper 存在
+video：
+https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4
+tag：FEYNMAN PARADOX
+title：动态纠错演练
+desc：
+“身份互换，由你对 AI 进行知识讲授。智能体通过多轮交互和文本追问，实时捕获并纠正你的思维偏误。”
 
-后端测试建议：
-server/scripts/verifyAgentChat.mjs 增加检查：
-- /api/agent/chat/stream fallback 仍输出固定结构
-- payload 可接受 learnerProfile
-- promptBuilder 包含用户画像注入逻辑
-- 不要求前端传 apiKey
+【/chat 宽度和布局修复】
 
-必要命令：
-cd server && npm run test:acceptance
-cd client && npm run build
-cd client && npm run test:acceptance
+ChatPage / AgentWorkspace 外层：
 
-如果测试失败：
-- 先修复
-- 不要继续下一阶段
-- 不要删除测试
-- 不要绕过 build
+不得套 max-w-4xl
+不得套 max-w-[920px]
+不得用居中小卡片包住整个 chat
+应使用：
+<div className="h-full w-full overflow-hidden">
+  <div className="flex h-full w-full gap-6 p-6">
+    <aside className="hidden w-72 shrink-0 xl:flex ...">...</aside>
+    <section className="flex min-w-0 flex-1 flex-col ...">...</section>
+    <aside className="hidden w-80 shrink-0 2xl:flex ...">...</aside>
+  </div>
+</div>
 
-【执行阶段】
+中间核心区：
 
-请按以下阶段执行，可以连续长期跑，但每阶段必须汇报修改文件、核心改动、自检命令、自检结果。如果某阶段失败，停止并修复，不要跳过。
+flex min-w-0 flex-1 flex-col
+消息流：flex-1 min-h-0 overflow-y-auto
+输入框：w-full max-w-5xl mx-auto
+如果当前输入框更窄，必须改宽。
+如果当前 AppShell 限制主内容宽度，必须去掉。
 
-阶段 0：审查
-- 阅读相关文件
-- 输出当前风险点
-- 确认是否存在 AI 配置入口
-- 确认当前 memory/record 结构
-- 不改代码
+模式切换栏：
 
-阶段 1：消息操作图标
-- 实现 MessageActions
-- 集成到 ChatMessage
-- 实现复制、点赞、点踩
-- 实现 tooltip
-- 实现 feedback localStorage helper
-- 自检 client build
+移到中间区域顶部
+w-fit mx-auto my-4 p-1 rounded-full
+切换模式时保留现有“需要重新输入”的逻辑
+不得在当前回复内直接切换
 
-阶段 2：记忆与用户画像
-- 实现 conversation 保存 / 恢复
-- 实现 feedbackEvents
-- 实现 learnerProfile 轻量构建
-- 实现 repeated question stats
-- 实现 selected option stats
-- 新增 ConversationHistory
-- 自检 client build
+AI 消息：
 
-阶段 3：Prompt 自我优化闭环
-- 前端请求带 learnerProfile summary
-- 后端 agentChat 接收 learnerProfile
-- promptBuilder 注入用户画像
-- fallback 也遵守更优结构
-- 自检 server acceptance + client build
+不要传统微信气泡感
+AI 回复可以全宽平铺
+左侧微弱竖线区分：
+border-l-2 border-neutral-300 dark:border-neutral-700 pl-6
+用户消息可以居右，max-w-[85%]
 
-阶段 4：主题切换
-- 实现 AnimatedThemeToggle
-- 右上角放置
-- localStorage 保存 theme
-- View Transitions API 可用则动画切换，不可用则普通切换
-- light/dark CSS variables
-- 自检 client build
+空状态：
 
-阶段 5：隐藏前端 AI 配置
-- 新主路径移除 AI 配置入口
-- 前端不传 apiKey
-- 后端从 env 读取 DeepSeek
-- .env.example 只保留空占位
-- 缺 key fallback
-- 自检 server acceptance + client build
+中央显示：
+What shall we structure today?
+Instrument Serif italic
+下方三个胶囊卡片：
+默认知识解析 / Context Stacking / 费曼反讲
 
-阶段 6：字号和阅读体验
-- 全局字号放大
-- Markdown 样式增强
-- 行高、段落、代码块、列表优化
-- light/dark 对比度优化
-- 自检 client build
+【不要处理的内容】
 
-阶段 7：测试补充与最终验收
-- 更新 client/server acceptance
-- 运行：
-  cd server && npm run test:acceptance
-  cd client && npm run build
-  cd client && npm run test:acceptance
-- 搜索确认：
-  新主路径没有 /api/parse-ppt
-  新主路径没有 requestPptParsing
-  新主路径没有 API Key 输入框
-  没有真实 key
-  没有读取/打印 .env
+本轮不要重做 /home /history /profile。
+本轮不要做 /practice /review /settings 后端。
+本轮不要更新 README / docs / CHANGELOG。
+本轮不要 commit。
 
-阶段 8：文档更新
-- 更新 README、docs/API.md、docs/TASKS.md、docs/TEST_PLAN.md、CHANGELOG.md、memory/MEMORY.md
-- 不修改 docs/PRD.md，除非现有项目规范明确要求
-- 输出 git status --short
+【测试要求】
 
-【最终验收标准】
+完成后运行：
 
-1. 每条 AI 回复下方有复制、点赞、点踩图标。
-2. hover 文案分别是：复制、很棒、欠佳。
-3. 复制功能可用。
-4. 点赞/点踩会记录反馈，并有 UI 选中状态。
-5. 用户画像能根据反馈、输入评价、重复提问、选项点击更新。
-6. 后续回答 prompt 能接收用户画像并优化回答方式。
-7. 页面刷新后能看到之前学习记录 / 对话记录。
-8. 可以恢复历史 conversation。
-9. 右上角有日间/夜间切换按钮。
-10. theme 会持久化。
-11. 新主路径没有 AI 配置界面。
-12. 前端不出现 API Key 输入框。
-13. 后端从 env 调用 DeepSeek，缺 key fallback。
-14. 字体明显比之前更舒适，AI 正文约 16px，输入框约 16px。
-15. Markdown 层级清晰。
-16. 现有中间主布局不被扰乱。
-17. PPT/图片仍只作为附件 metadata，不解析。
-18. 不出现 XML 噪声。
-19. client build 通过。
-20. client acceptance 通过。
-21. server acceptance 通过。
-22. 项目可执行、无报错、能正确讲解知识。
+cd client
+npm run build
+npm run test:acceptance
 
+如果你修改了 server 或发现 server 测试相关影响，再运行：
+
+cd server
+npm run test:acceptance
+
+必须检查：
+
+/landing 能打开。
+/landing 视觉接近原生 RECREATION PROMPT。
+/landing 文案属于 ScaffoldMind。
+/chat 不再变窄。
+/chat 主输入框足够宽。
+/chat 原功能全部保留。
+AppShell hover 展开不推挤 /chat。
+新主路径没有 API Key 输入框。
+新主路径没有 /api/parse-ppt 或 requestPptParsing。
+build/test 通过。
+
+现在开始执行。先审查相关文件，然后做最小必要修改。完成后汇报修改文件、测试结果和剩余风险。
