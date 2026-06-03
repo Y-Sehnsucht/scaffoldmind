@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.6.0] - 2026-06-03
+
+### Changed
+
+- 同步最终交付文档到当前多页面结构：`/landing`、`/home`、`/chat`、`/history`、`/profile`、`/practice`、`/review`、`/settings`。
+- 明确 `/chat` 继承现有 AI 学习主路径，保留 SSE 流式输出、模式选择、交互选项、附件 metadata chip、对话历史恢复和 localStorage 记忆。
+- 明确 `/practice` 支持刷题生成、答案评价、错题同知识点强化。
+- 明确 `/review` 支持复习计划生成。
+- 明确 `/settings` 支持本地数据管理、导出、清空和主题切换。
+- 明确前端无 API Key 配置入口，后端通过本地 `server/.env` 使用 DeepSeek 或兼容 provider。
+- 明确 PPT/图片在当前 `/chat` 主路径中只作为附件 metadata，不解析内容。
+- 明确 localStorage 保存任务、倒数日、历史、画像、反馈/交互记忆、刷题统计、错题和主题设置。
+
+### API
+
+- 文档同步 `POST /api/practice/generate`。
+- 文档同步 `POST /api/practice/evaluate`。
+- 文档同步 `POST /api/review/plan`。
+
+### Not Changed
+
+- 未修改 `docs/PRD.md`。
+- 未读取、打印、创建或修改 `.env` / `server/.env`。
+- 未写入真实 API Key。
+- 未修改功能代码或页面 UI。
+- 未实现 OCR、RAG、向量数据库、登录、教师后台或云同步。
+
+### Verified
+
+- 待本次文档更新完成后运行：
+  - `cd server && npm run test:acceptance`
+  - `cd client && npm run build`
+  - `cd client && npm run test:acceptance`
+
 ## [0.5.0] - 2026-06-03
 
 ### Added
@@ -15,29 +49,15 @@
 - 新增 `POST /api/practice/generate`。
 - 新增 `POST /api/practice/evaluate`。
 - 新增 `POST /api/review/plan`。
-- 新增 `server/scripts/verifyPracticeReview.mjs`，并纳入 `server` acceptance 测试。
+- 新增 `server/scripts/verifyPracticeReview.mjs` 并纳入 server acceptance 测试。
 
 ### Changed
 
-- 文档同步到当前多页面结构：`/landing`、`/home`、`/chat`、`/history`、`/profile`、`/practice`、`/review`、`/settings`。
+- 文档同步到多页面结构：`/landing`、`/home`、`/chat`、`/history`、`/profile`、`/practice`、`/review`、`/settings`。
 - 文档明确 `/chat` 仍是现有 AI 学习主路径。
 - 文档明确 PPT/图片在当前主路径中只作为附件 metadata，不解析。
 - 文档明确前端无 API Key、Provider、Model、API URL 配置入口。
 - 文档明确后端通过本地 `.env` 使用 DeepSeek 或兼容 provider。
-
-### Verified
-
-- `cd server && npm run test:acceptance`
-- `cd client && npm run build`
-- `cd client && npm run test:acceptance`
-
-### Not Changed
-
-- 未修改 `docs/PRD.md`。
-- 未读取、打印、创建或修改 `.env` / `server/.env`。
-- 未写入真实 API Key。
-- 未修改 `/landing`、`/home`、`/chat`、`/history`、`/profile` 的 UI。
-- 未实现 OCR、RAG、向量数据库、登录或云同步。
 
 ## [0.4.0] - 2026-06-02
 
@@ -72,4 +92,4 @@
 ### Added
 
 - 建立 PRD 驱动的工程上下文。
-- 初始化 React + Vite + Tailwind 前端和 Node.js Express 后端骨架。
+- 初始化 React + Vite + Tailwind CSS 前端和 Node.js Express 后端骨架。

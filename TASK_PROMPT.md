@@ -1,353 +1,975 @@
-你正在修改我本地的 scaffoldmind 项目工作区。当前项目已经有多页面第一轮实现，但 UI 不符合预期。现在只执行“前端止损重构阶段 A”，不要继续做 practice/review/settings 后端，不要做文档更新，不要新增复杂功能。
+# ScaffoldMind 明序：核心产品质量修复任务
 
-【当前问题】
+你正在修改我本地的 scaffoldmind 项目工作区。
 
-1. /landing 落地页太粗糙，没有严格继承我提供的 RECREATION PROMPT 原生设计。
-2. /chat 主学习页被改窄，两边空隙过大，失去了原本 ChatGPT / Gemini / NotebookLM 式宽阔主输入输出体验。
-3. AppShell 侧边栏挤压主工作区。
-4. Home / History / Profile 当前可以暂时保留，但不要继续扩展功能。
-5. Codex 不要自行发挥审美，必须严格按 Gemini 最新前端蓝图落地。
+当前项目已经是一个多页面 AI 学习系统，包含：
 
-【最高优先级】
+- /landing
+- /home
+- /chat
+- /history
+- /profile
+- /practice
+- /review
+- /settings
 
-本轮只做三件事：
+当前项目已有能力：
 
-1. 重构 AppShell：
-   - 左侧导航栏固定 64px 宽度。
-   - hover 时浮动展开到 256px。
-   - 展开时绝对定位或 fixed overlay，不得推挤右侧主内容。
-   - 主内容区始终 `pl-16 w-full h-full overflow-hidden`。
-   - 不允许 AppShell 导致 /chat 变窄。
+- /api/agent/chat/stream
+- 中间主导式 AI 问答页
+- 流式输出
+- 附件 metadata chip
+- PPT / 图片只展示 metadata，不解析
+- 复制 / 点赞 / 点踩反馈
+- localStorage 记忆
+- 用户画像
+- 日夜主题切换
+- Context Stacking 超前学习模式
+- 费曼反讲模式
+- 多页面路由
+- /practice 刷题页
+- /review 复习计划页
+- /settings 本地设置页
 
-2. 重做 /landing：
-   - 严格继承 RECREATION PROMPT 原生视觉结构。
-   - 使用 bg-black、全屏 Hero、背景视频、liquid-glass、Instrument Serif、大标题、视频 section、哲学 section、服务卡片 section。
-   - 文案全部改成 ScaffoldMind 明序，不得照搬 Asme、Know it then all、About Us、Pricing、Login、Sign Up。
-   - 落地页可以强视觉，应用页不要被落地页黑色视频背景污染。
-   - 如果外链视频加载失败，必须有黑色/渐变 fallback，不白屏。
+本轮任务不是新增页面，而是修复当前产品的核心质量问题，使它从“能跑的 demo”变成“成熟可用的 AI 学习产品”。
 
-3. 修复 /chat：
-   - /chat 必须恢复宽阔主学习页。
-   - 不允许使用 `max-w-4xl`、`max-w-[920px]` 或类似限制导致主区变窄。
-   - AppShell 不得挤压 /chat。
-   - 大屏下主 workspace 接近满宽，只保留 24px-32px 舒适边距。
-   - 中间对话主通道使用 `flex-1 min-w-0`。
-   - 左侧历史栏只在 xl 及以上显示，宽度约 `w-72 shrink-0 hidden xl:flex`。
-   - 右侧状态栏只在 2xl 及以上显示，宽度约 `w-80 shrink-0 hidden 2xl:flex`。
-   - 125%、150% 缩放时左右栏应优先隐藏，保证中间对话区宽阔。
-   - 输入框使用 `w-full max-w-5xl mx-auto` 或更宽，但不能窄。
-   - 保留所有原功能。
+请严格按照本文档执行。不要擅自扩展需求，不要降低输出质量，不要做最小化 demo，不要用“简单 mock”糊弄核心体验。
 
-【必须保留的功能】
+---
+
+## 一、本轮必须解决的核心问题
+
+### 1. 智能体回答质量问题
+
+当前智能体回答过于机械，所有问题都被硬塞进固定结构：
+
+- 总结
+- 框架
+- 5 个核心概念
+- 你可以继续选择
+
+这导致复杂问题没有被完整回答，内容单薄，形式固化。
+
+典型错误示例：
+
+用户问：
+
+“哈希表学习的框架是怎样的？其中 5 个核心概念是什么？他们和上周学的东西有什么关系；如果我要将这门课交给一个完全没基础的人，我需要真正的搞懂哪些东西？”
+
+当前智能体只机械输出：
+
+- 总结
+- 框架
+- 5 个核心概念
+- 你可以继续选择
+
+这是错误的。
+
+正确回答必须根据用户问题动态组织，并完整覆盖用户的所有子问题：
+
+1. 哈希表学习框架是什么；
+2. 5 个核心概念是什么；
+3. 和上周学过的内容有什么关系；
+4. 如果要教给零基础的人，真正必须懂什么。
+
+回答不能只给空泛定义，必须有学习深度、结构关系、例子、旧知识连接、教学抓手。
+
+---
+
+### 2. 模式逻辑问题
+
+默认知识解析、Context Stacking、费曼反讲三种模式必须有明显不同的回答策略。
+
+#### 默认知识解析模式
+
+默认模式不是固定模板模式。
+
+它应该根据用户真实问题动态组织回答结构：
+
+- 如果用户问学习框架，就回答学习框架；
+- 如果用户问多个子问题，就逐一回答每个子问题；
+- 如果用户问和旧知识的关系，就显式连接旧知识；
+- 如果用户问如何教给零基础的人，就讲清教学抓手和底层逻辑；
+- 如果用户问考试，就讲考点、易错点、题型；
+- 如果用户问代码，就讲思想、数据结构、流程、边界情况、代码。
+
+允许有总结，但不能机械固定为“总结 / 框架 / 5 个核心概念 / 你可以继续选择”。
+
+#### Context Stacking 超前学习模式
+
+Context Stacking 的定位是 AI 主动搭建预习脚手架。
+
+它必须主动生成：
+
+- 预习路线；
+- 前置知识连接；
+- 课堂验证清单；
+- 老师可能怎么考；
+- 学习风险点。
+
+它不应该反问用户，不应该要求用户先回答，不应该进入费曼式作答评价流程。
+
+错误行为示例：
+
+- “你先说说你掌握到什么程度”
+- “你认为它和前面哪一章有关”
+- “请你先列出你想验证的问题”
+
+这些在 Context Stacking 中都不应该默认出现。
+
+#### 费曼反讲模式
+
+费曼反讲不是 AI 讲义模式。
+
+费曼模式下不应该输出默认知识解析中的固定结构：
+
+- 总结
+- 框架
+- 5 个核心概念
+- 你可以继续选择
+
+费曼模式的核心流程应该是：
+
+用户先表达 / 反讲 / 作答
+→ AI 评价
+→ AI 找出准确点
+→ AI 找出思维漏洞
+→ AI 指出概念混淆
+→ AI 给出改写建议
+→ AI 提出下一步追问
+→ 结果写入用户画像
+
+如果用户只输入一个主题，AI 应先引导用户用自己的话解释，而不是直接长篇讲解。
+
+---
+
+### 3. 交互选项重复问题
+
+当前有时会出现“你可以继续选择”中的选项重复一遍。
+
+这说明可能存在：
+
+- 后端模型已经输出选项；
+- 前端又拼接 fallback options；
+- 或前端解析 Markdown 时重复渲染。
+
+必须修复。
+
+任何情况下，同一组交互选项不得重复出现。
+
+---
+
+### 4. 日间模式颜色问题
+
+当前很多地方写死了白色文字，例如：
+
+- text-white
+- text-neutral-100
+- bg-black
+
+导致夜间模式可见，但日间模式下看不清，尤其是侧边栏。
+
+必须修复：
+
+- 除 /landing 外，应用内部页面不要大量写死 text-white；
+- 使用 CSS variables 管理 light / dark 颜色；
+- 侧边栏、导航、卡片、按钮、正文、辅助文字在日间和夜间都必须清晰可见；
+- 日间模式不能是单调灰白，要更有设计感、更丰富；
+- 夜间模式保持高级、克制、低噪；
+- /landing 可以保持强黑色视频视觉，不受应用页主题约束污染。
+
+---
+
+### 5. 日历交互问题
+
+当前点击日期后，如果使用弹窗添加事件，不符合需求。
+
+正确行为：
+
+点击日期
+→ 下方“选中日期事件”区域显示该日期事件
+→ 在该区域提供添加、编辑、删除功能
+
+要求：
+
+- 不使用弹窗作为主要事件编辑方式；
+- 有事件的日期要变色并带底色圆圈或小点；
+- 今天、本日事件、选中日期三种状态必须互相独立；
+- 修改其他日期事件时，今天的状态不能变化；
+- 同一天可以有多个事件；
+- 刷新后事件保留；
+- 日期状态在 light / dark 下都可见。
+
+---
+
+### 6. 应用页面宽度问题
+
+除 /landing 外，应用页面应该尽量占满整个页面，像 /chat 修复后的宽阔布局一样。
+
+当前一些页面可能仍然像窄卡片、居中容器或后台模板。
+
+要求：
+
+- /home /history /profile /practice /review /settings 都要更舒展；
+- 不要把整页包进窄的 max-width 容器；
+- 页面外边距保持 24px-32px；
+- 内部文字块可以有阅读宽度控制，但页面整体布局不能窄；
+- 缩放 80%、100%、125%、150% 时保持相对位置和比例；
+- AppShell 不得挤压主内容；
+- /chat 不能再次变窄。
+
+---
+
+### 7. Chat 新会话逻辑问题
+
+Chat 页面需要像 ChatGPT / Gemini 那样组织会话。
+
+正确行为：
+
+1. 用户从导航栏点击进入 /chat：
+   - 默认开启一个新的空对话；
+   - 不自动恢复上一次对话。
+
+2. 用户从 /history 点击某次历史：
+   - 跳转到 /chat?conversationId=xxx；
+   - 恢复对应历史对话；
+   - 自动滚动到底部。
+
+3. 用户在当前对话中输入新问题：
+   - 当前对话继续；
+   - 发送后自动滚动到底部；
+   - streaming 输出时，如果用户没有主动上滑，应持续跟随到底部。
+
+4. 用户从 /review 或 /practice 跳转到 /chat?concept=xxx：
+   - 创建新对话；
+   - 可以把 concept 放进输入草稿或系统提示；
+   - 不恢复旧对话。
+
+5. /chat 左侧栏应该显示：
+   - 当前对话内的历史提问索引；
+   - 点击某个问题可滚动到该问题位置。
+
+6. 全站历史记录仍然放在 /history。
+   - /chat 左侧不是全站历史；
+   - /chat 左侧是当前 conversation 内的问题索引。
+
+---
+
+## 二、必须保留的现有能力
 
 不得破坏：
 
-1. /chat 流式输出。
-2. /api/agent/chat/stream。
-3. 文本输入。
-4. 加号附件按钮。
-5. 附件 metadata chip。
-6. PPT/图片只展示 metadata，不解析。
-7. 模式选择。
-8. Context Stacking 正确行为：主动生成预习路线、前置连接、课堂验证清单、可能考法，不反问用户。
-9. 费曼反讲正确行为：用户先反讲/作答，AI 再评价纠错。
-10. 交互选项。
-11. 复制 / 点赞 / 点踩。
-12. localStorage 记忆。
-13. 用户画像。
-14. 对话历史恢复。
-15. 日夜主题切换。
-16. 前端不显示 API Key 配置入口。
+1. /api/agent/chat/stream；
+2. /chat 流式输出；
+3. 文本输入；
+4. 加号附件按钮；
+5. 附件 metadata chip；
+6. PPT / 图片只展示 metadata，不解析；
+7. 模式选择；
+8. Context Stacking 模式；
+9. 费曼反讲模式；
+10. 交互选项；
+11. 复制 / 点赞 / 点踩；
+12. localStorage 记忆；
+13. 用户画像；
+14. 对话历史恢复；
+15. 日夜主题切换；
+16. /landing /home /history /profile /practice /review /settings 已有页面；
+17. 前端不显示 API Key 配置入口；
+18. 后端通过 .env 或环境变量调用 DeepSeek；
+19. 缺 key 或 provider 失败时 fallback，不白屏；
+20. 旧 StudyWorkspace / InputPanel / AnalysisPanel 文件。
 
-【严禁】
+---
 
-1. 不要读取、打印、修改 .env。
-2. 不要写死 API Key。
-3. 不要恢复前端 AI 配置入口。
-4. 不要调用 /api/parse-ppt。
-5. 不要调用 requestPptParsing。
-6. 不要实现 OCR。
-7. 不要实现 RAG。
-8. 不要实现向量数据库。
-9. 不要实现登录/云同步。
-10. 不要重写后端。
-11. 不要删除旧 StudyWorkspace / InputPanel / AnalysisPanel / 旧 analyze API / 旧 parsePpt API。
-12. 不要继续开发 practice/review/settings 后端。
-13. 不要做文档更新。
+## 三、严禁事项
 
-【需要先审查的文件】
+1. 不读取、不打印、不修改 .env。
+2. 不写死 API Key。
+3. 不提交真实 API Key。
+4. 不恢复前端 AI 配置入口。
+5. 不新增 API Key / Provider / Model / API URL 输入框。
+6. 不调用 /api/parse-ppt。
+7. 不调用 requestPptParsing。
+8. 不实现 OCR。
+9. 不实现完整 PPT 解析。
+10. 不实现图片文字识别。
+11. 不实现 RAG。
+12. 不实现向量数据库。
+13. 不实现登录注册。
+14. 不实现云同步。
+15. 不删除旧 StudyWorkspace / InputPanel / AnalysisPanel / 旧 analyze API / 旧 parsePpt API。
+16. 不做文档更新。
+17. 不 commit。
+18. 不 push。
+19. 不引入大型依赖。
+20. 不为了修 UI 重写整个项目。
 
-开始修改前先阅读：
+---
+
+## 四、执行阶段
+
+本任务使用 Codex goal mode 执行。可以连续执行所有阶段，但必须每阶段自检。若某阶段 build/test 失败，必须先修复，不能跳过。
+
+---
+
+# 阶段 0：审查当前项目状态
+
+开始前先审查，不要直接改代码。
+
+必须阅读：
 
 - client/src/App.jsx
 - client/src/app/AppShell.jsx
 - client/src/app/SidebarNav.jsx
 - client/src/routes/AppRoutes.jsx
-- client/src/pages/LandingPage.jsx
 - client/src/pages/ChatPage.jsx
+- client/src/pages/HomePage.jsx
+- client/src/pages/HistoryPage.jsx
+- client/src/pages/ProfilePage.jsx
+- client/src/pages/PracticePage.jsx
+- client/src/pages/ReviewPage.jsx
+- client/src/pages/SettingsPage.jsx
 - client/src/features/agent-chat/AgentWorkspace.jsx
 - client/src/features/agent-chat/ChatShell.jsx
 - client/src/features/agent-chat/ChatComposer.jsx
 - client/src/features/agent-chat/ChatMessage.jsx
+- client/src/features/agent-chat/InteractiveOptions.jsx
 - client/src/features/agent-chat/ConversationHistory.jsx
-- client/src/features/agent-chat/AnimatedThemeToggle.jsx
+- client/src/features/agent-chat/MessageActions.jsx
+- client/src/shared/storage/agentMemoryStorage.js
+- client/src/shared/storage/homeStorage.js
+- client/src/shared/storage/practiceStorage.js
 - client/src/styles.css
-- client/package.json
+- server/routes/agentChat.js
+- server/services/promptBuilder.js
+- server/services/aiService.js
+- server/scripts/verifyAgentChat.mjs
+- client/scripts/verifyAgentChatClient.mjs
 
-如果实际文件路径略有不同，以本地项目为准。
+审查目标：
 
-【全局视觉 Token 要求】
+1. 当前回答编排逻辑在哪里；
+2. 当前 default / context_stacking / feynman 如何区分；
+3. 当前交互选项是否有重复来源；
+4. 当前 light/dark 颜色 token 如何实现；
+5. 哪些应用页写死了 text-white；
+6. 日历事件交互当前如何实现；
+7. 页面宽度是否存在 max-w 限制；
+8. /chat 当前 conversation 加载逻辑如何实现；
+9. /history 如何恢复对话；
+10. 当前左侧栏显示的是全站历史还是当前对话问题索引。
 
-在 `client/src/styles.css` 或现有全局 CSS 中确认/补齐：
+阶段 0 可以继续进入后续阶段，不需要停止，但如果发现需要大规模重写或会破坏 /chat 主功能，必须停止汇报。
 
-1. Instrument Serif 字体导入：
+---
+
+# 阶段 1：修复智能体回答编排层
+
+目标：让智能体不再机械套固定模板，而是根据用户问题和模式动态回答。
+
+允许修改：
+
+- server/routes/agentChat.js
+- server/services/promptBuilder.js
+- server/services/aiService.js
+- server/scripts/verifyAgentChat.mjs
+- client/src/features/agent-chat/AgentWorkspace.jsx
+- client/src/features/agent-chat/InteractiveOptions.jsx
+- client/scripts/verifyAgentChatClient.mjs
+
+## 1.1 后端新增或完善回答策略
+
+在后端 promptBuilder 中实现清晰的回答策略分流。
+
+至少区分：
+
+- default
+- context_stacking
+- feynman
+- evaluate_interaction_answer
+
+可以新增函数，例如：
+
+- buildAgentChatPrompt(input)
+- buildDefaultLearningPrompt(input)
+- buildContextStackingPrompt(input)
+- buildFeynmanPrompt(input)
+- buildAgentEvaluationPrompt(input)
+
+不要求函数名完全一致，但逻辑必须清晰。
+
+---
+
+## 1.2 default 模式动态回答
+
+default 模式不再强制固定输出：
+
+- 总结
+- 框架
+- 5 个核心概念
+- 你可以继续选择
+
+default 模式必须根据用户问题动态生成结构。
+
+Prompt 必须包含类似要求：
+
+“请先识别用户问题中包含的所有子问题，并确保逐一回答。不要机械套用固定模板。回答结构必须服务于用户问题。”
+
+针对复杂问题，尤其是包含“框架、核心概念、关系、如何教给别人”的问题，应输出类似结构：
+
+- 先给一条学习主线；
+- 一、学习框架；
+- 二、核心概念；
+- 三、与旧知识的关系；
+- 四、如果教给零基础的人，真正要懂什么；
+- 五、下一步学习建议。
+
+必须覆盖每个子问题。
+
+例如 Hash 表问题，回答必须显式包含：
+
+1. 哈希表学习框架；
+2. 5 个核心概念；
+3. 与上周所学内容的关系；
+4. 教给零基础的人必须懂的底层逻辑；
+5. 可选学习路径或下一步建议。
+
+不允许只输出空泛定义。
+
+---
+
+## 1.3 Context Stacking 模式
+
+Context Stacking 必须主动生成：
+
+- 预习路线；
+- 前置知识连接；
+- 课堂验证清单；
+- 老师可能怎么考；
+- 学习风险点。
+
+必须禁止：
+
+- 反问用户；
+- 让用户先回答；
+- 默认进入 pendingInteraction；
+- 使用费曼式评价流程；
+- 输出普通 default 模板。
+
+Prompt 中必须明确：
+
+“你是主动搭建预习脚手架，不要反问用户，不要要求用户先作答。”
+
+---
+
+## 1.4 Feynman 模式
+
+Feynman 模式不应使用 default 的讲义结构。
+
+情况 A：用户只输入主题或问题，没有给出自己的解释。
+
+AI 应输出：
+
+- 邀请用户用自己的话解释；
+- 告诉用户不要背定义；
+- 提示 AI 会从准确点、漏洞、混淆点、改写建议进行评价；
+- 不长篇讲解。
+
+情况 B：用户输入了自己的解释或 pendingInteraction 存在。
+
+AI 应输出：
+
+## 评价
+## 准确点
+## 思维漏洞
+## 概念混淆
+## 如何改写
+## 下一步追问
+
+要求：
+
+- 必须引用或概括用户原话；
+- 不要机械讲完整知识点；
+- 重点在纠正思维漏洞；
+- 评价结果进入用户画像。
+
+---
+
+## 1.5 修复交互选项重复
+
+要求：
+
+1. 如果后端已经输出交互选项，前端不要再重复追加同样的 fallback options。
+2. 如果前端需要 fallback options，必须先去重。
+3. 去重依据可以是 normalize 文本：
+   - 去空格；
+   - 去编号；
+   - 去标点；
+   - 简化大小写。
+4. UI 渲染时同一组选项不得重复出现。
+
+---
+
+## 1.6 提升 fallback 质量
+
+缺 key 或 provider 失败时，也不能退化成单薄模板。
+
+fallback 应根据 mode 生成合理内容：
+
+default fallback：
+- 根据用户问题做动态结构；
+- 对复杂多问题做逐项回答；
+- 不机械套固定四段。
+
+context_stacking fallback：
+- 预习路线；
+- 前置连接；
+- 课堂验证；
+- 可能考法。
+
+feynman fallback：
+- 用户未解释时，引导反讲；
+- 用户已解释时，输出评价结构。
+
+---
+
+## 阶段 1 验收
+
+使用以下问题测试 default 模式：
+
+“哈希表学习的框架是怎样的？其中5个核心概念是什么？他们和上周学的东西有什么关系；如果我要将这门课交给一个完全没基础的人，我需要真正的搞懂哪些东西？”
+
+必须满足：
+
+1. 回答完整覆盖四个子问题；
+2. 不只输出“总结/框架/5概念/选项”；
+3. 内容有深度；
+4. 明确连接旧知识；
+5. 明确讲如何教给零基础的人；
+6. 交互选项不重复。
+
+Context Stacking 测试：
+
+输入缓存或哈希表材料，必须主动生成：
+
+- 预习路线；
+- 前置知识连接；
+- 课堂验证清单；
+- 可能考法。
+
+不得反问用户。
+
+Feynman 测试：
+
+输入“我想用费曼法学习哈希表”，AI 应要求用户先解释，不应输出讲义。
+
+用户输入解释后，AI 应评价、纠错、指出漏洞。
+
+---
+
+# 阶段 2：修复主题颜色系统
+
+目标：日间模式文字全部可见，色彩更丰富、更成熟。
+
+允许修改：
+
+- client/src/styles.css
+- client/src/app/AppShell.jsx
+- client/src/app/SidebarNav.jsx
+- client/src/pages/*.jsx
+- client/src/features/**/*.jsx
+
+要求：
+
+1. 除 /landing 外，应用页不要大量写死 text-white。
+2. 应用页统一使用 CSS variables。
+3. 补齐或重构以下变量：
 
 ```css
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
-.liquid-glass：
-.liquid-glass {
-  background: rgba(255, 255, 255, 0.01);
-  background-blend-mode: luminosity;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: none;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
-  position: relative;
-  overflow: hidden;
+:root {
+  --app-bg: #f7f4ee;
+  --workspace-bg: #fbfaf7;
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --panel-strong: rgba(255, 255, 255, 0.92);
+  --text-primary: #1f2933;
+  --text-secondary: #5f6673;
+  --text-muted: #8a9099;
+  --border-soft: rgba(30, 41, 59, 0.10);
+  --accent: #d97706;
+  --accent-soft: #fff2cc;
+  --accent-blue: #5067ff;
+  --accent-green: #2f9e73;
+  --danger: #dc2626;
 }
 
-.liquid-glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1.4px;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.4) 0%,
-    rgba(255,255,255,0.1) 20%,
-    rgba(255,255,255,0) 40%,
-    rgba(255,255,255,0) 60%,
-    rgba(255,255,255,0.1) 80%,
-    rgba(255,255,255,0.4) 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+.dark {
+  --app-bg: #060709;
+  --workspace-bg: #090a0f;
+  --panel-bg: rgba(17, 19, 26, 0.72);
+  --panel-strong: rgba(17, 19, 26, 0.92);
+  --text-primary: #f5f5f5;
+  --text-secondary: #c7c9d1;
+  --text-muted: #8b909c;
+  --border-soft: rgba(255, 255, 255, 0.10);
+  --accent: #ffc72c;
+  --accent-soft: rgba(255, 199, 44, 0.12);
+  --accent-blue: #8ea2ff;
+  --accent-green: #72d6a5;
+  --danger: #ff6b6b;
 }
-.frosted-glass：
-.frosted-glass {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
-}
-不要使用实体亮蓝、亮绿的大卡片背景。
-不要用传统后台管理系统风格。
-应用页使用克制、低噪、可阅读风格。
-Landing 可以强视觉。
+应用页背景使用：
+bg-[var(--app-bg)]
+text-[var(--text-primary)]
+卡片使用：
+bg-[var(--panel-bg)]
+border-[var(--border-soft)]
+辅助文字使用：
+text-[var(--text-secondary)]
+text-[var(--text-muted)]
+侧边栏必须检查：
+light 模式下图标和文字清楚；
+active 状态明显；
+hover 状态明显；
+不再出现白字白底。
+日间模式颜色要更丰富：
+暖黄用于重点；
+蓝色用于信息；
+绿色用于完成；
+红色用于紧急；
+不要单调灰白。
+不要破坏 landing 的黑色视频视觉。
+阶段 3：修复日历交互
 
-【AppShell 重构要求】
+目标：取消弹窗式事件编辑，改为下方选中日期事件面板。
 
-目标结构：
+允许修改：
 
-<div className="flex h-screen w-screen overflow-hidden bg-[var(--bg)] text-[var(--text-primary)]">
-  <SidebarNav />
-  <main className="h-full w-full flex-1 overflow-hidden pl-16">
-    {children}
-  </main>
-</div>
+client/src/features/home/LearningCalendar.jsx
+client/src/features/home/*
+client/src/shared/storage/homeStorage.js
+client/src/pages/HomePage.jsx
 
-SidebarNav：
+要求：
 
-fixed left-0 top-0 z-50
+点击日期时：
+setSelectedDate(date)
+不弹窗
+下方显示“选中日期事件”面板
+选中日期事件面板包含：
+当前选中日期；
+该日期事件列表；
+添加事件按钮；
+编辑按钮；
+删除按钮；
+取消编辑按钮。
+添加事件：
+在面板内输入标题/备注；
+保存到 localStorage；
+支持同一天多个事件。
+编辑事件：
+在面板内完成；
+不弹窗；
+更新 localStorage。
+删除事件：
+需要确认；
+删除后该日期状态更新。
+日期视觉状态独立：
+today：今天；
+selectedDate：当前选中日期；
+eventDate：有事件日期。
+视觉规则：
+today：使用 accent 描边圆圈；
+selectedDate：使用 accent-blue 或深色实心圆；
+eventDate：使用 accent-soft 底色或小圆点；
+today + event：描边 + 小点；
+selected + event：选中底色 + 小点。
+修改其他日期事件时，today 态不能变化。
+light / dark 下都要可见。
+阶段 4：修复应用页面宽度
+
+目标：所有应用页都像成熟产品一样舒展，不是窄卡片。
+
+允许修改：
+
+client/src/app/AppShell.jsx
+client/src/pages/HomePage.jsx
+client/src/pages/HistoryPage.jsx
+client/src/pages/ProfilePage.jsx
+client/src/pages/PracticePage.jsx
+client/src/pages/ReviewPage.jsx
+client/src/pages/SettingsPage.jsx
+client/src/styles.css
+
+要求：
+
+AppShell 主内容：
 h-full
-w-16
-hover:w-64
-transition-all duration-300 ease-in-out
-liquid-glass 或 dark 下深色 glass
-flex flex-col justify-between
-展开时显示文字标签
-收起时只显示图标
-展开时 overlay，不推挤 main
-不得导致 /chat 宽度变化
+w-full
+flex-1
+overflow-hidden
+pl-16
+应用页根容器：
+h-full
+w-full
+overflow-hidden 或 overflow-y-auto
+p-6 或 px-6 py-6
+不要整体 max-w 居中
+不允许用以下结构包住整个页面：
+max-w-4xl mx-auto
+max-w-5xl mx-auto
+max-w-6xl mx-auto
+max-w-[920px]
+max-w-[1200px] 作为整页外壳
+可以在内部文字区域使用阅读宽度，但不能限制整个页面布局。
+/home /history /profile /practice /review /settings 都要更宽阔。
+缩放 80%、100%、125%、150%：
+不重叠；
+不横向溢出；
+侧栏不挤压；
+页面主要内容仍可用。
+不破坏 /chat 宽阔布局。
+阶段 5：修复 Chat 新会话与历史逻辑
 
-导航项：
+目标：让 /chat 像 ChatGPT / Gemini 一样管理新会话和历史恢复。
 
-Landing
-Home
-Chat
-History
-Profile
-Practice
-Review
-Settings
+允许修改：
 
-但本轮不实现 Practice/Review/Settings 功能，只保持路由入口或占位即可。
+client/src/pages/ChatPage.jsx
+client/src/features/agent-chat/AgentWorkspace.jsx
+client/src/features/agent-chat/ConversationHistory.jsx
+client/src/features/agent-chat/ChatShell.jsx
+client/src/shared/storage/agentMemoryStorage.js
+client/src/routes/AppRoutes.jsx
+client/src/app/SidebarNav.jsx
 
-【/landing 重做要求】
+要求：
 
-严格按以下 section 实现：
+5.1 导航进入 /chat 创建新会话
 
-SECTION 1 -- HERO
+当用户从 AppShell/SidebarNav 点击 Chat 导航进入 /chat 时：
 
-full viewport：min-h-screen relative overflow-hidden flex flex-col bg-black
-背景视频：
-https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a.mp4
-视频属性：muted, autoPlay, playsInline, preload="auto"
-尽量实现淡入淡出；如果实现复杂，至少保证加载失败不白屏。
-顶部导航 liquid-glass pill：
-左侧 Globe icon + "ScaffoldMind"
-中间：Cognition / Scaffolding / Methodology
-右侧：进入系统 / 开始学习
-大标题：
-Know it then <em>all</em>.
-Instrument Serif
-text-7xl md:text-8xl lg:text-9xl
-white / neutral
-副标题：
-“明序：突破无序碎片的认知壁垒。将复杂的长篇材料与零散知识，重构为高度动态的个人思维脚手架。”
-胶囊输入：
-placeholder：“输入你当前正在攻克的复杂课题...”
-右侧白色圆形 ArrowRight 按钮
-点击后跳转 /chat，可把输入作为 initial prompt 或 localStorage draft；如果实现成本高，至少跳转 /chat。
-Manifesto button：
-“阅读明序认知宣言”
+URL 没有 conversationId；
+应创建新的空 conversation；
+不自动恢复最近会话；
+输入框为空；
+消息区为空；
+显示空状态。
 
-SECTION 2 -- ABOUT
+如果当前已有未保存草稿，可以保留为 draft，但不能自动恢复旧对话。
 
-bg-black
-顶部微弱径向渐变
-label：
-THE COGNITIVE SCAFFOLDING
-主标题：
-Pioneering structural frameworks for minds that dismantle, rebuild, and master.
-允许中英混排，但视觉要高级。
+5.2 从 /history 恢复历史
 
-SECTION 3 -- FEATURED VIDEO
+当用户从 /history 点击某条历史：
 
-视频：
-https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260402_054547_9875cfc5-155a-4229-8ec8-b7ba7125cbf8.mp4
-圆角 3xl aspect-video
-左下 liquid-glass 卡片：
-label：METHODOLOGY
-text：
-“我们坚信，被动输入不是学习。明序内置默认知识解析、Context Stacking 超前学习与费曼反讲三大范式，用主动高频交互逼近认知的本质。”
-右下按钮：
-“探索明序核心模式”
+跳转到 /chat?conversationId=xxx；
+AgentWorkspace 加载该 conversation；
+消息恢复；
+自动滚动到底部。
+5.3 从 /review 或 /practice 跳转
 
-SECTION 4 -- PHILOSOPHY
+当 URL 是：
 
-标题：
-Evolution x Perspective.
-左侧视频：
-https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4
-右侧两个文本块：
-“每一次长文本的挂载，都是在对知识资产进行重组。明序在底层维护动态记忆流，确保 AI 的每一次追问都精确切中你的盲区。”
-“告别没有记忆的 Chat 机器人。系统根据你的点赞、点踩和作答表现，实时校准输出风格，生成只属于你的知识进化网络。”
+/chat?concept=xxx
 
-SECTION 5 -- SERVICES
+行为：
 
-两张视频卡片：
+创建新 conversation；
+可以把 concept 放入输入草稿；
+或显示提示“将围绕 xxx 开始新学习”；
+不恢复旧对话。
+5.4 发送消息后自动滚动
 
-Card 1：
+当用户发送消息：
 
-video：
-https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4
-tag：CONTEXT STACKING
-title：前置认知连接
-desc：
-“输入未学课程，AI 主动为你生成预习路线图、课堂验证清单与可能考法，实现超前理解。”
+立即滚动到底部；
+assistant streaming 时，如果用户没有主动上滑，持续跟随到底部；
+streaming 结束后确保在底部。
 
-Card 2：
+实现建议：
 
-video：
-https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_151826_c7218672-6e92-402c-9e45-f1e0f454bdc4.mp4
-tag：FEYNMAN PARADOX
-title：动态纠错演练
-desc：
-“身份互换，由你对 AI 进行知识讲授。智能体通过多轮交互和文本追问，实时捕获并纠正你的思维偏误。”
+messagesEndRef；
+scrollToBottom；
+isUserNearBottom；
+requestAnimationFrame；
+onMessagesChange；
+onStreamingDelta。
+5.5 历史对话加载后自动滚动
 
-【/chat 宽度和布局修复】
+conversationId 变化并成功加载后：
 
-ChatPage / AgentWorkspace 外层：
+scrollToBottom；
+保证最后一条消息可见。
+5.6 /chat 左侧栏改为当前对话问题索引
 
-不得套 max-w-4xl
-不得套 max-w-[920px]
-不得用居中小卡片包住整个 chat
-应使用：
-<div className="h-full w-full overflow-hidden">
-  <div className="flex h-full w-full gap-6 p-6">
-    <aside className="hidden w-72 shrink-0 xl:flex ...">...</aside>
-    <section className="flex min-w-0 flex-1 flex-col ...">...</section>
-    <aside className="hidden w-80 shrink-0 2xl:flex ...">...</aside>
-  </div>
-</div>
+当前 /chat 左侧栏不应显示全站历史列表。
 
-中间核心区：
+它应该显示当前 conversation 内用户问过的问题索引：
 
-flex min-w-0 flex-1 flex-col
-消息流：flex-1 min-h-0 overflow-y-auto
-输入框：w-full max-w-5xl mx-auto
-如果当前输入框更窄，必须改宽。
-如果当前 AppShell 限制主内容宽度，必须去掉。
+按消息顺序列出 user messages；
+每项显示问题前 30-40 字；
+点击后滚动到对应 user message；
+当前滚动区域附近的问题可高亮；
+如果当前对话为空，显示空状态。
 
-模式切换栏：
+全站历史仍然在 /history 页面。
 
-移到中间区域顶部
-w-fit mx-auto my-4 p-1 rounded-full
-切换模式时保留现有“需要重新输入”的逻辑
-不得在当前回复内直接切换
+5.7 Conversation 保存规则
+用户第一次发送消息后创建 conversation title；
+title 优先使用第一条 user message 前 24-32 字；
+每次消息更新后保存到 localStorage；
+/history 可看到；
+feedback、用户画像逻辑不破坏。
+阶段 6：测试补充与回归检查
 
-AI 消息：
+必须更新或补充测试。
 
-不要传统微信气泡感
-AI 回复可以全宽平铺
-左侧微弱竖线区分：
-border-l-2 border-neutral-300 dark:border-neutral-700 pl-6
-用户消息可以居右，max-w-[85%]
+允许修改：
 
-空状态：
+client/scripts/verifyAgentChatClient.mjs
+client/scripts/verifyMultiPageShell.mjs
+server/scripts/verifyAgentChat.mjs
+server/package.json
+client/package.json
 
-中央显示：
-What shall we structure today?
-Instrument Serif italic
-下方三个胶囊卡片：
-默认知识解析 / Context Stacking / 费曼反讲
+测试必须覆盖：
 
-【不要处理的内容】
+default prompt 不再机械固定模板；
+context_stacking prompt 包含主动预习路线、前置连接、课堂验证、可能考法、不反问；
+feynman prompt 不输出 default 讲义结构；
+evaluation prompt 包含评价结构；
+交互选项去重逻辑存在；
+新主路径没有 API Key 输入框；
+新主路径没有 /api/parse-ppt；
+新主路径没有 requestPptParsing；
+应用页没有大量 text-white 固定导致 light 模式不可读；
+/chat 新会话逻辑存在；
+/chat 支持 conversationId 恢复；
+/chat 当前对话问题索引存在；
+日历使用 selected date panel，而非 modal；
+practice/review/settings 现有测试继续通过。
 
-本轮不要重做 /home /history /profile。
-本轮不要做 /practice /review /settings 后端。
-本轮不要更新 README / docs / CHANGELOG。
-本轮不要 commit。
+最终必须运行：
 
-【测试要求】
-
-完成后运行：
-
+cd server
+npm run test:acceptance
 cd client
 npm run build
 npm run test:acceptance
 
-如果你修改了 server 或发现 server 测试相关影响，再运行：
+如果失败，必须修复，不能跳过。
 
-cd server
-npm run test:acceptance
+五、手动验收标准
 
-必须检查：
+完成后，以下手动验收必须成立。
 
-/landing 能打开。
-/landing 视觉接近原生 RECREATION PROMPT。
-/landing 文案属于 ScaffoldMind。
-/chat 不再变窄。
-/chat 主输入框足够宽。
-/chat 原功能全部保留。
-AppShell hover 展开不推挤 /chat。
-新主路径没有 API Key 输入框。
-新主路径没有 /api/parse-ppt 或 requestPptParsing。
-build/test 通过。
+1. 智能体回答质量
 
-现在开始执行。先审查相关文件，然后做最小必要修改。完成后汇报修改文件、测试结果和剩余风险。
+输入：
+
+“哈希表学习的框架是怎样的？其中5个核心概念是什么？他们和上周学的东西有什么关系；如果我要将这门课交给一个完全没基础的人，我需要真正的搞懂哪些东西？”
+
+期望：
+
+回答完整覆盖四个子问题；
+不机械套固定四段；
+有学习框架；
+有 5 个核心概念；
+明确讲与上周知识关系；
+明确讲如何教给零基础的人；
+内容有深度；
+交互选项不重复。
+2. Context Stacking
+
+输入缓存或哈希表材料。
+
+期望：
+
+主动生成预习路线；
+主动生成前置知识连接；
+主动生成课堂验证清单；
+主动生成可能考法；
+不反问用户；
+不要求用户先回答。
+3. Feynman
+
+输入：
+
+“我想用费曼法学习哈希表。”
+
+期望：
+
+AI 要求用户先用自己的话解释；
+不输出普通讲义。
+
+用户输入一段解释后：
+
+AI 输出评价；
+指出准确点；
+指出思维漏洞；
+指出概念混淆；
+给出改写建议；
+给出下一步追问。
+4. 日间模式
+切换 light 模式；
+侧边栏文字清晰；
+应用页文字清晰；
+卡片、按钮、active nav 状态清楚；
+日间模式颜色不单调；
+夜间模式仍正常。
+5. 日历
+点击日期后，下方出现选中日期事件面板；
+添加事件可用；
+编辑事件可用；
+删除事件可用；
+有事件日期高亮；
+今天状态独立；
+选中状态独立；
+刷新后事件保留。
+6. 页面宽度
+/home /history /profile /practice /review /settings 都舒展；
+不像窄卡片；
+125%、150% 缩放下不崩；
+/chat 仍宽阔。
+7. Chat 新会话
+点击导航 Chat，进入新的空对话；
+从 History 点击历史，恢复对应对话；
+输入新问题后滚动到底部；
+恢复历史后滚动到底部；
+左侧显示当前对话内问题索引；
+点击问题索引能跳转；
+全站历史仍在 /history。
+六、完成后汇报格式
+
+完成后必须汇报：
+
+修改文件列表；
+是否修改后端；
+回答编排层如何修复；
+default 模式如何动态回答；
+Context Stacking 如何保证不反问；
+Feynman 如何改成评价纠错流程；
+交互选项重复如何修复；
+日间模式颜色如何修复；
+日历交互如何修复；
+页面宽度如何修复；
+Chat 新会话逻辑如何实现；
+自动滚动如何实现；
+当前对话问题索引如何实现；
+测试命令和结果；
+是否存在 .env 改动；
+是否存在 API Key 风险；
+剩余风险。
+七、Goal Mode 执行要求
+
+现在开启 goal mode 执行本任务。
+
+你可以连续执行阶段 0 到阶段 6，但必须遵守：
+
+每阶段完成后进行必要自检。
+如果 build/test 失败，先修复，不准跳过。
+如果发现需要大规模重写、破坏 /chat 主功能、或引入大型依赖，必须停止并汇报。
+不要做文档更新。
+不要 commit。
+不要 push。
+完成阶段 6 后停止，等待我手动验收。

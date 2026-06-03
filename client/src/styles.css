@@ -6,43 +6,71 @@
 
 html {
   font-size: 16px;
-  background: var(--bg);
+  background: var(--app-bg);
 }
 
 :root,
-:root[data-theme='dark'] {
-  --bg: #101419;
-  --panel: #15191f;
-  --panel-strong: #1c2128;
-  --panel-soft: rgba(255, 255, 255, 0.04);
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  --subtle: #64748b;
-  --border: rgba(255, 255, 255, 0.1);
-  --accent: #2dd4bf;
-  --assistant-bg: #1c2128;
-  --user-bg: rgba(45, 212, 191, 0.08);
+:root[data-theme='dark'],
+:root.dark,
+.dark {
+  --app-bg: #060709;
+  --workspace-bg: #090a0f;
+  --panel-bg: rgba(17, 19, 26, 0.72);
+  --panel-strong: rgba(22, 25, 34, 0.94);
+  --panel-soft: rgba(255, 255, 255, 0.045);
+  --text-primary: #f5f5f5;
+  --text-secondary: #c7c9d1;
+  --text-muted: #8b909c;
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --accent: #ffc72c;
+  --accent-soft: rgba(255, 199, 44, 0.12);
+  --accent-blue: #8ea2ff;
+  --accent-green: #72d6a5;
+  --danger: #ff6b6b;
+  --assistant-bg: rgba(22, 25, 34, 0.94);
+  --user-bg: rgba(114, 214, 165, 0.1);
+
+  --bg: var(--app-bg);
+  --panel: var(--panel-bg);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --subtle: var(--text-muted);
+  --border: var(--border-soft);
 }
 
-:root[data-theme='light'] {
-  --bg: #f4f7f8;
-  --panel: #ffffff;
-  --panel-strong: #f8fafc;
-  --panel-soft: rgba(15, 23, 42, 0.04);
-  --text: #1f2937;
-  --muted: #526173;
-  --subtle: #718096;
-  --border: rgba(15, 23, 42, 0.12);
-  --accent: #0f9f8f;
-  --assistant-bg: #ffffff;
-  --user-bg: rgba(15, 159, 143, 0.09);
+:root[data-theme='light'],
+:root.light,
+.light {
+  --app-bg: #f7f4ee;
+  --workspace-bg: #fbfaf7;
+  --panel-bg: rgba(255, 255, 255, 0.74);
+  --panel-strong: rgba(255, 255, 255, 0.94);
+  --panel-soft: rgba(30, 41, 59, 0.045);
+  --text-primary: #1f2933;
+  --text-secondary: #5f6673;
+  --text-muted: #8a9099;
+  --border-soft: rgba(30, 41, 59, 0.1);
+  --accent: #d97706;
+  --accent-soft: #fff2cc;
+  --accent-blue: #5067ff;
+  --accent-green: #2f9e73;
+  --danger: #dc2626;
+  --assistant-bg: rgba(255, 255, 255, 0.94);
+  --user-bg: rgba(80, 103, 255, 0.08);
+
+  --bg: var(--app-bg);
+  --panel: var(--panel-bg);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --subtle: var(--text-muted);
+  --border: var(--border-soft);
 }
 
 body {
   margin: 0;
   min-width: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--app-bg);
+  color: var(--text-primary);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;

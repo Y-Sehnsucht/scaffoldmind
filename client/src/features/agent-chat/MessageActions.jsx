@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 
 const ACTIONS = [
   { id: 'copy', label: '复制', icon: CopyIcon },
-  { id: 'positive', label: '很棒', icon: ThumbsUpIcon },
-  { id: 'negative', label: '欠佳', icon: ThumbsDownIcon },
+  { id: 'positive', label: '有帮助', icon: ThumbsUpIcon },
+  { id: 'negative', label: '不准确', icon: ThumbsDownIcon },
 ];
 
 export function MessageActions({ message, rating, onCopy, onFeedback }) {
@@ -28,7 +28,7 @@ export function MessageActions({ message, rating, onCopy, onFeedback }) {
   }
 
   return (
-    <div className="mt-4 flex items-center gap-1.5 border-t border-white/10 pt-3 text-slate-400">
+    <div className="mt-4 flex items-center gap-1.5 border-t border-[var(--border-soft)] pt-3 text-[var(--text-muted)]">
       {actions.map((action) => {
         const Icon = action.icon;
         const selected = action.id === rating;
@@ -38,15 +38,15 @@ export function MessageActions({ message, rating, onCopy, onFeedback }) {
             key={action.id}
             className={`group relative grid h-8 w-8 place-items-center rounded-full border text-sm transition ${
               selected
-                ? 'border-teal-300/40 bg-teal-300/10 text-teal-100'
-                : 'border-transparent hover:border-white/10 hover:bg-white/[0.06] hover:text-white'
+                ? 'border-[var(--accent-green)] bg-[var(--accent-soft)] text-[var(--text-primary)]'
+                : 'border-transparent hover:border-[var(--border-soft)] hover:bg-[var(--panel-strong)] hover:text-[var(--text-primary)]'
             }`}
             type="button"
             onClick={() => handleAction(action.id)}
             aria-label={action.label}
           >
             <Icon />
-            <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-white/10 bg-[#0f1318] px-2 py-1 text-xs text-slate-100 opacity-0 shadow-xl shadow-black/30 transition group-hover:opacity-100">
+            <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[var(--border-soft)] bg-[var(--panel-strong)] px-2 py-1 text-xs text-[var(--text-primary)] opacity-0 shadow-xl shadow-black/20 transition group-hover:opacity-100">
               {action.label}
             </span>
           </button>

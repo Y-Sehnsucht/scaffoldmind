@@ -8,17 +8,9 @@ export const agentChatRouter = Router();
 agentChatRouter.post('/chat/stream', async (req, res, next) => {
   const input = normalizeAgentInput(req.body);
 
-  if (!input.subject) {
-    return sendValidationError(res, '请选择学习学科。');
-  }
-
-  if (!input.mode) {
-    return sendValidationError(res, '请选择学习模式。');
-  }
-
-  if (!input.message) {
-    return sendValidationError(res, '请输入要学习或追问的内容。');
-  }
+  if (!input.subject) return sendValidationError(res, '请选择学习学科。');
+  if (!input.mode) return sendValidationError(res, '请选择学习模式。');
+  if (!input.message) return sendValidationError(res, '请输入要学习或追问的内容。');
 
   try {
     prepareSse(res);
@@ -34,7 +26,6 @@ agentChatRouter.post('/chat/stream', async (req, res, next) => {
     }
 
     const streamed = await pipeProviderStream(result.stream, res);
-
     if (!streamed) {
       streamFallback(res, input, 'AI_EMPTY_RESPONSE');
       return;
@@ -47,7 +38,6 @@ agentChatRouter.post('/chat/stream', async (req, res, next) => {
       streamFallback(res, input, 'AI_CALL_FAILED');
       return;
     }
-
     next(error);
   }
 });
@@ -56,7 +46,7 @@ function normalizeAgentInput(body = {}) {
   return {
     subject: String(body.subject || '').trim(),
     mode: normalizeMode(body.mode),
-    requestType: normalizeRequestType(body.requestType),
+    requestType: body.requestType === 'evaluate_interaction_answer' ? 'evaluate_interaction_answer' : 'chat',
     message: String(body.message || '').trim(),
     interaction: normalizeInteraction(body.interaction),
     attachments: normalizeAttachments(body.attachments),
@@ -65,23 +55,14 @@ function normalizeAgentInput(body = {}) {
   };
 }
 
-function normalizeRequestType(requestType) {
-  return requestType === 'evaluate_interaction_answer' ? 'evaluate_interaction_answer' : 'chat';
-}
-
 function normalizeMode(mode) {
   const value = String(mode || '').trim();
-  if (['default', 'context_stacking', 'feynman'].includes(value)) {
-    return value;
-  }
+  if (['default', 'context_stacking', 'feynman'].includes(value)) return value;
   return 'default';
 }
 
 function normalizeAttachments(attachments) {
-  if (!Array.isArray(attachments)) {
-    return [];
-  }
-
+  if (!Array.isArray(attachments)) return [];
   return attachments.slice(0, 12).map((item) => ({
     name: String(item?.name || '未命名附件').slice(0, 180),
     size: Number(item?.size || 0),
@@ -91,10 +72,7 @@ function normalizeAttachments(attachments) {
 }
 
 function normalizeHistory(history) {
-  if (!Array.isArray(history)) {
-    return [];
-  }
-
+  if (!Array.isArray(history)) return [];
   return history
     .filter((item) => item?.role === 'user' || item?.role === 'assistant')
     .slice(-6)
@@ -105,10 +83,7 @@ function normalizeHistory(history) {
 }
 
 function normalizeLearnerProfile(profile) {
-  if (!profile || typeof profile !== 'object') {
-    return null;
-  }
-
+  if (!profile || typeof profile !== 'object') return null;
   return {
     totalMessages: Number(profile.totalMessages || 0),
     totalConversations: Number(profile.totalConversations || 0),
@@ -136,10 +111,7 @@ function normalizeLearnerProfile(profile) {
 }
 
 function normalizeInteraction(interaction) {
-  if (!interaction || typeof interaction !== 'object') {
-    return null;
-  }
-
+  if (!interaction || typeof interaction !== 'object') return null;
   return {
     id: String(interaction.id || '').slice(0, 120),
     mode: normalizeMode(interaction.mode),
@@ -152,14 +124,14 @@ function normalizeInteraction(interaction) {
 }
 
 function normalizeProfileItems(items, labelKey) {
-  if (!Array.isArray(items)) {
-    return [];
-  }
-
-  return items.slice(0, 6).map((item) => ({
-    [labelKey]: String(item?.[labelKey] || item?.label || item?.mode || '').slice(0, 80),
-    count: Number(item?.count || 0),
-  })).filter((item) => item[labelKey]);
+  if (!Array.isArray(items)) return [];
+  return items
+    .slice(0, 6)
+    .map((item) => ({
+      [labelKey]: String(item?.[labelKey] || item?.label || item?.mode || '').slice(0, 80),
+      count: Number(item?.count || 0),
+    }))
+    .filter((item) => item[labelKey]);
 }
 
 function prepareSse(res) {
@@ -182,10 +154,7 @@ async function pipeProviderStream(stream, res) {
 
   while (true) {
     const { done, value } = await reader.read();
-
-    if (done) {
-      break;
-    }
+    if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n');
@@ -193,19 +162,12 @@ async function pipeProviderStream(stream, res) {
 
     for (const line of lines) {
       const text = line.trim();
-
-      if (!text.startsWith('data:')) {
-        continue;
-      }
+      if (!text.startsWith('data:')) continue;
 
       const payload = text.slice(5).trim();
-
-      if (!payload || payload === '[DONE]') {
-        continue;
-      }
+      if (!payload || payload === '[DONE]') continue;
 
       const delta = extractProviderDelta(payload);
-
       if (delta) {
         emitted = true;
         sendSse(res, { type: 'delta', text: delta });
@@ -246,89 +208,119 @@ function streamFallback(res, input, reason) {
 
 function buildEvaluationFallbackMarkdown(input, reason) {
   const option = input.interaction?.optionText || '互动任务';
-  const answer = input.message || '你的回答';
-  const modeNote = input.mode === 'context_stacking'
-    ? '这次评价会重点看前置知识、章节连接、预习路线和课堂验证问题是否具体。'
-    : input.mode === 'feynman'
-      ? '这次评价会重点看你是否用自己的话解释，是否只是在背术语，以及是否混淆了概念。'
-      : '这次评价会重点看你的理解是否完整、可迁移。';
+  const answer = input.message || '用户回答为空';
 
   return `## 评价
-你已经完成了“${option}”这一步。当前为 fallback 评价，原因：${reason}。${modeNote}
+当前为 fallback 评价，原因：${reason}。你已经完成了“${option}”这一步，我会按费曼反讲的方式检查表达是否真正讲清楚。
 
 ## 准确点
-1. 你愿意先给出自己的判断，而不是直接等答案，这有利于暴露真实理解。
-2. 你的回答中已经出现了可被校正的表达：“${answer.slice(0, 80)}”。
+你愿意先给出自己的判断，而不是直接等待答案，这有利于暴露真实理解。你的原话中可被继续校正的部分是：“${answer.slice(0, 120)}”。
 
-## 主要偏差
-1. 目前回答还需要更明确地区分“概念定义”和“为什么这样做”。
-2. 如果只是列术语，还不足以说明你真正理解了因果关系。
+## 思维漏洞
+目前回答还需要更明确地区分“术语名称”和“因果机制”。如果只说结论、不解释为什么成立，听的人仍然无法迁移到新题。
 
-## 修改建议
-把回答改成“三句话”：第一句说明问题背景，第二句解释核心机制，第三句给一个例子或课堂验证问题。
+## 概念混淆
+最常见的混淆是把例子当定义、把现象当原因。请把“它是什么”“为什么这样”“什么时候失效”分开说。
 
-## 下一步练习
-请用不超过 80 字重新写一版回答，并刻意加入一个具体例子。`;
+## 如何改写
+改成三句话：第一句说明问题背景，第二句解释核心机制，第三句给一个具体例子或边界情况。
+
+## 下一步追问
+请用不超过 80 字重写一版，并刻意加入一个具体例子。`;
 }
 
 function buildFallbackMarkdown(input, reason) {
-  const topic = extractTopic(input.message);
-  const attachmentNote = input.attachments.some((file) => isUnparsedAttachment(file))
-    ? '\n\n你已附加 PPTX 或图片。已附加，当前版本暂不解析内容；以下讲解只基于你输入的文本。'
-    : '';
-  const optionLines = buildModeOptions(input.mode);
-
-  return `## 总结
-**${topic}** 的学习重点不是记住零散定义，而是看清它在系统中的位置：先明确问题背景，再抽出核心机制，最后用例子验证。当前回答为 fallback 讲解，原因：${reason}。${attachmentNote}
-
-## 框架
-1. 先定位主题：它解决什么问题。
-2. 再拆机制：输入、过程、输出分别是什么。
-3. 接着看边界：什么时候有效，什么时候会出错。
-4. 最后做迁移：把概念放到题目或工程场景里验证。
-
-## 5 个核心概念
-1. **核心问题（core problem）**：任何知识点都先对应一个要解决的问题。
-2. **抽象层次（abstraction level）**：先分清硬件、系统、语言或算法层面的解释范围。
-3. **因果链（causal chain）**：用“因为...所以...”连接概念，避免背碎片。
-4. **边界条件（boundary condition）**：知道规则在哪些情况下不成立，才能真正会用。
-5. **迁移应用（transfer）**：能把概念换到新题或新代码里，才算完成理解。
-
-## 你可以继续选择
-${optionLines}`;
+  if (input.mode === 'context_stacking') return buildContextFallback(input, reason);
+  if (input.mode === 'feynman') return buildFeynmanFallback(input, reason);
+  return buildDefaultFallback(input, reason);
 }
 
-function buildModeOptions(mode) {
-  if (mode === 'context_stacking') {
-    return [
-      '1. 帮我建立课前预习路线。',
-      '2. 找出这部分和前置知识的连接。',
-      '3. 给我课堂验证清单。',
-      '4. 预测老师可能怎么考。',
-    ].join('\n');
+function buildDefaultFallback(input, reason) {
+  const topic = extractTopic(input.message);
+  const attachmentNote = buildAttachmentNote(input.attachments);
+
+  return `## 学习主线
+当前为 fallback 讲解，原因：${reason}。我会围绕“${topic}”动态组织回答，而不是套固定模板。${attachmentNote}
+
+## 一、先回答你的问题
+这个问题要先确认它解决什么矛盾：为什么某种结构、机制或规则会被设计出来，以及它比朴素做法强在哪里。
+
+## 二、核心概念
+1. **问题背景（problem context）**：先知道它要解决什么。
+2. **核心机制（core mechanism）**：再看它如何把输入变成结果。
+3. **边界条件（boundary condition）**：什么时候有效，什么时候会退化。
+4. **复杂度（complexity）**：时间和空间成本分别是什么。
+5. **迁移应用（transfer）**：能否放到新题或工程场景里解释。
+
+## 三、与旧知识的关系
+把它和你已经学过的数组、链表、内存层级、抽象数据类型或复杂度分析连接起来，重点找“为什么旧方法不够”和“新方法补了什么”。
+
+## 四、如果教给零基础的人
+先用生活类比建立直觉，再用一个最小例子演示流程，最后才引入术语。判断是否真懂的标准是：能解释为什么这样做，而不只是背定义。
+
+## 五、下一步建议
+你可以继续让我展开某个核心概念、补一道检查题，或者把这个主题改写成能讲给零基础同学听的版本。`;
+}
+
+function buildContextFallback(input, reason) {
+  const topic = extractTopic(input.message);
+  const attachmentNote = buildAttachmentNote(input.attachments);
+
+  return `## 预习路线
+当前为 fallback 讲解，原因：${reason}。围绕“${topic}”，先看它要解决的问题，再看前置概念，最后带着验证清单进课堂。${attachmentNote}
+
+## 前置知识连接
+把它和上周学过的基础结构、复杂度分析、内存模型或抽象数据类型连接起来。重点问：为什么旧知识不够，需要引入这一节的新机制？
+
+## 课堂验证清单
+1. 老师是否强调边界情况或退化情况。
+2. 是否出现平均复杂度和最坏复杂度的对比。
+3. 是否要求手推一个小例子。
+4. 是否提到工程中的真实代价。
+
+## 老师可能怎么考
+常见考法会让你分析流程、判断边界、比较两种结构，或者解释某个操作为什么会退化。
+
+## 学习风险点
+不要只记接口名或定义。要能说清“为什么需要它”“它牺牲了什么”“它在哪些情况下失效”。`;
+}
+
+function buildFeynmanFallback(input, reason) {
+  const topic = extractTopic(input.message);
+  const hasExplanation = looksLikeUserExplanation(input.message);
+
+  if (!hasExplanation) {
+    return `## 先别急着看讲义
+当前为 fallback 引导，原因：${reason}。费曼反讲不是我直接长篇解释“${topic}”，而是先让你暴露自己的理解。
+
+## 你的任务
+请用自己的话解释这个概念。不要背定义，可以讲得不完整，但要说出：
+1. 它解决什么问题。
+2. 它大概怎么工作。
+3. 你觉得最容易混淆的地方是什么。
+
+## 我会如何评价
+我会从准确点、思维漏洞、概念混淆、如何改写和下一步追问来纠偏。`;
   }
 
-  if (mode === 'feynman') {
-    return [
-      '1. 我来反讲，请你纠错。',
-      '2. 用 12 岁小孩也能懂的话再讲一遍。',
-      '3. 出一道检查题。',
-      '4. 帮我区分易混概念。',
-    ].join('\n');
-  }
+  return buildEvaluationFallbackMarkdown(input, reason);
+}
 
-  return [
-    '1. 展开核心概念。',
-    '2. 讲考试常考点。',
-    '3. 指出最容易误解的地方。',
-    '4. 给我一道检查题。',
-  ].join('\n');
+function buildAttachmentNote(attachments) {
+  return attachments.length > 0
+    ? '\n\n你已附加 PPTX 或图片。已附加，当前版本暂不解析内容；以下讲解只基于你输入的文本。'
+    : '';
 }
 
 function extractTopic(message) {
   const firstLine = String(message || '').split(/\r?\n/).find((line) => line.trim()) || '当前知识点';
   const cleaned = firstLine.replace(/^#+\s*/, '').trim();
-  return cleaned.length > 22 ? `${cleaned.slice(0, 22)}...` : cleaned;
+  return cleaned.length > 28 ? `${cleaned.slice(0, 28)}...` : cleaned;
+}
+
+function looksLikeUserExplanation(message) {
+  const text = String(message || '');
+  return /我认为|我觉得|我的理解|因为|所以|本质|举例|可以理解为/.test(text) && text.length > 28;
 }
 
 function isUnparsedAttachment(file) {

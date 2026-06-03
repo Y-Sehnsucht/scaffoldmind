@@ -36,37 +36,37 @@ export function ChatComposer({
   }
 
   return (
-    <form className="border-t border-[var(--border)] bg-[var(--panel)]/95 px-6 py-4 backdrop-blur" onSubmit={handleSubmit}>
-      <div className="mx-auto w-full max-w-6xl">
+    <form className="border-t border-[var(--border-soft)] bg-[var(--panel-bg)]/95 px-6 py-4 backdrop-blur" onSubmit={handleSubmit}>
+      <div className="w-full">
         {attachments.length > 0 && (
           <div className="mb-3">
             <AttachmentChips attachments={attachments} onRemove={onRemoveAttachment} />
-            <p className="mt-2 text-xs text-slate-500">PPTX 和图片已附加，当前版本只保存 metadata，不解析内容。</p>
+            <p className="mt-2 text-xs text-[var(--text-muted)]">PPTX 和图片已附加，当前版本只保存 metadata，不解析内容。</p>
           </div>
         )}
 
         {errorMessage && (
-          <div className="mb-3 rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+          <div className="mb-3 rounded-2xl border border-[var(--danger)]/30 bg-[var(--panel-strong)] px-4 py-3 text-sm text-[var(--danger)]">
             {errorMessage}
           </div>
         )}
 
         {modeSwitchNotice && (
-          <div className="mb-3 rounded-2xl border border-sky-300/25 bg-sky-300/10 px-4 py-3 text-sm leading-6 text-sky-50">
+          <div className="mb-3 rounded-2xl border border-[var(--accent-blue)]/30 bg-[var(--panel-strong)] px-4 py-3 text-sm leading-6 text-[var(--text-secondary)]">
             {modeSwitchNotice}
           </div>
         )}
 
         {pendingInteraction && (
-          <div className="mb-3 rounded-2xl border border-teal-300/25 bg-teal-300/10 px-4 py-3 text-sm leading-6 text-teal-50">
+          <div className="mb-3 rounded-2xl border border-[var(--accent-green)]/30 bg-[var(--panel-strong)] px-4 py-3 text-sm leading-6 text-[var(--text-secondary)]">
             正在进行：{getInteractionLabel(pendingInteraction)}。请先写下你的回答，我会进行评价和指正。
           </div>
         )}
 
-        <div className="flex min-w-0 items-end gap-3 rounded-[28px] border border-[var(--border)] bg-[var(--panel-strong)] p-2 shadow-2xl shadow-black/10 focus-within:border-teal-300/50">
+        <div className="flex min-w-0 items-end gap-3 rounded-[28px] border border-[var(--border-soft)] bg-[var(--panel-strong)] p-2 shadow-2xl shadow-black/10 focus-within:border-[var(--accent-blue)]">
           <input ref={fileInputRef} className="hidden" type="file" multiple accept={ACCEPTED_ATTACHMENTS} onChange={handleFiles} />
           <button
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/10 text-xl text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[var(--border-soft)] text-xl text-[var(--text-secondary)] transition hover:border-[var(--accent-blue)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]"
             type="button"
             onClick={() => fileInputRef.current?.click()}
             aria-label="添加附件"
@@ -76,7 +76,7 @@ export function ChatComposer({
             +
           </button>
           <textarea
-            className="max-h-56 min-h-[58px] flex-1 resize-none bg-transparent px-1 py-3.5 text-base leading-[1.55] text-[var(--text)] outline-none placeholder:text-[var(--subtle)]"
+            className="max-h-56 min-h-[58px] flex-1 resize-none bg-transparent px-1 py-3.5 text-base leading-[1.55] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
             value={value}
             onChange={(event) => onChange(event.target.value)}
             onKeyDown={handleKeyDown}
@@ -84,7 +84,7 @@ export function ChatComposer({
             disabled={disabled}
           />
           <button
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-lg font-semibold text-[#111418] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--text-primary)] text-lg font-semibold text-[var(--app-bg)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
             type="submit"
             disabled={disabled}
             aria-label="发送"
@@ -94,7 +94,7 @@ export function ChatComposer({
           </button>
         </div>
 
-        <div className="mt-2 flex min-h-5 items-center justify-between gap-3 text-[0.8125rem] text-[var(--subtle)]">
+        <div className="mt-2 flex min-h-5 items-center justify-between gap-3 text-[0.8125rem] text-[var(--text-muted)]">
           <span>{status || 'Enter 发送，Shift + Enter 换行'}</span>
           <span>附件只保存 metadata，不解析内容</span>
         </div>
@@ -104,11 +104,7 @@ export function ChatComposer({
 }
 
 function getInteractionLabel(interaction) {
-  if (interaction.mode === 'feynman') {
-    return '费曼反讲纠错';
-  }
-  if (interaction.mode === 'context_stacking') {
-    return 'Context Stacking 预习生成';
-  }
+  if (interaction.mode === 'feynman') return '费曼反讲纠错';
+  if (interaction.mode === 'context_stacking') return 'Context Stacking 预习生成';
   return '互动自测';
 }

@@ -33,42 +33,77 @@ const {
   saveInteractionEvent,
 } = await import('../src/shared/storage/agentMemoryStorage.js');
 
-const agentWorkspaceSource = readFileSync(new URL('../src/features/agent-chat/AgentWorkspace.jsx', import.meta.url), 'utf8');
-const chatMessageSource = readFileSync(new URL('../src/features/agent-chat/ChatMessage.jsx', import.meta.url), 'utf8');
+const sources = {
+  agentWorkspace: readSource('../src/features/agent-chat/AgentWorkspace.jsx'),
+  chatShell: readSource('../src/features/agent-chat/ChatShell.jsx'),
+  chatComposer: readSource('../src/features/agent-chat/ChatComposer.jsx'),
+  chatMessage: readSource('../src/features/agent-chat/ChatMessage.jsx'),
+  currentQuestionIndex: readSource('../src/features/agent-chat/CurrentQuestionIndex.jsx'),
+  appShell: readSource('../src/app/AppShell.jsx'),
+  sidebarNav: readSource('../src/app/SidebarNav.jsx'),
+  homePage: readSource('../src/pages/HomePage.jsx'),
+  learningCalendar: readSource('../src/features/home/LearningCalendar.jsx'),
+};
 
-assert.match(chatMessageSource, /MessageActions/, 'ChatMessage should render MessageActions');
-assert.match(agentWorkspaceSource, /ConversationHistory/, 'AgentWorkspace should render ConversationHistory');
-assert.match(agentWorkspaceSource, /AnimatedThemeToggle/, 'AgentWorkspace should render AnimatedThemeToggle');
-assert.match(agentWorkspaceSource, /pendingInteraction/, 'AgentWorkspace should include pending interaction state');
-assert.match(agentWorkspaceSource, /createPendingInteraction/, 'AgentWorkspace should create pending interactions on option click');
-assert.match(agentWorkspaceSource, /buildInteractionTaskPrompt/, 'AgentWorkspace should show user-answer-required task prompts');
-assert.match(agentWorkspaceSource, /getModeSpecificOptions/, 'AgentWorkspace should provide mode-specific options fallback');
-assert.match(agentWorkspaceSource, /getInteractionBehavior/, 'AgentWorkspace should choose interaction behavior by mode');
+assert.match(sources.chatMessage, /MessageActions/, 'ChatMessage should render MessageActions');
+assert.match(sources.agentWorkspace, /CurrentQuestionIndex/, 'AgentWorkspace should render current-conversation question index');
+assert.doesNotMatch(sources.agentWorkspace, /<ConversationHistory\b/, 'AgentWorkspace should not render global conversation history in /chat');
+assert.match(sources.agentWorkspace, /activeQuestionId/, 'AgentWorkspace should keep active question highlight state');
+assert.match(sources.currentQuestionIndex, /questions = \[\]/, 'CurrentQuestionIndex should accept question list');
+assert.match(sources.currentQuestionIndex, /onSelect\(question\.id\)/, 'CurrentQuestionIndex should jump to selected question');
+assert.match(sources.chatShell, /scrollTargetId/, 'ChatShell should accept scroll target id');
+assert.match(sources.chatShell, /__bottom_if_near__/, 'ChatShell should support near-bottom streaming follow');
+assert.match(sources.chatShell, /scrollIntoView/, 'ChatShell should scroll to restored history or selected question');
+assert.doesNotMatch(sources.appShell, /max-w-\[1440px\]|max-w-4xl|max-w-\[920px\]/, 'AppShell should not constrain app pages with a narrow max width');
+assert.match(sources.appShell, /pl-16/, 'AppShell should keep fixed nav offset without squeezing /chat');
+assert.match(sources.appShell + sources.sidebarNav, /AnimatedThemeToggle/, 'App shell should keep theme toggle');
+assert.doesNotMatch(sources.sidebarNav, /text-white|bg-\[#0d1117\]/, 'SidebarNav should use theme variables instead of hardcoded dark text');
+assert.doesNotMatch(sources.chatComposer, /max-w-6xl|text-white|border-white/, 'ChatComposer should stay wide and use theme variables');
+assert.doesNotMatch(sources.homePage, /window\.prompt/, 'Home calendar should not use prompt for event editing');
+assert.match(sources.homePage, /SelectedDateEvents/, 'Home page should render selected date event panel');
+assert.match(sources.homePage, /handleEditEvent/, 'Home page should support inline event editing');
+assert.match(sources.homePage, /handleDeleteEvent/, 'Home page should support event deletion');
+assert.match(sources.learningCalendar, /isSelected/, 'Calendar should track selected date state');
+assert.match(sources.learningCalendar, /hasEvent/, 'Calendar should track event date state');
+assert.match(sources.learningCalendar, /isToday/, 'Calendar should track today state');
+assert.match(sources.agentWorkspace, /pendingInteraction/, 'AgentWorkspace should include pending interaction state');
+assert.match(sources.agentWorkspace, /createPendingInteraction/, 'AgentWorkspace should create pending interactions on option click');
+assert.match(sources.agentWorkspace, /buildInteractionTaskPrompt/, 'AgentWorkspace should show user-answer-required task prompts');
+assert.match(sources.agentWorkspace, /getModeSpecificOptions/, 'AgentWorkspace should provide mode-specific options fallback');
+assert.match(sources.agentWorkspace, /getInteractionBehavior/, 'AgentWorkspace should choose interaction behavior by mode');
 assert.ok(
-  agentWorkspaceSource.includes("if (mode === 'context_stacking')") && agentWorkspaceSource.includes("return 'direct_generation';"),
+  sources.agentWorkspace.includes("if (mode === 'context_stacking')") && sources.agentWorkspace.includes("return 'direct_generation';"),
   'Context Stacking options should direct-generate instead of pending interaction',
 );
 assert.ok(
-  agentWorkspaceSource.includes("if (mode === 'feynman')") && agentWorkspaceSource.includes("return 'user_answer_required';"),
+  sources.agentWorkspace.includes("if (mode === 'feynman')") && sources.agentWorkspace.includes("return 'user_answer_required';"),
   'Feynman options should require user answer',
 );
-assert.match(agentWorkspaceSource, /handleModeChange/, 'AgentWorkspace should have explicit mode-change handler');
-assert.ok(agentWorkspaceSource.includes('setPendingInteraction(null)'), 'mode change should clear pending interaction');
-assert.match(agentWorkspaceSource, /buildModeSwitchNotice/, 'mode change should show re-input notice');
-assert.ok(agentWorkspaceSource.includes("setActiveConversationId(createId('conversation'))"), 'mode change should start a fresh conversation boundary');
-assert.match(agentWorkspaceSource, /课前预习路线/, 'Context Stacking fallback should include preview route');
-assert.match(agentWorkspaceSource, /前置知识/, 'Context Stacking fallback should include prerequisites');
-assert.match(agentWorkspaceSource, /课堂验证清单/, 'Context Stacking fallback should include classroom checklist');
-assert.match(agentWorkspaceSource, /老师可能怎么考/, 'Context Stacking fallback should include exam prediction');
-assert.match(agentWorkspaceSource, /evaluate_interaction_answer/, 'AgentWorkspace should send evaluation request type for pending interactions');
-assert.doesNotMatch(agentWorkspaceSource, /API Key|Provider|API URL|loadAiConfig|saveAiConfig|apiKey/, 'new AgentWorkspace should not expose AI configuration or API key fields');
-assert.doesNotMatch(agentWorkspaceSource, /parsePpt|requestPptParsing|\/api\/parse-ppt/, 'new AgentWorkspace should not call PPT parsing');
+assert.match(sources.agentWorkspace, /handleModeChange/, 'AgentWorkspace should have explicit mode-change handler');
+assert.ok(sources.agentWorkspace.includes('setPendingInteraction(null)'), 'mode change should clear pending interaction');
+assert.match(sources.agentWorkspace, /buildModeSwitchNotice/, 'mode change should show re-input notice');
+assert.ok(sources.agentWorkspace.includes("setActiveConversationId(createId('conversation'))"), 'mode change should start a fresh conversation boundary');
+assert.match(sources.agentWorkspace, /预习路线/, 'Context Stacking fallback should include preview route');
+assert.match(sources.agentWorkspace, /前置知识/, 'Context Stacking fallback should include prerequisites');
+assert.match(sources.agentWorkspace, /课堂验证清单/, 'Context Stacking fallback should include classroom checklist');
+assert.match(sources.agentWorkspace, /可能考法/, 'Context Stacking fallback should include exam prediction');
+assert.match(sources.agentWorkspace, /evaluate_interaction_answer/, 'AgentWorkspace should send evaluation request type for pending interactions');
+assert.doesNotMatch(
+  sources.agentWorkspace,
+  /loadAiConfig|saveAiConfig|TEXT_GENERATION_API_KEY|apiKey\s*[:=]|provider\s*[:=]\s*input|model\s*[:=]\s*input/i,
+  'new AgentWorkspace should not expose AI configuration or API key fields',
+);
+assert.doesNotMatch(
+  sources.agentWorkspace,
+  /requestPptParsing|parsePpt\s*\(|fetch\([^)]*\/api\/parse-ppt/,
+  'new AgentWorkspace should not call PPT parsing',
+);
 
 const feedback = saveFeedbackEvent({
   messageId: 'assistant_1',
   conversationId: 'conversation_1',
   rating: 'positive',
-  messageExcerpt: '## 总结\n缓存未命中（cache miss）',
+  messageExcerpt: '## 总结\n缓存未命中（cache miss）会触发更慢层级的数据访问。',
   mode: 'default',
 });
 assert.equal(feedback.rating, 'positive', 'feedback helper should save positive rating');
@@ -79,7 +114,7 @@ saveConversation({
   mode: 'default',
   messages: [
     { id: 'user_1', role: 'user', content: '考试会怎么考缓存未命中（cache miss）？', createdAt: 'now' },
-    { id: 'assistant_1', role: 'assistant', content: '## 总结\n缓存未命中（cache miss）', createdAt: 'now' },
+    { id: 'assistant_1', role: 'assistant', content: '## 总结\n缓存未命中（cache miss）需要从更慢层级取数据。', createdAt: 'now' },
   ],
 });
 assert.equal(loadConversations().length, 1, 'conversation helper should persist conversations');
@@ -95,7 +130,7 @@ const profile = buildLearnerProfile({
   interactionEvents: [
     saveInteractionEvent({
       conversationId: 'conversation_1',
-      optionText: '我来反讲，请你纠错',
+      optionText: '我来反讲，请你纠错。',
       userAnswer: '缓存就是快一点的内存。',
       evaluationExcerpt: '## 主要偏差\n混淆缓存（cache）和内存（memory）。',
       mode: 'feynman',
@@ -157,6 +192,10 @@ assert.ok(events.some((event) => event.type === 'done'), 'agent client should pa
 
 console.log('Agent Chat client verification passed.');
 
+function readSource(path) {
+  return readFileSync(new URL(path, import.meta.url), 'utf8');
+}
+
 function createAgentStream() {
   const encoder = new TextEncoder();
   const chunks = [
@@ -167,9 +206,7 @@ function createAgentStream() {
 
   return new ReadableStream({
     start(controller) {
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(chunk));
-      }
+      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
       controller.close();
     },
   });
