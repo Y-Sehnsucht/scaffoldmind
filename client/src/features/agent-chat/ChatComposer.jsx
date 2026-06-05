@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 import { AttachmentChips } from './AttachmentChips.jsx';
 
 const ACCEPTED_ATTACHMENTS = '.txt,.md,.markdown,.pdf,.docx,.pptx,.png,.jpg,.jpeg,.webp';
@@ -65,7 +66,7 @@ export function ChatComposer({
 
         <div className="flex min-w-0 items-end gap-3 rounded-[28px] border border-[var(--border-soft)] bg-[var(--panel-strong)] p-2 shadow-2xl shadow-black/10 focus-within:border-[var(--accent-blue)]">
           <input ref={fileInputRef} className="hidden" type="file" multiple accept={ACCEPTED_ATTACHMENTS} onChange={handleFiles} />
-          <button
+          <RippleButton
             className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[var(--border-soft)] text-xl text-[var(--text-secondary)] transition hover:border-[var(--accent-blue)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]"
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -74,7 +75,7 @@ export function ChatComposer({
             disabled={disabled}
           >
             +
-          </button>
+          </RippleButton>
           <textarea
             className="max-h-56 min-h-[58px] flex-1 resize-none bg-transparent px-1 py-3.5 text-base leading-[1.55] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
             value={value}
@@ -83,7 +84,7 @@ export function ChatComposer({
             placeholder={pendingInteraction ? '在这里写下你的回答，我会进行评价和纠偏...' : '粘贴课程材料、代码片段，或直接提问...'}
             disabled={disabled}
           />
-          <button
+          <RippleButton
             className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--text-primary)] text-lg font-semibold text-[var(--app-bg)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
             type="submit"
             disabled={disabled}
@@ -91,7 +92,7 @@ export function ChatComposer({
             title="发送"
           >
             →
-          </button>
+          </RippleButton>
         </div>
 
         <div className="mt-2 flex min-h-5 items-center justify-between gap-3 text-[0.8125rem] text-[var(--text-muted)]">

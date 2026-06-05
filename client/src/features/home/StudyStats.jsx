@@ -8,12 +8,12 @@ export function StudyStats({ todaySeconds, streak, totalConversations }) {
   return (
     <section className="grid gap-4 md:grid-cols-3">
       {stats.map((item) => (
-        <article key={item.label} className={`relative overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-sm`}>
-          <div className={`absolute inset-x-0 top-0 h-24 bg-gradient-to-b ${item.tone}`} />
+        <article key={item.label} className="relative min-h-[132px] overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--panel)] p-4 shadow-sm">
+          <div className={`absolute inset-x-0 top-0 h-20 bg-gradient-to-b ${item.tone}`} />
           <div className="relative">
             <p className="text-sm text-[var(--subtle)]">{item.label}</p>
-            <p className="mt-3 text-4xl font-semibold tracking-normal text-[var(--text)]">{item.value}</p>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{item.hint}</p>
+            <p className="mt-2 text-3xl font-semibold tracking-normal text-[var(--text)]">{item.value}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.hint}</p>
           </div>
         </article>
       ))}

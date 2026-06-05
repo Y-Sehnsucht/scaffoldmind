@@ -1,3 +1,4 @@
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 import { navigateTo } from '../../routes/navigation.js';
 
 export function ReviewPlanList({ items }) {
@@ -16,13 +17,13 @@ export function ReviewPlanList({ items }) {
               <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.reason}</p>
               <p className="mt-2 text-xs text-[var(--subtle)]">预计 {item.estimatedMinutes || 15} 分钟</p>
             </div>
-            <button
+            <RippleButton
               className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               type="button"
               onClick={() => navigateTo(`/chat?concept=${encodeURIComponent(item.title)}`)}
             >
               去复习
-            </button>
+            </RippleButton>
           </article>
         )) : (
           <p className="rounded-2xl bg-[var(--panel-soft)] p-4 text-sm text-[var(--muted)]">暂无复习计划。</p>

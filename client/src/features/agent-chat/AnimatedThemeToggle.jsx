@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 import { AGENT_MEMORY_KEYS } from '../../shared/storage/agentMemoryStorage.js';
 
 export function AnimatedThemeToggle() {
@@ -23,7 +24,7 @@ export function AnimatedThemeToggle() {
   }
 
   return (
-    <button
+    <RippleButton
       className="grid h-10 w-10 place-items-center rounded-full border border-[var(--border)] bg-[var(--panel-soft)] text-[var(--text)] shadow-lg shadow-black/10 transition hover:border-teal-300/50 hover:text-teal-200"
       type="button"
       onClick={toggleTheme}
@@ -31,7 +32,7 @@ export function AnimatedThemeToggle() {
       title={theme === 'dark' ? '切换到日间模式' : '切换到夜间模式'}
     >
       {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-    </button>
+    </RippleButton>
   );
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { RippleButton } from '../components/ui/ripple-button.jsx';
 import { PriorityConcepts } from '../features/review/PriorityConcepts.jsx';
 import { RecommendedPractice } from '../features/review/RecommendedPractice.jsx';
 import { ReviewPlanList } from '../features/review/ReviewPlanList.jsx';
@@ -46,14 +47,14 @@ export function ReviewPage() {
                 综合 learnerProfile、对话历史、刷题统计和错题，生成下一轮复习计划。所有跳转都回到本地页面。
               </p>
             </div>
-            <button
+            <RippleButton
               className="rounded-2xl bg-teal-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-300 disabled:cursor-not-allowed disabled:opacity-60"
               type="button"
               onClick={refreshPlan}
               disabled={loading}
             >
               {loading ? '正在生成...' : '重新生成计划'}
-            </button>
+            </RippleButton>
           </div>
           <p className="mt-4 rounded-2xl bg-[var(--panel-soft)] px-4 py-3 text-sm text-[var(--muted)]">{status}</p>
         </section>

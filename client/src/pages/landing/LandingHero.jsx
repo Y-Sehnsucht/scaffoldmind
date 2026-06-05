@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 import { handleRouteClick } from '../../routes/navigation.js';
 
 const HERO_VIDEO = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a.mp4';
@@ -41,9 +42,9 @@ export function LandingHero() {
           <a href="#methodology">Scaffolding</a>
           <a href="#services">Methodology</a>
         </nav>
-        <a className="rounded-full bg-white px-4 py-2 font-medium text-slate-950" href="/chat" onClick={(event) => handleRouteClick(event, '/chat')}>
+        <RippleButton as="a" className="rounded-full bg-white px-4 py-2 font-medium text-slate-950" href="/chat" onClick={(event) => handleRouteClick(event, '/chat')}>
           开始学习
-        </a>
+        </RippleButton>
       </header>
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center pb-12 pt-14">
@@ -62,9 +63,9 @@ export function LandingHero() {
             onChange={(event) => setDraft(event.target.value)}
             placeholder="输入你当前正在攻克的复杂课题..."
           />
-          <button className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl font-semibold text-slate-950 transition hover:bg-neutral-200" type="submit" aria-label="进入对话">
+          <RippleButton className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-xl font-semibold text-slate-950 transition hover:bg-neutral-200" type="submit" aria-label="进入对话">
             →
-          </button>
+          </RippleButton>
         </form>
 
         <a className="mt-6 inline-flex w-fit rounded-full border border-white/14 px-5 py-2.5 text-sm text-white/72 transition hover:bg-white/8 hover:text-white" href="#cognition">

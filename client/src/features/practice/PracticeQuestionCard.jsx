@@ -1,3 +1,5 @@
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
+
 export function PracticeQuestionCard({ question, answer, loading, onAnswerChange, onSubmit, onRegenerateSameConcept }) {
   if (!question) {
     return (
@@ -29,22 +31,22 @@ export function PracticeQuestionCard({ question, answer, loading, onAnswerChange
       </label>
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <button
+        <RippleButton
           className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           type="button"
           onClick={onSubmit}
           disabled={loading || !answer.trim()}
         >
           {loading ? '正在评价...' : '提交答案'}
-        </button>
-        <button
+        </RippleButton>
+        <RippleButton
           className="rounded-2xl border border-[var(--border)] px-5 py-3 text-sm font-semibold text-[var(--text)] transition hover:border-teal-300/60"
           type="button"
           onClick={onRegenerateSameConcept}
           disabled={loading}
         >
           再来一道同知识点题目
-        </button>
+        </RippleButton>
       </div>
     </section>
   );

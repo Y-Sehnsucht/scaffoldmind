@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AnimatedThemeToggle } from '../features/agent-chat/AnimatedThemeToggle.jsx';
 import { handleRouteClick } from '../routes/navigation.js';
 import { addStudySeconds, markCheckin, toDateKey } from '../shared/storage/homeStorage.js';
+import { ShimmerButton } from '../components/ui/shimmer-button.jsx';
 import { SidebarNav } from './SidebarNav.jsx';
 
 export function AppShell({ activePath, pageTitle, children }) {
@@ -21,7 +22,7 @@ export function AppShell({ activePath, pageTitle, children }) {
   }, []);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[var(--app-bg)] text-[var(--text-primary)]">
+    <div className="relative flex h-screen w-screen overflow-hidden bg-[#F8F9FA] text-neutral-900 transition-colors duration-300 dark:bg-[#060709] dark:text-neutral-100">
       <SidebarNav activePath={activePath} />
 
       <main className="h-full w-full flex-1 overflow-hidden pl-16">
@@ -35,13 +36,14 @@ export function AppShell({ activePath, pageTitle, children }) {
                 <h1 className="mt-1 text-2xl font-semibold tracking-normal text-[var(--text-primary)]">{pageTitle}</h1>
               </div>
               <div className="flex items-center gap-3">
-                <a
-                  className="hidden rounded-full border border-[var(--border-soft)] bg-[var(--panel-strong)] px-4 py-2 text-sm text-[var(--text-primary)] transition hover:border-[var(--accent-blue)] lg:inline-flex"
+                <ShimmerButton
+                  as="a"
+                  className="hidden px-4 py-2 text-sm font-medium text-[var(--shimmer-button-fg)] lg:inline-flex"
                   href="/chat"
                   onClick={(event) => handleRouteClick(event, '/chat')}
                 >
                   进入对话
-                </a>
+                </ShimmerButton>
                 <AnimatedThemeToggle />
               </div>
             </header>

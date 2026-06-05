@@ -25,11 +25,11 @@ export function saveHomeTasks(tasks) {
 }
 
 export function loadCountdowns() {
-  return loadJson(HOME_STORAGE_KEYS.countdowns, []);
+  return normalizeCountdowns(loadJson(HOME_STORAGE_KEYS.countdowns, []));
 }
 
 export function saveCountdowns(countdowns) {
-  saveJson(HOME_STORAGE_KEYS.countdowns, Array.isArray(countdowns) ? countdowns : []);
+  saveJson(HOME_STORAGE_KEYS.countdowns, normalizeCountdowns(countdowns));
 }
 
 export function loadStudyTime() {
@@ -88,4 +88,8 @@ export function urgencyForDays(days) {
   if (days <= 7) return 'high';
   if (days <= 30) return 'medium';
   return 'low';
+}
+
+function normalizeCountdowns(countdowns) {
+  return Array.isArray(countdowns) ? countdowns.map((item) => ({ ...item, completed: Boolean(item.completed) })) : [];
 }

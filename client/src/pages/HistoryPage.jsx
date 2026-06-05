@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { RippleButton } from '../components/ui/ripple-button.jsx';
 import { FeedbackRecordPanel } from '../features/history/FeedbackRecordPanel.jsx';
 import { HistoryFilters } from '../features/history/HistoryFilters.jsx';
 import { HistoryList } from '../features/history/HistoryList.jsx';
@@ -61,14 +62,14 @@ export function HistoryPage() {
               <div className="min-w-0 flex-1">
                 <HistorySearch value={query} onChange={setQuery} />
               </div>
-              <button
+              <RippleButton
                 className="rounded-full border border-[var(--border)] px-4 py-2 text-sm text-[var(--subtle)] transition hover:border-rose-300/50 hover:text-rose-200 disabled:cursor-not-allowed disabled:opacity-40"
                 type="button"
                 disabled={!conversations.length}
                 onClick={handleClear}
               >
                 清空全部
-              </button>
+              </RippleButton>
             </div>
             <div className="mt-5">
               <HistoryFilters mode={mode} timeRange={timeRange} onModeChange={setMode} onTimeRangeChange={setTimeRange} />

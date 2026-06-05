@@ -1,3 +1,5 @@
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
+
 export function CurrentQuestionIndex({ questions = [], activeMessageId, onSelect }) {
   return (
     <aside className="flex min-h-0 w-full flex-col overflow-hidden rounded-[24px] border border-[var(--border-soft)] bg-[var(--panel-bg)] shadow-2xl shadow-black/15">
@@ -17,7 +19,7 @@ export function CurrentQuestionIndex({ questions = [], activeMessageId, onSelect
               const active = activeMessageId === question.id;
               return (
                 <li key={question.id}>
-                  <button
+                  <RippleButton
                     className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${
                       active
                         ? 'border-[var(--accent-blue)] bg-[var(--accent-soft)] text-[var(--text-primary)]'
@@ -28,7 +30,7 @@ export function CurrentQuestionIndex({ questions = [], activeMessageId, onSelect
                   >
                     <span className="mb-1 block text-xs text-[var(--text-muted)]">问题 {question.index}</span>
                     <span className="line-clamp-2">{question.label}</span>
-                  </button>
+                  </RippleButton>
                 </li>
               );
             })}

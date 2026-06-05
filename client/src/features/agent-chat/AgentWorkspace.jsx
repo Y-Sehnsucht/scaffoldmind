@@ -15,6 +15,7 @@ import {
   saveInteractionEvent,
   saveLearnerProfile,
 } from '../../shared/storage/agentMemoryStorage.js';
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 import { streamAgentChat } from './agentChatApi.js';
 import { ChatShell } from './ChatShell.jsx';
 import { CurrentQuestionIndex } from './CurrentQuestionIndex.jsx';
@@ -341,7 +342,7 @@ export function AgentWorkspace() {
   }
 
   return (
-    <div className="h-full w-full overflow-hidden bg-[var(--app-bg)] text-[var(--text-primary)]">
+    <div className="h-full w-full overflow-hidden bg-transparent text-[var(--text-primary)]">
       <div className="flex h-full w-full gap-6 p-6">
         <div className="hidden w-72 shrink-0 xl:flex">
           <CurrentQuestionIndex
@@ -398,7 +399,7 @@ function ModeBar({ subject, mode, isStreaming, onSubjectChange, onModeChange }) 
         {SUBJECTS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
       </select>
       {MODES.map((item) => (
-        <button
+        <RippleButton
           key={item.id}
           className={`h-10 shrink-0 whitespace-nowrap rounded-full px-4 text-sm transition ${
             item.id === mode
@@ -411,7 +412,7 @@ function ModeBar({ subject, mode, isStreaming, onSubjectChange, onModeChange }) 
           title={item.hint}
         >
           {item.label}
-        </button>
+        </RippleButton>
       ))}
     </div>
   );
@@ -436,7 +437,7 @@ function SettingsSidebar({ subject, mode, onSubjectChange, onModeChange }) {
         <Field label="学习模式">
           <div className="space-y-2">
             {MODES.map((item) => (
-              <button
+              <RippleButton
                 key={item.id}
                 className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${
                   item.id === mode
@@ -448,7 +449,7 @@ function SettingsSidebar({ subject, mode, onSubjectChange, onModeChange }) {
               >
                 <span className="font-medium">{item.label}</span>
                 <span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">{item.hint}</span>
-              </button>
+              </RippleButton>
             ))}
           </div>
         </Field>

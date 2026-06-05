@@ -36,8 +36,12 @@ export function LearningCalendar({ events, selectedDate, onSelectDate }) {
         </span>
       </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-2 text-center text-xs text-[var(--text-muted)]">
-        {['日', '一', '二', '三', '四', '五', '六'].map((day) => <span key={day}>{day}</span>)}
+      <div className="mt-6 grid grid-cols-7 gap-2 text-center text-sm font-medium text-[var(--text-muted)]">
+        {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
+          <span key={day} className="py-1">
+            {day}
+          </span>
+        ))}
       </div>
 
       <div className="mt-2 grid grid-cols-7 gap-2">
@@ -52,10 +56,10 @@ export function LearningCalendar({ events, selectedDate, onSelectDate }) {
               onClick={() => onSelectDate(cell.dateKey)}
               aria-pressed={cell.isSelected}
             >
-              <span className={cell.isToday ? 'font-semibold' : ''}>{cell.day}</span>
+              <span className={cell.isToday ? 'font-bold' : ''}>{cell.day}</span>
               {cell.hasEvent && (
                 <span
-                  className={`absolute bottom-2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full ${
+                  className={`absolute bottom-3 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full ${
                     cell.isSelected ? 'bg-[var(--app-bg)]' : 'bg-[var(--accent-green)]'
                   }`}
                 />
@@ -73,7 +77,7 @@ export function LearningCalendar({ events, selectedDate, onSelectDate }) {
 }
 
 function buildDayClass(cell) {
-  const base = 'relative aspect-square rounded-2xl border text-sm transition';
+  const base = 'relative flex aspect-square items-center justify-center rounded-[22px] border-2 text-lg font-medium transition';
   if (cell.isSelected) {
     return `${base} border-[var(--accent-blue)] bg-[var(--accent-blue)] text-[var(--app-bg)] shadow-lg shadow-black/10`;
   }

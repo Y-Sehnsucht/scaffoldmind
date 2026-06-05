@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 
 const ACTIONS = [
   { id: 'copy', label: '复制', icon: CopyIcon },
@@ -34,7 +35,7 @@ export function MessageActions({ message, rating, onCopy, onFeedback }) {
         const selected = action.id === rating;
 
         return (
-          <button
+          <RippleButton
             key={action.id}
             className={`group relative grid h-8 w-8 place-items-center rounded-full border text-sm transition ${
               selected
@@ -49,7 +50,7 @@ export function MessageActions({ message, rating, onCopy, onFeedback }) {
             <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[var(--border-soft)] bg-[var(--panel-strong)] px-2 py-1 text-xs text-[var(--text-primary)] opacity-0 shadow-xl shadow-black/20 transition group-hover:opacity-100">
               {action.label}
             </span>
-          </button>
+          </RippleButton>
         );
       })}
     </div>

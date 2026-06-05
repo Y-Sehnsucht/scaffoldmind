@@ -1,3 +1,4 @@
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
 import { handleRouteClick } from '../../routes/navigation.js';
 
 const MODE_LABELS = {
@@ -25,7 +26,7 @@ export function HistoryList({ conversations, selectedId, onSelect, onDelete }) {
           }`}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <button className="min-w-0 flex-1 text-left" type="button" onClick={() => onSelect(conversation.id)}>
+            <RippleButton className="min-w-0 flex-1 text-left" type="button" onClick={() => onSelect(conversation.id)}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-[var(--panel-soft)] px-2.5 py-1 text-xs text-[var(--subtle)]">{MODE_LABELS[conversation.mode] || conversation.mode}</span>
                 <span className="text-xs text-[var(--subtle)]">{formatTime(conversation.updatedAt)}</span>
@@ -33,18 +34,19 @@ export function HistoryList({ conversations, selectedId, onSelect, onDelete }) {
               <h2 className="mt-3 truncate text-lg font-semibold text-[var(--text)]">{conversation.title}</h2>
               <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--muted)]">{buildExcerpt(conversation)}</p>
               <p className="mt-3 text-xs text-[var(--subtle)]">{conversation.messages?.length || 0} 条消息</p>
-            </button>
+            </RippleButton>
             <div className="flex shrink-0 gap-2">
-              <a
+              <RippleButton
+                as="a"
                 className="rounded-full border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] transition hover:border-teal-300/50"
                 href={`/chat?conversationId=${encodeURIComponent(conversation.id)}`}
                 onClick={(event) => handleRouteClick(event, `/chat?conversationId=${encodeURIComponent(conversation.id)}`)}
               >
                 恢复
-              </a>
-              <button className="rounded-full border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--subtle)] transition hover:border-rose-300/50 hover:text-rose-200" type="button" onClick={() => onDelete(conversation.id)}>
+              </RippleButton>
+              <RippleButton className="rounded-full border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--subtle)] transition hover:border-rose-300/50 hover:text-rose-200" type="button" onClick={() => onDelete(conversation.id)}>
                 删除
-              </button>
+              </RippleButton>
             </div>
           </div>
         </article>

@@ -1,3 +1,5 @@
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
+
 const MODE_LABELS = {
   default: '默认知识解析',
   context_stacking: 'Context Stacking',
@@ -13,14 +15,14 @@ export function ConversationHistory({ conversations = [], activeConversationId, 
             <h2 className="text-base font-semibold text-[var(--text)]">最近学习记录</h2>
             <p className="mt-1 text-[0.8125rem] text-[var(--subtle)]">自动保存本机对话</p>
           </div>
-          <button
+          <RippleButton
             className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
             type="button"
             disabled={!conversations.length}
             onClick={onClear}
           >
             清空
-          </button>
+          </RippleButton>
         </div>
       </div>
 
@@ -34,7 +36,7 @@ export function ConversationHistory({ conversations = [], activeConversationId, 
             </div>
           ) : (
             conversations.slice(0, 10).map((conversation) => (
-              <button
+              <RippleButton
                 key={conversation.id}
                 className={`w-full min-w-0 rounded-2xl border p-4 text-left transition ${
                   conversation.id === activeConversationId
@@ -49,7 +51,7 @@ export function ConversationHistory({ conversations = [], activeConversationId, 
                   {MODE_LABELS[conversation.mode] || conversation.mode} · {formatTime(conversation.updatedAt)}
                 </p>
                 <p className="mt-2 text-xs text-slate-500">{conversation.messages?.length || 0} 条消息</p>
-              </button>
+              </RippleButton>
             ))
           )}
         </section>

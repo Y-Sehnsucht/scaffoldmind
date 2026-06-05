@@ -4,6 +4,12 @@ import { LearningCalendar } from '../features/home/LearningCalendar.jsx';
 import { RecentLearningCard } from '../features/home/RecentLearningCard.jsx';
 import { StudyStats } from '../features/home/StudyStats.jsx';
 import { TodayTasks } from '../features/home/TodayTasks.jsx';
+import { BorderBeam } from '../components/ui/border-beam.jsx';
+import { KineticText } from '../components/ui/kinetic-text.jsx';
+import { Meteors } from '../components/ui/meteors.jsx';
+import { Particles } from '../components/ui/particles.jsx';
+import { RippleButton } from '../components/ui/ripple-button.jsx';
+import { TypingAnimation } from '../components/ui/typing-animation.jsx';
 import { loadConversations } from '../shared/storage/agentMemoryStorage.js';
 import {
   calculateStreak,
@@ -21,6 +27,8 @@ import {
 } from '../shared/storage/homeStorage.js';
 
 const EMPTY_EVENT_FORM = { title: '', note: '' };
+const HOME_HERO_VIDEO_URL =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_171521_25968ba2-b594-4b32-aab7-f6b69398a6fa.mp4';
 
 export function HomePage() {
   const todayKey = toDateKey();
@@ -32,6 +40,9 @@ export function HomePage() {
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const [eventForm, setEventForm] = useState(EMPTY_EVENT_FORM);
   const [editingEventId, setEditingEventId] = useState('');
+  const [heroVideoError, setHeroVideoError] = useState(false);
+  const [headerTypingCycle, setHeaderTypingCycle] = useState(0);
+  const [homeParticleColor, setHomeParticleColor] = useState(() => getHomeParticleColor());
   const conversations = useMemo(() => loadConversations(), []);
   const selectedEvents = events.filter((event) => event.date === selectedDate);
 
@@ -43,6 +54,18 @@ export function HomePage() {
 
     window.addEventListener('scaffoldmind:study-time-updated', handleStudyTimeUpdate);
     return () => window.removeEventListener('scaffoldmind:study-time-updated', handleStudyTimeUpdate);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setHeaderTypingCycle((cycle) => cycle + 1), 10000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => setHomeParticleColor(getHomeParticleColor()));
+    observer.observe(root, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    return () => observer.disconnect();
   }, []);
 
   function handleSelectDate(dateKey) {
@@ -108,7 +131,13 @@ export function HomePage() {
   }
 
   function handleAddCountdown(title, date) {
-    const next = [{ id: createHomeId('countdown'), title, date, createdAt: new Date().toISOString() }, ...countdowns];
+    const next = [{ id: createHomeId('countdown'), title, date, completed: false, createdAt: new Date().toISOString() }, ...countdowns];
+    setCountdowns(next);
+    saveCountdowns(next);
+  }
+
+  function handleToggleCountdown(id) {
+    const next = countdowns.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item));
     setCountdowns(next);
     saveCountdowns(next);
   }
@@ -120,23 +149,18 @@ export function HomePage() {
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto p-6">
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-[36px] border border-[var(--border-soft)] bg-[var(--panel-bg)] px-7 py-8">
-          <div className="absolute right-0 top-0 h-40 w-72 rounded-full bg-[var(--accent-soft)] blur-3xl" />
-          <div className="relative flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-[var(--text-muted)]">Learning Dashboard</p>
-              <h2 className="mt-3 font-serif-display text-5xl italic tracking-normal text-[var(--text-primary)]">今天先把秩序搭起来。</h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--text-secondary)]">
-                日历、任务、倒数日和最近对话都只保存在本地，用来帮你把学习节奏从“临时想起”变成“持续推进”。
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--panel-strong)] px-4 py-3 text-sm text-[var(--text-secondary)]">
-              今日：{todayKey}
-            </div>
-          </div>
-        </section>
+    <div className="relative flex min-h-screen w-full flex-col overflow-y-auto bg-transparent pb-12">
+      <div className="pointer-events-none absolute inset-0 z-0 bg-transparent opacity-20 dark:opacity-100">
+        <Particles className="absolute inset-0 h-full w-full bg-transparent" quantity={780} staticity={80} ease={70} color={homeParticleColor} size={0.6} refresh topBias />
+      </div>
+
+      <div className="relative z-10 w-full space-y-6 bg-transparent px-8">
+        <HomeHeader typingCycle={headerTypingCycle} />
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(320px,0.78fr)_minmax(0,1.55fr)]">
+          <HomeVideoCard videoError={heroVideoError} onVideoError={() => setHeroVideoError(true)} />
+          <HomeHeroCard todayKey={todayKey} />
+        </div>
 
         <StudyStats todaySeconds={studyTime[todayKey] || 0} streak={calculateStreak(checkins, todayKey)} totalConversations={conversations.length} />
 
@@ -157,12 +181,91 @@ export function HomePage() {
           </div>
           <div className="space-y-6">
             <TodayTasks tasks={tasks} onAdd={handleAddTask} onToggle={handleToggleTask} onDelete={handleDeleteTask} />
-            <CountdownList countdowns={countdowns} onAdd={handleAddCountdown} onDelete={handleDeleteCountdown} />
+            <CountdownList countdowns={countdowns} onAdd={handleAddCountdown} onDelete={handleDeleteCountdown} onToggleComplete={handleToggleCountdown} />
             <RecentLearningCard conversations={conversations} />
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function getHomeParticleColor() {
+  if (typeof document === 'undefined') return '#ffffff';
+  return document.documentElement.classList.contains('light') || document.documentElement.dataset.theme === 'light' ? '#404040' : '#ffffff';
+}
+
+function HomeHeader({ typingCycle }) {
+  return (
+    <div className="relative flex h-32 w-full items-center justify-between bg-transparent">
+      <div className="flex w-1/4 items-center justify-start">
+        <TypingAnimation key={typingCycle} text="Hello World! 👋" className="font-mono text-3xl tracking-wider text-[var(--text-muted)]" speed={58} />
+      </div>
+
+      <div className="flex flex-1 select-none items-center justify-center -translate-y-3">
+        <div className="text-[var(--text-primary)]">
+          <KineticText
+            text="SCAFFOLDMIND"
+            className="font-serif-display text-5xl font-medium uppercase leading-none tracking-[0.36em] text-[var(--text-primary)] md:text-6xl"
+          />
+        </div>
+      </div>
+
+      <div className="w-1/4" aria-hidden="true" />
+    </div>
+  );
+}
+function HomeHeroCard({ todayKey }) {
+  return (
+    <section className="relative flex min-h-[250px] items-end overflow-hidden rounded-[36px] border border-[var(--border-soft)] bg-[var(--panel-bg)] px-7 py-8 shadow-sm">
+      <BorderBeam />
+      <Meteors number={30} />
+      <div className="absolute right-0 top-0 h-44 w-80 rounded-full bg-[var(--accent-soft)] blur-3xl" />
+      <div className="relative z-10 flex w-full flex-wrap items-end justify-between gap-6">
+        <div>
+          <p className="text-sm uppercase tracking-[0.24em] text-[var(--text-muted)]">Learning Dashboard</p>
+          <h2 className="mt-3 min-h-[3.75rem] font-serif-display text-5xl italic tracking-normal text-[var(--text-primary)]">
+            <TypingAnimation text="今天先把秩序搭起来。" speed={56} />
+          </h2>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--text-secondary)]">
+            日历、任务、倒数日和最近对话都只保存在本地，用来帮你把学习节奏从“临时想起”变成“持续推进”。
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--panel-strong)] px-4 py-3 text-sm text-[var(--text-secondary)]">
+          今日：{todayKey}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HomeVideoCard({ videoError, onVideoError }) {
+  return (
+    <section className="relative overflow-hidden rounded-[30px] border border-[var(--border-soft)] bg-[var(--panel-bg)] p-4 shadow-sm">
+      <BorderBeam />
+      <div className="relative min-h-[250px] overflow-hidden rounded-[24px] border border-[var(--border-soft)] bg-[var(--panel-strong)] shadow-sm">
+        {videoError ? (
+          <div className="flex h-full min-h-[250px] items-center justify-center px-6 text-center text-sm leading-6 text-[var(--text-secondary)]">
+            视频暂时无法加载，学习面板仍可正常使用。
+          </div>
+        ) : (
+          <video
+            className="h-full min-h-[250px] w-full object-cover"
+            src={HOME_HERO_VIDEO_URL}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onError={onVideoError}
+          />
+        )}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/45 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+          今日学习仪表盘
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -191,13 +294,13 @@ function SelectedDateEvents({ date, events, form, editingEventId, onFormChange, 
           placeholder="备注，可选"
         />
         <div className="flex flex-wrap gap-2">
-          <button className="rounded-full bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--app-bg)]" type="submit">
+          <RippleButton className="rounded-full bg-[var(--text-primary)] px-4 py-2 text-sm font-medium text-[var(--app-bg)]" type="submit">
             {editingEventId ? '保存修改' : '添加事件'}
-          </button>
+          </RippleButton>
           {editingEventId && (
-            <button className="rounded-full border border-[var(--border-soft)] px-4 py-2 text-sm text-[var(--text-secondary)]" type="button" onClick={onCancelEdit}>
+            <RippleButton className="rounded-full border border-[var(--border-soft)] px-4 py-2 text-sm text-[var(--text-secondary)]" type="button" onClick={onCancelEdit}>
               取消编辑
-            </button>
+            </RippleButton>
           )}
         </div>
       </form>
@@ -216,12 +319,12 @@ function SelectedDateEvents({ date, events, form, editingEventId, onFormChange, 
                   {event.note && <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{event.note}</p>}
                 </div>
                 <div className="flex gap-2">
-                  <button className="rounded-full border border-[var(--border-soft)] px-3 py-1.5 text-xs text-[var(--text-secondary)]" type="button" onClick={() => onEdit(event)}>
+                  <RippleButton className="rounded-full border border-[var(--border-soft)] px-3 py-1.5 text-xs text-[var(--text-secondary)]" type="button" onClick={() => onEdit(event)}>
                     编辑
-                  </button>
-                  <button className="rounded-full border border-[var(--danger)] px-3 py-1.5 text-xs text-[var(--danger)]" type="button" onClick={() => onDelete(event.id)}>
+                  </RippleButton>
+                  <RippleButton className="rounded-full border border-[var(--danger)] px-3 py-1.5 text-xs text-[var(--danger)]" type="button" onClick={() => onDelete(event.id)}>
                     删除
-                  </button>
+                  </RippleButton>
                 </div>
               </div>
             </article>

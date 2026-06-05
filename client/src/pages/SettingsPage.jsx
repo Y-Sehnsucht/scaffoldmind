@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { RippleButton } from '../components/ui/ripple-button.jsx';
 import { SettingsSection } from '../features/settings/SettingsSection.jsx';
 import {
   applyTheme,
@@ -60,9 +61,9 @@ export function SettingsPage() {
 
             <SettingsSection title="本地数据导出" description="导出 ScaffoldMind 明序的本地学习数据 JSON。可能包含密钥的本地配置项会被过滤。">
               <div className="flex flex-wrap gap-3">
-                <button className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100" type="button" onClick={handleExport}>
+                <RippleButton className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100" type="button" onClick={handleExport}>
                   生成导出 JSON
-                </button>
+                </RippleButton>
                 {exportText ? (
                   <a
                     className="rounded-2xl border border-[var(--border)] px-5 py-3 text-sm font-semibold text-[var(--text)] transition hover:border-teal-300/60"
@@ -88,12 +89,12 @@ export function SettingsPage() {
 
             <SettingsSection title="清理本地数据" description="这些操作只清理浏览器 localStorage，不会访问后端，也不会影响服务器环境变量。">
               <div className="space-y-3">
-                <button className="w-full rounded-2xl border border-rose-300/30 bg-rose-400/10 px-5 py-3 text-sm font-semibold text-rose-200 transition hover:bg-rose-400/15" type="button" onClick={handleClearHistory}>
+                <RippleButton className="w-full rounded-2xl border border-rose-300/30 bg-rose-400/10 px-5 py-3 text-sm font-semibold text-rose-200 transition hover:bg-rose-400/15" type="button" onClick={handleClearHistory}>
                   清空本地历史
-                </button>
-                <button className="w-full rounded-2xl border border-amber-300/30 bg-amber-400/10 px-5 py-3 text-sm font-semibold text-amber-200 transition hover:bg-amber-400/15" type="button" onClick={handleClearTasksAndPractice}>
+                </RippleButton>
+                <RippleButton className="w-full rounded-2xl border border-amber-300/30 bg-amber-400/10 px-5 py-3 text-sm font-semibold text-amber-200 transition hover:bg-amber-400/15" type="button" onClick={handleClearTasksAndPractice}>
                   清空任务 / 倒数日 / 刷题记录
-                </button>
+                </RippleButton>
               </div>
             </SettingsSection>
           </aside>
@@ -105,7 +106,7 @@ export function SettingsPage() {
 
 function ThemeButton({ active, label, onClick }) {
   return (
-    <button
+    <RippleButton
       className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${
         active ? 'bg-teal-400 text-slate-950' : 'border border-[var(--border)] text-[var(--text)] hover:border-teal-300/60'
       }`}
@@ -113,6 +114,6 @@ function ThemeButton({ active, label, onClick }) {
       onClick={onClick}
     >
       {label}
-    </button>
+    </RippleButton>
   );
 }

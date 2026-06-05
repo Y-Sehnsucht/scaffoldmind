@@ -1,3 +1,5 @@
+import { RippleButton } from '../../components/ui/ripple-button.jsx';
+
 const UNPARSED_PATTERN = /\.(pptx|png|jpg|jpeg|webp)$/i;
 
 export function AttachmentChips({ attachments = [], onRemove }) {
@@ -13,14 +15,14 @@ export function AttachmentChips({ attachments = [], onRemove }) {
           <span className="min-w-0 truncate">{file.name}</span>
           {isUnparsed(file) && <span className="shrink-0 text-[var(--accent)]">暂不解析</span>}
           {onRemove && (
-            <button
+            <RippleButton
               className="shrink-0 rounded-full text-[var(--text-muted)] hover:text-[var(--danger)]"
               type="button"
               onClick={() => onRemove(file)}
               aria-label={`移除 ${file.name}`}
             >
               ×
-            </button>
+            </RippleButton>
           )}
         </span>
       ))}
