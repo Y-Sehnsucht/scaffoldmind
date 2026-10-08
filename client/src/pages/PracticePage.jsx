@@ -4,6 +4,7 @@ import { MistakeList } from '../features/practice/MistakeList.jsx';
 import { PracticeControls } from '../features/practice/PracticeControls.jsx';
 import { PracticeQuestionCard } from '../features/practice/PracticeQuestionCard.jsx';
 import { PracticeStatsStrip } from '../features/practice/PracticeStatsStrip.jsx';
+import { getCurrentSearchParams } from '../routes/navigation.js';
 import { generatePracticeQuestion, evaluatePracticeAnswer } from '../shared/api/practiceClient.js';
 import { loadLearnerProfile } from '../shared/storage/agentMemoryStorage.js';
 import {
@@ -141,7 +142,7 @@ export function PracticePage() {
 }
 
 function getInitialConcept() {
-  const params = new URLSearchParams(window.location.search);
+  const params = getCurrentSearchParams();
   const fromQuery = params.get('concept');
   if (fromQuery) return fromQuery;
   const latestMistake = loadPracticeMistakes()[0];

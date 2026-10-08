@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AnimatedThemeToggle } from '../features/agent-chat/AnimatedThemeToggle.jsx';
-import { handleRouteClick } from '../routes/navigation.js';
+import { handleRouteClick, routeHref } from '../routes/navigation.js';
 import { addStudySeconds, markCheckin, toDateKey } from '../shared/storage/homeStorage.js';
 import { ShimmerButton } from '../components/ui/shimmer-button.jsx';
 import { SidebarNav } from './SidebarNav.jsx';
@@ -39,7 +39,7 @@ export function AppShell({ activePath, pageTitle, children }) {
                 <ShimmerButton
                   as="a"
                   className="hidden px-4 py-2 text-sm font-medium text-[var(--shimmer-button-fg)] lg:inline-flex"
-                  href="/chat"
+                  href={routeHref('/chat')}
                   onClick={(event) => handleRouteClick(event, '/chat')}
                 >
                   进入对话

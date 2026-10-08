@@ -1,6 +1,11 @@
-import { ApiResponseError, createJsonRequest } from '../../shared/api/client.js';
+import { ApiResponseError, createJsonRequest, isStaticDemo } from '../../shared/api/client.js';
 
 export async function streamAgentChat(payload, handlers = {}) {
+  if (isStaticDemo()) {
+    handlers.onError?.(new ApiResponseError('公开演示版使用本地学习反馈。', 'STATIC_DEMO', null));
+    return;
+  }
+
   const request = createJsonRequest('/api/agent/chat/stream', payload);
   let response;
 

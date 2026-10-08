@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { handleRouteClick } from '../../routes/navigation.js';
+import { handleRouteClick, routeHref } from '../../routes/navigation.js';
 
 const FEATURED_VIDEO = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260402_054547_9875cfc5-155a-4229-8ec8-b7ba7125cbf8.mp4';
 
@@ -32,7 +32,7 @@ export function LandingVideoSection() {
           </div>
           <a
             className="absolute bottom-5 right-5 hidden rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-neutral-200 md:inline-flex"
-            href="/chat"
+            href={routeHref('/chat')}
             onClick={(event) => handleRouteClick(event, '/chat')}
           >
             探索明序核心模式

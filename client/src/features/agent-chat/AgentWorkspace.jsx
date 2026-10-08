@@ -16,6 +16,7 @@ import {
   saveLearnerProfile,
 } from '../../shared/storage/agentMemoryStorage.js';
 import { RippleButton } from '../../components/ui/ripple-button.jsx';
+import { getCurrentPath, getCurrentSearchParams } from '../../routes/navigation.js';
 import { streamAgentChat } from './agentChatApi.js';
 import { ChatShell } from './ChatShell.jsx';
 import { CurrentQuestionIndex } from './CurrentQuestionIndex.jsx';
@@ -60,7 +61,7 @@ export function AgentWorkspace() {
 
   useEffect(() => {
     function handleRouteChange() {
-      if (window.location.pathname !== '/chat') return;
+      if (getCurrentPath() !== '/chat') return;
       if (isStreaming) return;
       applyRouteState(readRouteState());
     }
@@ -645,7 +646,7 @@ function inferFileType(name) {
 
 function readRouteState() {
   if (typeof window === 'undefined') return { conversationId: '', concept: '', mode: '' };
-  const params = new URLSearchParams(window.location.search);
+  const params = getCurrentSearchParams();
   const mode = params.get('mode') || '';
   return {
     conversationId: params.get('conversationId') || '',

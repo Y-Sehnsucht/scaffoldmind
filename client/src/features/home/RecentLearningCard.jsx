@@ -1,4 +1,4 @@
-import { handleRouteClick } from '../../routes/navigation.js';
+import { handleRouteClick, routeHref } from '../../routes/navigation.js';
 
 const MODE_LABELS = {
   default: '默认解析',
@@ -14,7 +14,7 @@ export function RecentLearningCard({ conversations }) {
           <p className="text-sm text-[var(--subtle)]">Recent</p>
           <h2 className="mt-1 text-2xl font-semibold text-[var(--text)]">最近学习</h2>
         </div>
-        <a className="text-sm text-teal-300 hover:text-teal-200" href="/history" onClick={(event) => handleRouteClick(event, '/history')}>查看全部</a>
+        <a className="text-sm text-teal-300 hover:text-teal-200" href={routeHref('/history')} onClick={(event) => handleRouteClick(event, '/history')}>查看全部</a>
       </div>
       <div className="mt-5 space-y-2">
         {conversations.length === 0 ? (
@@ -24,7 +24,7 @@ export function RecentLearningCard({ conversations }) {
             <a
               key={conversation.id}
               className="block rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] p-4 transition hover:border-teal-300/45"
-              href={`/chat?conversationId=${encodeURIComponent(conversation.id)}`}
+              href={routeHref(`/chat?conversationId=${encodeURIComponent(conversation.id)}`)}
               onClick={(event) => handleRouteClick(event, `/chat?conversationId=${encodeURIComponent(conversation.id)}`)}
             >
               <p className="truncate text-sm font-semibold text-[var(--text)]">{conversation.title}</p>

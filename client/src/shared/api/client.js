@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:3001';
+const STATIC_DEMO = import.meta.env?.VITE_STATIC_DEMO === 'true';
 
 export class ApiResponseError extends Error {
   constructor(message, code = 'REQUEST_ERROR', response = null) {
@@ -38,7 +39,12 @@ export function createJsonRequest(path, body) {
   };
 }
 
+export function isStaticDemo() {
+  return STATIC_DEMO;
+}
+
 export async function requestJson(path, options = {}) {
+  assertBackendAvailable();
   let response;
 
   try {
@@ -80,6 +86,7 @@ export function deleteJson(path) {
 }
 
 export async function postFormData(path, formData) {
+  assertBackendAvailable();
   let response;
 
   try {
@@ -98,6 +105,11 @@ export async function postFormData(path, formData) {
 }
 
 export async function postSSE(path, body, { onDelta, onStatus, onResult, onFallback, onError }) {
+  if (STATIC_DEMO) {
+    if (onError) onError(staticDemoError());
+    return;
+  }
+
   let response;
 
   try {
@@ -159,6 +171,16 @@ async function parseJsonBody(response) {
   } catch {
     throw new ApiResponseError('后端返回了不可解析的响应。', 'INVALID_JSON_RESPONSE', null);
   }
+}
+
+function assertBackendAvailable() {
+  if (STATIC_DEMO) {
+    throw staticDemoError();
+  }
+}
+
+function staticDemoError() {
+  return new ApiResponseError('公开演示版使用本地学习反馈。', 'STATIC_DEMO', null);
 }
 
 export const mockBackendApi = {

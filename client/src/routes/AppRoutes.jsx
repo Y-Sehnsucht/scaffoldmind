@@ -8,7 +8,7 @@ import { PracticePage } from '../pages/PracticePage.jsx';
 import { ProfilePage } from '../pages/ProfilePage.jsx';
 import { ReviewPage } from '../pages/ReviewPage.jsx';
 import { SettingsPage } from '../pages/SettingsPage.jsx';
-import { getCurrentPath } from './navigation.js';
+import { getCurrentPath, routeHref } from './navigation.js';
 
 const SHELL_ROUTES = {
   '/home': { label: '首页', element: <HomePage /> },
@@ -24,8 +24,8 @@ export function AppRoutes() {
   const [path, setPath] = useState(() => normalizePath(getCurrentPath()));
 
   useEffect(() => {
-    if (window.location.pathname === '/') {
-      window.history.replaceState({}, '', '/landing');
+    if (!window.location.hash.startsWith('#/')) {
+      window.history.replaceState({}, '', routeHref('/landing'));
       setPath('/landing');
     }
 
