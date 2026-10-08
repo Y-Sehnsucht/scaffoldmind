@@ -14,6 +14,7 @@ import {
   loadRepeatedQuestionStats,
 } from '../shared/storage/agentMemoryStorage.js';
 import { loadJson } from '../shared/storage/localStorage.js';
+import { handleRouteClick, routeHref } from '../routes/navigation.js';
 
 export function ProfilePage() {
   const conversations = useMemo(() => loadConversations(), []);
@@ -72,7 +73,8 @@ export function ProfilePage() {
                   <a
                     key={conversation.id}
                     className="block rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 text-sm text-[var(--text)] transition hover:border-teal-300/45"
-                    href={`/history?concept=${encodeURIComponent(selectedNode.label)}`}
+                    href={routeHref(`/history?concept=${encodeURIComponent(selectedNode.label)}`)}
+                    onClick={(event) => handleRouteClick(event, `/history?concept=${encodeURIComponent(selectedNode.label)}`)}
                   >
                     {conversation.title}
                   </a>

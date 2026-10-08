@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { RippleButton } from '../../components/ui/ripple-button.jsx';
-import { handleRouteClick } from '../../routes/navigation.js';
+import { handleRouteClick, routeHref } from '../../routes/navigation.js';
 
 const HERO_VIDEO = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a.mp4';
 
@@ -33,7 +33,7 @@ export function LandingHero() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/58 to-black" />
 
       <header className="liquid-glass relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between rounded-full px-4 py-3 text-sm">
-        <a className="flex items-center gap-2 text-white" href="/landing" onClick={(event) => handleRouteClick(event, '/landing')}>
+        <a className="flex items-center gap-2 text-white" href={routeHref('/landing')} onClick={(event) => handleRouteClick(event, '/landing')}>
           <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-slate-950">◎</span>
           <span className="font-medium">ScaffoldMind</span>
         </a>
@@ -42,7 +42,7 @@ export function LandingHero() {
           <a href="#methodology">Scaffolding</a>
           <a href="#services">Methodology</a>
         </nav>
-        <RippleButton as="a" className="rounded-full bg-white px-4 py-2 font-medium text-slate-950" href="/chat" onClick={(event) => handleRouteClick(event, '/chat')}>
+        <RippleButton as="a" className="rounded-full bg-white px-4 py-2 font-medium text-slate-950" href={routeHref('/chat')} onClick={(event) => handleRouteClick(event, '/chat')}>
           开始学习
         </RippleButton>
       </header>

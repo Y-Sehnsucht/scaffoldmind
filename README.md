@@ -52,6 +52,15 @@ npm run dev
 - 前端：`http://localhost:5173`
 - 后端健康检查：`http://localhost:3001/api/health`
 
+## 公开演示
+
+GitHub Pages 会从 `main` 分支自动构建并发布前端：
+
+- 演示地址：`https://y-sehnsucht.github.io/scaffoldmind/`
+- 公开构建使用浏览器本地 fallback，不会请求访问者电脑上的 `localhost`。
+- 历史、画像、主题等数据仍保存在访问者自己的 localStorage 中。
+- 真实 AI 流式回答需要单独部署 Express 后端，并通过 `VITE_API_BASE_URL` 指向该 HTTPS 服务；API Key 仍只能保存在后端。
+
 也可以在项目根目录运行：
 
 ```bash

@@ -1,5 +1,5 @@
 import { RippleButton } from '../../components/ui/ripple-button.jsx';
-import { handleRouteClick } from '../../routes/navigation.js';
+import { handleRouteClick, routeHref } from '../../routes/navigation.js';
 
 const MODE_LABELS = {
   default: '默认解析',
@@ -39,7 +39,7 @@ export function HistoryList({ conversations, selectedId, onSelect, onDelete }) {
               <RippleButton
                 as="a"
                 className="rounded-full border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] transition hover:border-teal-300/50"
-                href={`/chat?conversationId=${encodeURIComponent(conversation.id)}`}
+                href={routeHref(`/chat?conversationId=${encodeURIComponent(conversation.id)}`)}
                 onClick={(event) => handleRouteClick(event, `/chat?conversationId=${encodeURIComponent(conversation.id)}`)}
               >
                 恢复

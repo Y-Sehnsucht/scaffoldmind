@@ -1,5 +1,5 @@
 import { AnimatedThemeToggle } from '../features/agent-chat/AnimatedThemeToggle.jsx';
-import { handleRouteClick } from '../routes/navigation.js';
+import { handleRouteClick, routeHref } from '../routes/navigation.js';
 
 const NAV_ITEMS = [
   { path: '/landing', label: 'Landing', short: 'L', description: '产品入口' },
@@ -18,7 +18,7 @@ export function SidebarNav({ activePath }) {
       <div className="min-h-0 flex-1">
         <a
           className="flex h-20 items-center gap-3 px-3 text-[var(--text-primary)]"
-          href="/landing"
+          href={routeHref('/landing')}
           onClick={(event) => handleRouteClick(event, '/landing')}
         >
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[var(--text-primary)] text-base font-bold text-[var(--app-bg)]">明</span>
@@ -40,7 +40,7 @@ export function SidebarNav({ activePath }) {
                     ? 'bg-[var(--text-primary)] text-[var(--app-bg)]'
                     : 'text-[var(--text-secondary)] hover:bg-[var(--panel-strong)] hover:text-[var(--text-primary)]'
                 }`}
-                href={item.path}
+                href={routeHref(item.path)}
                 onClick={(event) => handleRouteClick(event, item.path)}
               >
                 <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-semibold ${
